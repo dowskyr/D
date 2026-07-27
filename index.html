@@ -624,6 +624,7 @@
         <div class="contact-row" id="contactWhatsappRow"><span class="ic">💬</span><span><a id="contactWhatsappLink" href="#" target="_blank" rel="noopener"></a></span></div>
         <div class="contact-row" id="contactEmailRow"><span class="ic">✉️</span><span><a id="contactEmailLink" href="#"></a></span></div>
         <div class="contact-row" id="contactAddressRow"><span class="ic">📍</span><span id="contactAddressText"></span></div>
+        <div id="contactLocationRows"></div>
         <div class="contact-row" id="contactHoursRow"><span class="ic">🕒</span><span id="contactHoursText"></span></div>
         <div id="contactExtraRows"></div>
       </div>
@@ -864,6 +865,12 @@
             </div>
             <div class="field"><label for="cContactEmail">Email address</label><input id="cContactEmail" type="email" placeholder="e.g. hello@sohlam.farm"></div>
             <div class="field"><label for="cContactAddress">Address</label><input id="cContactAddress" type="text" placeholder="e.g. Batoke-Limbe farm gate"></div>
+            <div class="field">
+              <label>Additional locations</label>
+              <div class="helper" style="margin-bottom:8px;">If you sell or deliver from more than one spot (a second farm gate, a market stall, a pickup point), add each one here — they'll all show up under Contact.</div>
+              <div id="cLocationExtraList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;"></div>
+              <button type="button" class="btn-ghost" id="addLocationBtn" style="width:100%;">+ Add another location</button>
+            </div>
             <div class="field"><label for="cContactHours">Opening hours</label><input id="cContactHours" type="text" placeholder="e.g. Mon–Sat, 7am–6pm"></div>
             <button class="btn-primary" id="saveContactBtn" style="width:100%; margin-top:8px;">Save Contact Info</button>
           </div>
@@ -1363,6 +1370,14 @@
 
 
   function fmtMoney(n){ return Math.round(n).toLocaleString('en-US') + ' XAF'; }
+
+  // Turns whatever format a customer typed their phone in (spaces, dashes,
+  // etc.) into a clean tel: link — strips everything except digits and a
+  // leading +, so tapping it reliably opens the phone dialer.
+  function telHref(phone){
+    if(!phone) return '';
+    return 'tel:' + phone.trim().replace(/[^\d+]/g, '');
+  }
 
   // Builds the "Pay via Mobile Money" card from whichever methods the admin
   // has set a number for. Pass an order to show the amount/reference line;
@@ -2131,6 +2146,19 @@
       addrRow.style.display = 'flex';
       document.getElementById('contactAddressText').textContent = content.contactAddress;
     } else { addrRow.style.display = 'none'; }
+
+    const locContainer = document.getElementById('contactLocationRows');
+    locContainer.innerHTML = '';
+    (content.locations || []).forEach(item => {
+      if(!item.label && !item.address) return;
+      const row = document.createElement('div');
+      row.className = 'contact-row';
+      const labelHtml = item.label ? `<strong>${item.label}</strong>` : '';
+      const sep = item.label && item.address ? ' — ' : '';
+      const mapLinkHtml = item.mapUrl ? ` &middot; <a href="${item.mapUrl}" target="_blank" rel="noopener">View on map</a>` : '';
+      row.innerHTML = `<span class="ic">📍</span><span>${labelHtml}${sep}${item.address || ''}${mapLinkHtml}</span>`;
+      locContainer.appendChild(row);
+    });
 
     const hoursRow = document.getElementById('contactHoursRow');
     if(content.contactHours){
@@ -3199,6 +3227,39 @@
   document.getElementById('addContactNumberBtn').addEventListener('click', ()=>{
     document.getElementById('cContactExtraList').appendChild(buildContactExtraRow());
   });
+
+  // Additional locations (a second farm gate, a market stall, a pickup
+  // point, etc.) beyond the single primary Address field above. Mirrors the
+  // additional-contact-numbers pattern: a free-form repeatable list stored
+  // on content.locations and rendered as extra rows under Contact.
+  function buildLocationExtraRow(item){
+    item = item || {};
+    const row = document.createElement('div');
+    row.className = 'location-extra-row';
+    row.dataset.rowId = item.id || ('loc_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7));
+    row.style.cssText = 'display:flex; flex-direction:column; gap:6px; border:1.5px solid var(--ink); border-radius:9px; padding:8px;';
+    const label = (item.label || '').replace(/"/g,'&quot;');
+    const address = (item.address || '').replace(/"/g,'&quot;');
+    const mapUrl = (item.mapUrl || '').replace(/"/g,'&quot;');
+    row.innerHTML = `
+      <div style="display:flex; gap:6px; align-items:center;">
+        <input type="text" class="cLocLabel" placeholder="Label (e.g. Limbe Market Stall)" style="flex:1 1 auto; min-width:0; padding:8px; border:1.5px solid var(--ink); border-radius:7px;" value="${label}">
+        <button type="button" class="icon-btn cLocRemove" title="Remove this location">🗑️</button>
+      </div>
+      <input type="text" class="cLocAddress" placeholder="Address / directions" style="padding:8px; border:1.5px solid var(--ink); border-radius:7px;" value="${address}">
+      <input type="url" class="cLocMapUrl" placeholder="Google Maps link (optional)" style="padding:8px; border:1.5px solid var(--ink); border-radius:7px;" value="${mapUrl}">
+    `;
+    row.querySelector('.cLocRemove').addEventListener('click', ()=> row.remove());
+    return row;
+  }
+  function renderLocationExtraFormRows(list){
+    const container = document.getElementById('cLocationExtraList');
+    container.innerHTML = '';
+    (list || []).forEach(item => container.appendChild(buildLocationExtraRow(item)));
+  }
+  document.getElementById('addLocationBtn').addEventListener('click', ()=>{
+    document.getElementById('cLocationExtraList').appendChild(buildLocationExtraRow());
+  });
   function populateContentForm(){
     document.getElementById('cEyebrow').value = content.heroEyebrow;
     document.getElementById('cLine1').value = content.heroLine1;
@@ -3218,6 +3279,7 @@
     renderContactExtraFormRows(content.contactExtras || []);
     document.getElementById('cContactEmail').value = content.contactEmail || '';
     document.getElementById('cContactAddress').value = content.contactAddress || '';
+    renderLocationExtraFormRows(content.locations || []);
     document.getElementById('cContactHours').value = content.contactHours || '';
     document.getElementById('cMomoName').value = content.momoName || '';
     document.getElementById('cMomoNumber').value = content.momoNumber || '';
@@ -3271,6 +3333,12 @@
       })).filter(item => item.number),
       contactEmail: document.getElementById('cContactEmail').value.trim(),
       contactAddress: document.getElementById('cContactAddress').value.trim(),
+      locations: Array.from(document.querySelectorAll('#cLocationExtraList .location-extra-row')).map(row => ({
+        id: row.dataset.rowId,
+        label: row.querySelector('.cLocLabel').value.trim(),
+        address: row.querySelector('.cLocAddress').value.trim(),
+        mapUrl: row.querySelector('.cLocMapUrl').value.trim()
+      })).filter(item => item.label || item.address),
       contactHours: document.getElementById('cContactHours').value.trim()
     };
     saveContent(updated);
@@ -3464,6 +3532,7 @@
           ? `<div class="admin-proof-row"><img src="${o.paymentProofImage}" class="admin-proof-thumb" data-proof-view alt="Payment proof from customer"><span style="font-size:12px; color:var(--sage); font-weight:700;">📎 Payment screenshot — tap to verify</span></div>`
           : `<div class="admin-proof-missing">No payment screenshot uploaded yet.</div>`}
         <div class="order-actions">
+          ${o.phone ? `<a class="icon-btn" href="${telHref(o.phone)}" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;">📞 Call</a>` : ''}
           ${next ? `<button class="icon-btn" data-advance="${o.id}">Mark ${statusMap[next]}</button>` : ''}
           <button class="icon-btn" data-toggle-paid="${o.id}">${paid ? 'Mark Unpaid' : 'Mark Paid'}</button>
           <button class="icon-btn" data-edit-txn="${o.id}">${o.transactionId ? 'Edit Txn ID' : 'Add Txn ID'}</button>
