@@ -985,7 +985,9 @@
       uploadProofTitle:'Upload Payment Screenshot', uploadProofNote:'After sending the money, upload a screenshot of the confirmation so we can verify your payment faster.',
       uploadProofBtn:'📷 Upload Screenshot', replaceProofBtn:'Replace Screenshot', takePhotoBtn:'📸 Take Photo',
       proofUploaded:'Screenshot received — awaiting verification', proofUploading:'Uploading…',
-      proofUploadFailed:'Could not upload — check your connection and try again.', proofTooLarge:'That image is too large. Please pick a smaller photo.'
+      proofUploadFailed:'Could not upload — check your connection and try again.', proofTooLarge:'That image is too large. Please pick a smaller photo.',
+      askQtyPrompt:'How many {unit} of {name} would you like?', invalidQty:'Please enter a valid quantity.',
+      proofUploadTimedOut:'Upload timed out — your connection may be weak. Please try again.'
     },
     fr: {
       callUs:'Appelez-nous', orderBasket:'Mon Panier', myOrders:'Commandes',
@@ -1024,7 +1026,9 @@
       uploadProofTitle:'Téléverser la Capture de Paiement', uploadProofNote:"Après l'envoi de l'argent, téléversez une capture d'écran de la confirmation pour que nous puissions vérifier votre paiement plus vite.",
       uploadProofBtn:"📷 Téléverser la Capture", replaceProofBtn:'Remplacer la Capture', takePhotoBtn:'📸 Prendre une Photo',
       proofUploaded:'Capture reçue — en attente de vérification', proofUploading:'Téléversement…',
-      proofUploadFailed:'Échec du téléversement — vérifiez votre connexion et réessayez.', proofTooLarge:'Cette image est trop grande. Choisissez une photo plus petite.'
+      proofUploadFailed:'Échec du téléversement — vérifiez votre connexion et réessayez.', proofTooLarge:'Cette image est trop grande. Choisissez une photo plus petite.',
+      askQtyPrompt:'Combien de {unit} de {name} souhaitez-vous ?', invalidQty:'Veuillez entrer une quantité valide.',
+      proofUploadTimedOut:"Le téléversement a expiré — votre connexion est peut-être faible. Veuillez réessayer."
     }
   };
   let lang = localStorage.getItem('sohlam_lang') || 'en';
@@ -1477,6 +1481,20 @@
   // Wires the upload input(s) inside a just-rendered payment-proof block.
   // `onDone` is called after a successful save so the caller can re-render
   // its own copy of the block with the fresh order data.
+  // On a weak connection (no wifi, one signal bar, etc.) the Firestore
+  // write can sit pending indefinitely — the SDK doesn't reject, it just
+  // waits for connectivity. Without a client-side deadline that leaves the
+  // progress bar frozen at 90% forever with no error and no way to retry,
+  // which is exactly the "it just gets stuck" symptom. PROOF_UPLOAD_TIMEOUT_MS
+  // puts a hard ceiling on the whole compress+save chain so it always either
+  // finishes or fails visibly.
+  const PROOF_UPLOAD_TIMEOUT_MS = 25000;
+  function withTimeout(promise, ms){
+    return new Promise((resolve, reject)=>{
+      const timer = setTimeout(()=> reject(new Error('timeout')), ms);
+      promise.then(v=>{ clearTimeout(timer); resolve(v); }, e=>{ clearTimeout(timer); reject(e); });
+    });
+  }
   function wirePaymentProofUpload(container, onDone){
     // Some Android WebViews fail to forward a label tap into a nested
     // display:none file input, so we drive it explicitly here instead of
@@ -1484,12 +1502,13 @@
     container.querySelectorAll('[data-proof-label]').forEach(label=>{
       label.addEventListener('click', (e)=>{
         const input = label.querySelector('[data-proof-input]');
-        if(!input) return;
+        if(!input || input.disabled) { e.preventDefault(); return; }
         e.preventDefault();
         input.click();
       });
     });
-    container.querySelectorAll('[data-proof-input]').forEach(input=>{
+    const allProofInputs = Array.from(container.querySelectorAll('[data-proof-input]'));
+    allProofInputs.forEach(input=>{
       input.addEventListener('change', (e)=>{
         const file = e.target.files[0];
         if(!file) return;
@@ -1507,15 +1526,19 @@
         const fillEl = container.querySelector('[data-proof-progress-fill]');
         const pctEl = container.querySelector('[data-proof-progress-pct]');
         if(statusEl) statusEl.style.display = 'block';
-        input.disabled = true;
+        // Lock every upload control in this block (not just the one tapped)
+        // so a second tap can't start a race while this one is in flight.
+        allProofInputs.forEach(i=> i.disabled = true);
         const progress = startProofProgress(fillEl, pctEl);
         let compressed = null;
-        compressImageFile(file, 640, 0.55)
-          .then(dataUrl=>{
+        withTimeout(
+          compressImageFile(file, 640, 0.55).then(dataUrl=>{
             compressed = dataUrl;
             const patch = {paymentProofImage: dataUrl, paymentProofAt: new Date().toISOString()};
             return updateOrder(orderId, patch);
-          })
+          }),
+          PROOF_UPLOAD_TIMEOUT_MS
+        )
           .then(()=>{
             progress.finish();
             // Optimistically reflect the change locally in case the cloud
@@ -1526,11 +1549,12 @@
             if(onDone) onDone();
           })
           .catch(err=>{
-            console.error('Payment proof upload failed:', err);
+            const timedOut = err && err.message === 'timeout';
+            console.error(timedOut ? 'Payment proof upload timed out (weak/dropped connection):' : 'Payment proof upload failed:', err);
             progress.stop();
-            toast(t('proofUploadFailed'));
+            toast(timedOut ? t('proofUploadTimedOut') : t('proofUploadFailed'));
             if(statusEl) statusEl.style.display = 'none';
-            input.disabled = false;
+            allProofInputs.forEach(i=> i.disabled = false);
             e.target.value = '';
           });
       });
@@ -2218,7 +2242,7 @@
             ${p.notes ? `<div class="ticket-note">${p.notes}</div>` : ''}
           </div>
           <div class="qty-row">
-            <input type="number" min="${step}" max="${avail}" step="${step}" value="1" ${s==='sold'?'disabled':''} data-qty="${p.id}">
+            <input type="number" min="0" max="${avail}" step="${step}" value="0" ${s==='sold'?'disabled':''} data-qty="${p.id}">
             <span style="font-size:12px; color:rgba(33,26,20,0.6);">${unitNounOf(p)}</span>
           </div>
           <button class="add-btn" data-add="${p.id}" ${s==='sold'?'disabled':''}>${s==='sold' ? t('soldOut') : t('addToBasket')}</button>
@@ -2231,7 +2255,14 @@
         const p = products.find(x=>x.id===id);
         const qtyInput = document.querySelector(`[data-qty="${id}"]`);
         const step = qtyStepOf(p);
-        let qty = parseFloat(qtyInput.value) || step;
+        let qty = parseFloat(qtyInput.value);
+        if(!qty || qty <= 0){
+          const answer = prompt(tf('askQtyPrompt', {unit: unitNounOf(p), name: p.name}), '');
+          if(answer === null) return; // customer cancelled
+          qty = parseFloat(answer);
+          if(!answer.trim() || isNaN(qty) || qty <= 0){ toast(t('invalidQty')); return; }
+          qtyInput.value = qty;
+        }
         if(unitTypeOf(p) === 'count') qty = Math.max(1, Math.round(qty));
         else qty = Math.max(0.5, qty);
         addToCart(id, qty);
@@ -2396,12 +2427,10 @@
         </div>`;
       }).join('');
     }
-    html += renderMyOrdersSection();
     body.innerHTML = html;
     document.querySelectorAll('[data-rm]').forEach(btn=>{
       btn.addEventListener('click', ()=> removeFromCart(btn.getAttribute('data-rm')));
     });
-    wireOrderCardButtons(body, renderCart);
     document.getElementById('cartSubtotal').textContent = fmtMoney(cartTotal());
     document.getElementById('checkoutTotal').textContent = fmtMoney(cartTotal());
   }
