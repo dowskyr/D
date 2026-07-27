@@ -80,14 +80,12 @@
     background:none; border:none; color:var(--cream); font-size:14px;
     text-decoration:none; padding:6px 2px; position:relative;
   }
-  nav.site-nav a:hover, nav.site-nav button.navlink:hover{color:var(--yolk);}
   .header-actions{display:flex; align-items:center; gap:10px;}
   .call-btn{
     background:var(--sage); color:var(--cream); border:2px solid var(--cream);
     padding:9px 14px; border-radius:12px; font-weight:700; font-size:13px;
     display:inline-flex; align-items:center; gap:6px; text-decoration:none; white-space:nowrap;
   }
-  .call-btn:hover{filter:brightness(1.1);}
   .nav-toggle{
     display:none; background:none; border:2px solid var(--cream); color:var(--cream);
     width:38px; height:36px; border-radius:10px; font-size:18px; align-items:center; justify-content:center; line-height:1;
@@ -96,13 +94,11 @@
     background:none; border:2px solid var(--cream); color:var(--cream);
     padding:8px 12px; border-radius:10px; font-weight:700; font-size:12.5px; white-space:nowrap;
   }
-  .lang-toggle:hover{background:var(--cream); color:var(--ink);}
   .cart-btn{
     background:var(--yolk); color:var(--ink); border:none;
     padding:9px 16px; border-radius:12px; font-weight:600; font-size:14px;
     display:flex; align-items:center; gap:8px;
   }
-  .cart-btn:hover{filter:brightness(1.08);}
   .cart-count{
     background:var(--rust); color:var(--cream); border-radius:50%;
     width:20px; height:20px; display:flex; align-items:center; justify-content:center;
@@ -129,23 +125,19 @@
     background:var(--rust); color:var(--cream); border:none; padding:13px 26px;
     border-radius:12px; font-weight:600; font-size:15px; box-shadow:var(--shadow);
   }
-  .btn-primary:hover:not(:disabled){filter:brightness(1.08);}
   .btn-ghost{
     background:transparent; border:2px solid var(--ink); color:var(--ink);
     padding:11px 24px; border-radius:12px; font-weight:600; font-size:15px;
   }
-  .btn-ghost:hover{background:var(--ink); color:var(--cream);}
   .btn-map{
     background:var(--sage); color:var(--cream); border:2px solid var(--ink); padding:15px 30px;
     border-radius:12px; font-weight:800; font-size:16px; box-shadow:var(--shadow);
     display:inline-flex; align-items:center; gap:8px; text-decoration:none;
   }
-  .btn-map:hover{filter:brightness(1.08);}
   .footer-map-btn{
     background:var(--sage); color:var(--cream); padding:10px 20px; border-radius:12px;
     font-weight:700; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;
   }
-  .footer-map-btn:hover{filter:brightness(1.08);}
   .stockboard{
     background:var(--ink); color:var(--cream); border-radius:6px; padding:22px;
     border:3px solid var(--yolk); transform:rotate(1.5deg); box-shadow:var(--shadow);
@@ -189,7 +181,6 @@
     min-width:150px; border:3px solid var(--ink); box-shadow:var(--shadow); transition:transform 0.15s ease;
     cursor:pointer;
   }
-  .flock-card:hover{transform:translateY(-4px) rotate(-1deg);}
   .flock-card .icon{font-size:38px; display:block; margin-bottom:10px;}
   .flock-card .photo{
     width:100%; height:90px; object-fit:cover; border-radius:6px; margin-bottom:10px;
@@ -319,7 +310,6 @@
   .admin-gate{max-width:380px; margin:80px auto; background:var(--paper-light); padding:30px; border-radius:6px; box-shadow:var(--shadow); text-align:center;}
   .admin-tabs{display:flex; gap:8px; margin-bottom:22px; border-bottom:2px solid var(--ink);}
   .admin-tab{background:none; border:none; padding:10px 18px; font-weight:600; font-size:14.5px; color:rgba(33,26,20,0.55); border-bottom:3px solid transparent; margin-bottom:-2px; transition:color 0.15s ease, border-color 0.15s ease;}
-  .admin-tab:hover{color:var(--ink);}
   .admin-tab.active{color:var(--ink); border-color:var(--rust);}
   .admin-panel{display:none;}
   .admin-panel.active{display:block;}
@@ -328,7 +318,6 @@
     background:var(--paper-light); border-radius:10px; padding:18px; box-shadow:var(--shadow);
     transition:box-shadow 0.2s ease, transform 0.2s ease;
   }
-  .order-card:hover, .product-row:hover{ box-shadow:0 14px 30px rgba(33,26,20,0.22); transform:translateY(-1px); }
   .product-row{display:flex; gap:14px; align-items:center; margin-bottom:12px;}
   .product-row img{width:64px; height:64px; object-fit:cover; border-radius:4px; border:1px solid var(--line);}
   .product-row .pr-info{flex:1;}
@@ -336,9 +325,7 @@
   .product-row .pr-info .meta{font-size:12px; font-family:'Space Mono',monospace; color:rgba(33,26,20,0.6);}
   .product-row .pr-actions{display:flex; gap:8px;}
   .icon-btn{background:none; border:1.5px solid var(--ink); border-radius:9px; padding:6px 10px; font-size:12px; font-weight:600;}
-  .icon-btn:hover:not(:disabled){background:var(--ink); color:var(--cream);}
   .icon-btn.danger{border-color:var(--rust); color:var(--rust);}
-  .icon-btn.danger:hover:not(:disabled){background:var(--rust); color:var(--cream);}
   .order-card{margin-bottom:14px;}
   .order-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
   .order-head .oid{font-family:'Space Mono',monospace; font-weight:700;}
@@ -431,7 +418,6 @@
     padding:22px 14px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:6px;
     transition:transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   }
-  .role-card:hover{transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--rust);}
   .role-icon{font-size:30px;}
   .role-title{font-family:'Bitter',serif; font-weight:800; font-size:16px;}
   .role-sub{font-size:11.5px; color:rgba(33,26,20,0.6); line-height:1.3;}
@@ -516,7 +502,6 @@
     border:2px solid rgba(255,255,255,0.25);
   }
   .fab svg{display:block;}
-  .fab:hover{filter:brightness(1.08);}
   .fab:active{transform:scale(0.94);}
   .fab-call{background:var(--sky);}
   .fab-whatsapp{background:#25D366;}
@@ -530,6 +515,37 @@
     .fab{width:52px; height:52px; font-size:23px;}
     .floating-actions-label{font-size:9.5px; padding:2px 7px;}
   }
+
+  /* All :hover effects live here, scoped to devices that actually have a
+     mouse. On a touchscreen, tapping a button applies its :hover state but
+     there's no "mouse leave" event to clear it afterwards — so on phones,
+     buttons like "Upload Screenshot" / "Take Photo" (.btn-ghost) would turn
+     solid black on the very first tap and stay that way, looking frozen,
+     even though the tap itself worked fine. Wrapping every :hover rule in
+     this media query means phones never enter that state at all — buttons
+     only ever show :active (a real, momentary press effect) instead. */
+  @media (hover: hover) and (pointer: fine){
+    nav.site-nav a:hover, nav.site-nav button.navlink:hover{color:var(--yolk);}
+    .call-btn:hover{filter:brightness(1.1);}
+    .lang-toggle:hover{background:var(--cream); color:var(--ink);}
+    .cart-btn:hover{filter:brightness(1.08);}
+    .btn-primary:hover:not(:disabled){filter:brightness(1.08);}
+    .btn-ghost:hover{background:var(--ink); color:var(--cream);}
+    .btn-map:hover{filter:brightness(1.08);}
+    .footer-map-btn:hover{filter:brightness(1.08);}
+    .flock-card:hover{transform:translateY(-4px) rotate(-1deg);}
+    .admin-tab:hover{color:var(--ink);}
+    .order-card:hover, .product-row:hover{ box-shadow:0 14px 30px rgba(33,26,20,0.22); transform:translateY(-1px); }
+    .icon-btn:hover:not(:disabled){background:var(--ink); color:var(--cream);}
+    .icon-btn.danger:hover:not(:disabled){background:var(--rust); color:var(--cream);}
+    .role-card:hover{transform:translateY(-3px); box-shadow:var(--shadow); border-color:var(--rust);}
+    .fab:hover{filter:brightness(1.08);}
+  }
+  /* A real, momentary press effect for touch (and mouse) instead — clears
+     itself the instant the finger/button lifts, so it can never get stuck. */
+  .btn-ghost:active{background:var(--ink); color:var(--cream);}
+  .icon-btn:active:not(:disabled){background:var(--ink); color:var(--cream);}
+  .icon-btn.danger:active:not(:disabled){background:var(--rust); color:var(--cream);}
 </style>
 </head>
 <body>
