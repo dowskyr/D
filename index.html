@@ -776,12 +776,20 @@
             <div class="helper">Photos are resized and stored in this browser only.</div>
           </div>
           <div class="field">
-            <label for="pVideo">Video (optional, under 30MB)</label>
+            <label for="pVideoUrl">YouTube link (recommended)</label>
+            <input id="pVideoUrl" type="url" placeholder="e.g. https://youtube.com/watch?v=...">
+            <div class="helper">Paste a YouTube link instead of uploading a file — customers see the same embedded video, but it adds no weight to the site and works even without cloud storage.</div>
+          </div>
+          <div class="field">
+            <label for="pVideo">Or upload a video file (optional, under 30MB)</label>
             <input id="pVideo" type="file" accept="video/*">
             <div id="pVideoProgress" class="helper" style="display:none;"></div>
-            <video id="pVideoPreview" class="thumb-preview" controls playsinline style="display:none; width:100%;"></video>
-            <button type="button" class="icon-btn" id="removeVideoBtn" style="display:none; margin-top:6px;">Remove video</button>
-            <div class="helper">Uploaded to cloud storage — needs an internet connection, and won't work if this device is offline.</div>
+            <div class="helper">Uploaded to cloud storage — needs an internet connection. Prefer the YouTube link above when you can; it's lighter and loads faster for customers.</div>
+          </div>
+          <div class="field" id="pVideoPreviewField" style="display:none;">
+            <label>Video preview</label>
+            <div id="pVideoPreviewWrap"></div>
+            <button type="button" class="icon-btn" id="removeVideoBtn" style="margin-top:6px;">Remove video</button>
           </div>
           <button class="btn-primary" id="saveProductBtn" style="width:100%; margin-top:8px;">Post Cut</button>
           <button class="icon-btn" id="cancelEditBtn" style="width:100%; margin-top:8px; display:none;">Cancel Edit</button>
@@ -1763,6 +1771,19 @@
           'delivered'
         );
       }
+
+      // Surfaces a cancellation the moment it happens, rather than leaving
+      // it to show up silently next time the admin happens to look at the
+      // Orders tab — the list itself updates in real time regardless (via
+      // the onSnapshot listener above), but this makes sure staff actually
+      // notice it, especially if they were mid-cancel on a different order.
+      if(was && was !== 'cancelled' && o.status === 'cancelled' && isAdminView){
+        showNotification(
+          `🚫 Order #${o.id} cancelled`,
+          `${o.customerName || 'A customer'} · ${fmtMoney(o.total || 0)}`,
+          'order-cancelled'
+        );
+      }
     });
 
     knownOrderStatus = nextStatus;
@@ -2234,7 +2255,9 @@
         <div class="ticket">
           <span class="badge ${s}">${statusLabel(s)}</span>
           <img class="ticket-img" src="${img}" alt="${p.name}">
-          ${p.video ? `<video class="ticket-video" src="${p.video}" controls playsinline preload="metadata" style="width:100%; border-radius:6px; margin-top:8px; display:block;"></video>` : ''}
+          ${p.video ? (isYoutubeEmbedUrl(p.video)
+            ? `<iframe class="ticket-video" src="${p.video}" style="width:100%; aspect-ratio:16/9; border:0; border-radius:6px; margin-top:8px; display:block;" allowfullscreen loading="lazy"></iframe>`
+            : `<video class="ticket-video" src="${p.video}" controls playsinline preload="metadata" style="width:100%; border-radius:6px; margin-top:8px; display:block;"></video>`) : ''}
           <div class="ticket-body">
             <h3>${p.name}</h3>
             <div class="ticket-cut">${p.cut} &middot; ${qtyText}</div>
@@ -2867,38 +2890,88 @@
     reader.readAsDataURL(file);
   });
 
+  // YouTube support for product videos — lets an admin paste a link instead
+  // of uploading a raw file. We normalize whatever they paste down to a
+  // single embeddable form (https://www.youtube.com/embed/{id}) and store
+  // that on the product; isYoutubeEmbedUrl() is then the one check every
+  // render site needs to decide between an <iframe> and a <video> tag.
+  function extractYoutubeId(url){
+    if(!url) return '';
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : '';
+  }
+  function youtubeEmbedUrl(id){ return 'https://www.youtube.com/embed/' + id; }
+  function isYoutubeEmbedUrl(url){ return !!url && url.indexOf('youtube.com/embed/') !== -1; }
+  // Renders whichever video source is currently pending into the shared
+  // admin-form preview block (an <iframe> for YouTube, a <video> tag for an
+  // uploaded file), or hides the block entirely when there's nothing to show.
+  function setVideoPreview(url){
+    const field = document.getElementById('pVideoPreviewField');
+    const wrap = document.getElementById('pVideoPreviewWrap');
+    if(!url){ field.style.display = 'none'; wrap.innerHTML = ''; return; }
+    field.style.display = 'block';
+    if(isYoutubeEmbedUrl(url)){
+      wrap.innerHTML = `<iframe src="${url}" class="thumb-preview" style="width:100%; aspect-ratio:16/9; border:0;" allowfullscreen></iframe>`;
+    } else {
+      wrap.innerHTML = `<video src="${url}" class="thumb-preview" controls playsinline style="display:block; width:100%;"></video>`;
+    }
+  }
+
   // Videos are too big for base64/Firestore, so instead of embedding them
   // in the product record like photos, we upload the raw file to Firebase
   // Storage and just save the resulting URL (a short string) on the
   // product. This needs cloud sync to be connected, since there's no
-  // "local only" fallback for a multi-megabyte file.
+  // "local only" fallback for a multi-megabyte file. A pasted YouTube link
+  // (see above) sidesteps all of this — no upload, no storage weight — and
+  // is the recommended path in the form.
   const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
   let pendingVideo = '';
   let videoRemoved = false;
   let videoUploading = false;
 
+  document.getElementById('pVideoUrl').addEventListener('input', ()=>{
+    const raw = document.getElementById('pVideoUrl').value.trim();
+    if(!raw){
+      // Only clear the pending video if it was the YouTube link itself —
+      // don't let an accidental touch of this field wipe out a file that
+      // just finished uploading via the other input.
+      if(isYoutubeEmbedUrl(pendingVideo)){
+        pendingVideo = '';
+        videoRemoved = true;
+        setVideoPreview('');
+      }
+      return;
+    }
+    const id = extractYoutubeId(raw);
+    if(!id) return; // wait for a recognizable link instead of erroring on every keystroke
+    pendingVideo = youtubeEmbedUrl(id);
+    videoRemoved = false;
+    document.getElementById('pVideo').value = ''; // a link replaces any file pick
+    setVideoPreview(pendingVideo);
+  });
+
   document.getElementById('pVideo').addEventListener('change', (e)=>{
     const file = e.target.files[0];
     if(!file) return;
     const progressEl = document.getElementById('pVideoProgress');
-    const preview = document.getElementById('pVideoPreview');
 
     if(file.size > MAX_VIDEO_BYTES){
-      toast('That video is over 30MB — please trim it or pick a smaller file.');
+      toast('That video is over 30MB — please trim it or pick a smaller file, or paste a YouTube link instead.');
       e.target.value = '';
       return;
     }
     if(!CLOUD_ENABLED || !cloudConnected || !storage){
-      toast('Video upload needs cloud sync to be connected — check the status pill at the top and try again once it\'s live.');
+      toast('Video upload needs cloud sync to be connected — check the status pill at the top, or paste a YouTube link instead.');
       e.target.value = '';
       return;
     }
 
     videoUploading = true;
     videoRemoved = false;
+    document.getElementById('pVideoUrl').value = ''; // a file pick replaces any pasted link
     progressEl.style.display = 'block';
     progressEl.textContent = 'Uploading… 0%';
-    preview.style.display = 'none';
+    setVideoPreview('');
 
     const path = `product-videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
     const ref = storage.ref().child(path);
@@ -2917,12 +2990,18 @@
       },
       ()=>{
         task.snapshot.ref.getDownloadURL().then(url=>{
-          pendingVideo = url;
           videoUploading = false;
+          // If the admin pasted a YouTube link while this upload was still
+          // in flight, that link wins — don't clobber it with the file that
+          // just finished behind it.
+          const urlField = document.getElementById('pVideoUrl').value.trim();
+          if(extractYoutubeId(urlField)){
+            progressEl.style.display = 'none';
+            return;
+          }
+          pendingVideo = url;
           progressEl.textContent = 'Uploaded ✓';
-          preview.src = url;
-          preview.style.display = 'block';
-          document.getElementById('removeVideoBtn').style.display = 'inline-block';
+          setVideoPreview(url);
         });
       }
     );
@@ -2932,9 +3011,9 @@
     pendingVideo = '';
     videoRemoved = true;
     document.getElementById('pVideo').value = '';
-    document.getElementById('pVideoPreview').style.display = 'none';
+    document.getElementById('pVideoUrl').value = '';
     document.getElementById('pVideoProgress').style.display = 'none';
-    document.getElementById('removeVideoBtn').style.display = 'none';
+    setVideoPreview('');
   });
 
   function clearProductForm(){
@@ -2950,9 +3029,9 @@
     document.getElementById('pImagePreview').style.display = 'none';
     pendingImage = '';
     document.getElementById('pVideo').value = '';
-    document.getElementById('pVideoPreview').style.display = 'none';
+    document.getElementById('pVideoUrl').value = '';
     document.getElementById('pVideoProgress').style.display = 'none';
-    document.getElementById('removeVideoBtn').style.display = 'none';
+    setVideoPreview('');
     pendingVideo = '';
     videoRemoved = false;
     videoUploading = false;
@@ -2986,7 +3065,7 @@
       return;
     }
     if(videoUploading){
-      toast('Hang on — the video is still uploading.');
+      toast('Hang on — the video file is still uploading (or paste a YouTube link instead to skip the wait).');
       return;
     }
     if(unitType === 'count') stock = Math.round(stock);
@@ -3024,7 +3103,7 @@
       return `<div class="product-row">
         <img src="${img}" alt="${p.name}">
         <div class="pr-info">
-          <div class="name">${p.name}${p.video ? ' 🎥' : ''}</div>
+          <div class="name">${p.name}${p.video ? (isYoutubeEmbedUrl(p.video) ? ' 📺' : ' 🎥') : ''}</div>
           <div class="meta">${p.cut} &middot; ${fmtMoney(p.pricePerKg)}/${unitNounOf(p)} &middot; ${formatProductQty(p, p.stockKg)} left</div>
         </div>
         <div class="pr-actions">
@@ -3052,10 +3131,8 @@
         pendingVideo = '';
         videoRemoved = false;
         document.getElementById('pVideo').value = '';
-        const vPreview = document.getElementById('pVideoPreview');
-        const removeBtn = document.getElementById('removeVideoBtn');
-        if(p.video){ vPreview.src = p.video; vPreview.style.display='block'; removeBtn.style.display='inline-block'; }
-        else { vPreview.style.display='none'; removeBtn.style.display='none'; }
+        document.getElementById('pVideoUrl').value = isYoutubeEmbedUrl(p.video) ? p.video : '';
+        setVideoPreview(p.video || '');
         document.getElementById('formTitle').textContent = 'Edit Cut';
         document.getElementById('saveProductBtn').textContent = 'Save Changes';
         document.getElementById('cancelEditBtn').style.display = 'block';
@@ -3353,7 +3430,7 @@
       const idx = flow.indexOf(o.status);
       const next = idx>=0 ? flow[idx+1] : undefined;
       const cancellable = o.status!=='delivered' && o.status!=='cancelled';
-      const deletable = o.status==='delivered' || o.status==='cancelled';
+      const deletable = o.status==='cancelled';
       const paid = o.paymentStatus === 'paid';
       return `<div class="order-card">
         <div class="order-head">
