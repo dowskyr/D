@@ -262,7 +262,7 @@
   .add-btn:disabled{background:#B8A98C; cursor:not-allowed;}
 
   /* ---------- Cart Drawer ---------- */
-  .overlay{position:fixed; inset:0; background:rgba(33,26,20,0.45); z-index:50; display:none;}
+  .overlay{position:fixed; inset:0; background:rgba(33,26,20,0.45); z-index:55; display:none;}
   .overlay.open{display:block;}
   .drawer{
     position:fixed; top:0; right:-420px; width:400px; max-width:92vw; height:100%; background:var(--cream); z-index:60;
@@ -676,8 +676,7 @@
         <div class="order-id" id="confirmOrderId">#0000</div>
         <p style="font-size:14px; color:rgba(33,26,20,0.75);" data-i18n="orderReceivedNote">Keep this order number to track your status. We'll start prepping your basket shortly.</p>
         <div id="confirmPaymentBlock"></div>
-        <p style="font-size:12.5px; color:var(--sage); margin-top:6px;" id="confirmReceiptNote" data-i18n="receiptDownloading">Your receipt is downloading…</p>
-        <button class="btn-ghost" id="confirmDownloadReceipt" style="width:100%; margin-top:8px;" data-i18n="downloadReceiptAgain">⬇ Download Receipt Again</button>
+        <button class="btn-ghost" id="confirmDownloadReceipt" style="width:100%; margin-top:8px;" data-i18n="downloadReceipt">⬇ Download Receipt</button>
         <button class="btn-primary" id="confirmDone" style="margin-top:10px;" data-i18n="done">Done</button>
       </div>
     </div>
@@ -1466,7 +1465,34 @@
   }
   // Compresses an uploaded image file down to a small base64 JPEG (mirrors
   // the product-photo pipeline) so it comfortably fits a Firestore doc field.
+  // Uses createImageBitmap when available — it decodes off the slow
+  // <img>-load-then-paint path and is markedly faster on phone cameras
+  // (which hand us 3000px+ originals), especially on weaker devices.
+  // Falls back to the classic FileReader+Image path for older browsers.
   function compressImageFile(file, maxW, quality){
+    if(window.createImageBitmap){
+      // imageOrientation:'from-image' makes the bitmap respect the file's
+      // EXIF orientation tag. Without it, photos straight from a phone
+      // camera (portrait shots especially) can decode sideways or upside
+      // down — screenshots have no EXIF tag so they're unaffected, which is
+      // why this only ever showed up on "Take Photo" uploads, not gallery
+      // picks. Unknown ImageBitmapOptions members are ignored per spec, so
+      // this is safe even on older engines that don't support the option.
+      return createImageBitmap(file, {imageOrientation: 'from-image'}).then(bitmap=>{
+        const scale = Math.min(1, maxW / bitmap.width);
+        const w = Math.max(1, Math.round(bitmap.width * scale));
+        const h = Math.max(1, Math.round(bitmap.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bitmap, 0, 0, w, h);
+        if(bitmap.close) bitmap.close();
+        return canvas.toDataURL('image/jpeg', quality);
+      }).catch(()=> compressImageFileLegacy(file, maxW, quality));
+    }
+    return compressImageFileLegacy(file, maxW, quality);
+  }
+  function compressImageFileLegacy(file, maxW, quality){
     return new Promise((resolve, reject)=>{
       const reader = new FileReader();
       reader.onerror = ()=> reject(new Error('read failed'));
@@ -1571,7 +1597,7 @@
         const progress = startProofProgress(fillEl, pctEl);
         let compressed = null;
         withTimeout(
-          compressImageFile(file, 640, 0.55).then(dataUrl=>{
+          compressImageFile(file, 480, 0.45).then(dataUrl=>{
             compressed = dataUrl;
             const patch = {paymentProofImage: dataUrl, paymentProofAt: new Date().toISOString()};
             return updateOrder(orderId, patch);
@@ -1582,8 +1608,17 @@
             progress.finish();
             // Optimistically reflect the change locally in case the cloud
             // snapshot listener hasn't round-tripped yet.
+            const proofPatch = {paymentProofImage: compressed, paymentProofAt: new Date().toISOString()};
             const idx = orders.findIndex(o=>o.id===orderId);
-            if(idx>=0) orders[idx] = {...orders[idx], paymentProofImage: compressed, paymentProofAt: new Date().toISOString()};
+            if(idx>=0) orders[idx] = {...orders[idx], ...proofPatch};
+            // The order itself can also be missing from `orders` this soon
+            // after placement (right after createOrder, before the Firestore
+            // snapshot echoes back) — renderConfirmPaymentBlock falls back to
+            // lastPlacedOrder in that case, so it needs the same patch or the
+            // confirmation screen looks like the upload never happened.
+            if(lastPlacedOrder && lastPlacedOrder.id === orderId){
+              lastPlacedOrder = {...lastPlacedOrder, ...proofPatch};
+            }
             toast(t('proofUploaded'));
             if(onDone) onDone();
           })
@@ -2718,7 +2753,6 @@
       document.getElementById('confirmOverlay').classList.add('open');
       replaceLayer('confirm', ()=> document.getElementById('confirmOverlay').classList.remove('open'));
       ['custName','custPhone','custAddress','custNotes'].forEach(id=> document.getElementById(id).value='');
-      setTimeout(()=>{ downloadReceipt(order); }, 200);
     }).catch(err=>{
       console.error('Order placement failed:', err);
       errEl.textContent = 'Could not place your order — check your connection and try again.';
