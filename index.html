@@ -483,7 +483,8 @@
   .payment-copy-btn{background:none; border:1.5px solid var(--ink); border-radius:9px; padding:4px 9px; font-size:11px; font-weight:600; cursor:pointer; white-space:nowrap; text-decoration:none; color:var(--ink); display:inline-block;}
   .payment-note{font-size:11.5px; color:rgba(33,26,20,0.6); margin-top:10px; line-height:1.4;}
   .payment-proof{margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);}
-  .proof-upload-label{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; text-align:center; box-sizing:border-box; margin-top:8px;}
+  .proof-upload-label{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; text-align:center; box-sizing:border-box; margin-top:8px; cursor:pointer;}
+  .proof-upload-hidden-input{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
   .proof-upload-row{display:flex; gap:8px; margin-top:8px;}
   .proof-upload-row .proof-upload-label{margin-top:0; flex:1;}
   .proof-thumb-wrap{display:flex; align-items:center; gap:10px; margin-top:8px;}
@@ -1403,14 +1404,14 @@
             </div>
           </div>
           <div class="proof-upload-row">
-            <label class="icon-btn proof-upload-label">${t('replaceProofBtn')}<input type="file" accept="image/*" data-proof-input="${order.id}" style="display:none;"></label>
-            <label class="icon-btn proof-upload-label">${t('takePhotoBtn')}<input type="file" accept="image/*" capture="environment" data-proof-input="${order.id}" style="display:none;"></label>
+            <label class="icon-btn proof-upload-label" data-proof-label><span data-proof-label-text>${t('replaceProofBtn')}</span><input type="file" accept="image/*" data-proof-input="${order.id}" class="proof-upload-hidden-input" tabindex="-1"></label>
+            <label class="icon-btn proof-upload-label" data-proof-label><span data-proof-label-text>${t('takePhotoBtn')}</span><input type="file" accept="image/*" capture="environment" data-proof-input="${order.id}" class="proof-upload-hidden-input" tabindex="-1"></label>
           </div>
         ` : `
           <div class="payment-note" style="margin-top:0;">${t('uploadProofNote')}</div>
           <div class="proof-upload-row">
-            <label class="btn-ghost proof-upload-label">${t('uploadProofBtn')}<input type="file" accept="image/*" data-proof-input="${order.id}" style="display:none;"></label>
-            <label class="btn-ghost proof-upload-label">${t('takePhotoBtn')}<input type="file" accept="image/*" capture="environment" data-proof-input="${order.id}" style="display:none;"></label>
+            <label class="btn-ghost proof-upload-label" data-proof-label><span data-proof-label-text>${t('uploadProofBtn')}</span><input type="file" accept="image/*" data-proof-input="${order.id}" class="proof-upload-hidden-input" tabindex="-1"></label>
+            <label class="btn-ghost proof-upload-label" data-proof-label><span data-proof-label-text>${t('takePhotoBtn')}</span><input type="file" accept="image/*" capture="environment" data-proof-input="${order.id}" class="proof-upload-hidden-input" tabindex="-1"></label>
           </div>
         `}
         <div class="proof-uploading" data-proof-uploading style="display:none;">
@@ -1477,10 +1478,25 @@
   // `onDone` is called after a successful save so the caller can re-render
   // its own copy of the block with the fresh order data.
   function wirePaymentProofUpload(container, onDone){
+    // Some Android WebViews fail to forward a label tap into a nested
+    // display:none file input, so we drive it explicitly here instead of
+    // relying only on implicit label->input click forwarding.
+    container.querySelectorAll('[data-proof-label]').forEach(label=>{
+      label.addEventListener('click', (e)=>{
+        const input = label.querySelector('[data-proof-input]');
+        if(!input) return;
+        e.preventDefault();
+        input.click();
+      });
+    });
     container.querySelectorAll('[data-proof-input]').forEach(input=>{
       input.addEventListener('change', (e)=>{
         const file = e.target.files[0];
         if(!file) return;
+        // Immediate feedback the instant a photo is picked, independent of
+        // compression/network — if this toast never appears, the picker
+        // itself isn't returning a selection to the page.
+        toast('Photo received — processing…');
         const orderId = parseInt(input.getAttribute('data-proof-input'), 10);
         if(file.size > MAX_PROOF_SOURCE_BYTES){
           toast(t('proofTooLarge'));
