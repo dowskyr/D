@@ -416,8 +416,7 @@
     .hero h1{font-size:29px;}
     .logo-mark{width:32px; height:32px; font-size:13px;}
     .stockboard .big{font-size:27px;}
-    .cart-btn{font-size:12px; padding:7px 8px;}
-    .cart-btn-label{display:none;}
+    .cart-btn{font-size:12px; padding:7px 8px; gap:5px;}
     .header-inner{padding:10px 10px; gap:8px; flex-wrap:nowrap;}
     .logo{gap:6px; min-width:0;}
     .logo-text .stamp{font-size:15px;}
@@ -483,6 +482,25 @@
   .payment-method-number{font-family:'Space Mono',monospace; font-weight:700; font-size:13.5px; white-space:nowrap;}
   .payment-copy-btn{background:none; border:1.5px solid var(--ink); border-radius:9px; padding:4px 9px; font-size:11px; font-weight:600; cursor:pointer; white-space:nowrap; text-decoration:none; color:var(--ink); display:inline-block;}
   .payment-note{font-size:11.5px; color:rgba(33,26,20,0.6); margin-top:10px; line-height:1.4;}
+  .payment-proof{margin-top:14px; padding-top:12px; border-top:1px dashed var(--line);}
+  .proof-upload-label{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; text-align:center; box-sizing:border-box; margin-top:8px;}
+  .proof-upload-row{display:flex; gap:8px; margin-top:8px;}
+  .proof-upload-row .proof-upload-label{margin-top:0; flex:1;}
+  .proof-thumb-wrap{display:flex; align-items:center; gap:10px; margin-top:8px;}
+  .proof-thumb{width:64px; height:64px; object-fit:cover; border-radius:8px; border:2px solid var(--ink); cursor:zoom-in; flex-shrink:0;}
+  .proof-status-ok{font-size:12px; color:var(--sage); font-weight:700; display:flex; align-items:center; gap:5px;}
+  .proof-status-pending{font-size:11.5px; color:var(--rust); font-weight:600; display:block; margin-top:2px;}
+  .proof-uploading{font-size:12px; color:var(--sage); margin-top:6px;}
+  .proof-progress-track{width:100%; height:8px; border-radius:6px; background:rgba(31,122,92,0.15); margin-top:6px; overflow:hidden;}
+  .proof-progress-fill{height:100%; width:0%; background:var(--sage); border-radius:6px; transition:width 0.25s ease;}
+  .proof-progress-pct{font-family:'Space Mono',monospace; font-size:11px; color:rgba(33,26,20,0.6); margin-top:3px;}
+  .admin-proof-thumb{width:52px; height:52px; object-fit:cover; border-radius:8px; border:2px solid var(--ink); cursor:zoom-in;}
+  .admin-proof-row{display:flex; align-items:center; gap:10px; margin-top:8px;}
+  .admin-proof-missing{font-size:12px; color:rgba(33,26,20,0.5); font-style:italic; margin-top:8px;}
+  #proofLightboxOverlay{position:fixed; inset:0; background:rgba(15,10,5,0.88); z-index:80; display:none; align-items:center; justify-content:center; padding:24px;}
+  #proofLightboxOverlay.open{display:flex;}
+  #proofLightboxOverlay img{max-width:100%; max-height:80vh; border-radius:10px; box-shadow:0 20px 50px rgba(0,0,0,0.5); background:#fff;}
+  .proof-lightbox-close{position:absolute; top:18px; right:20px; background:var(--cream); border:none; width:40px; height:40px; border-radius:50%; font-size:20px; line-height:1; cursor:pointer;}
 
   /* ---------- Floating action buttons ---------- */
   .floating-actions{
@@ -531,8 +549,7 @@
       <button class="navlink" id="navSignIn" data-i18n="navSignIn">Sign In</button>
     </nav>
     <div class="header-actions">
-      <a class="call-btn" id="callSupportBtn" href="#" style="display:none;" title="Call live support">📞 <span class="call-btn-label" data-i18n="callUs">Call Us</span></a>
-      <button class="cart-btn" id="openCart"><span class="cart-btn-label" data-i18n="orderBasket">Order Basket</span> <span class="cart-count" id="cartCount">0</span></button>
+      <button class="cart-btn" id="openCart" title="View your orders"><span class="cart-btn-label" data-i18n="myOrders">Orders</span> <span class="cart-count" id="cartCount">0</span></button>
       <button class="lang-toggle" id="langToggle" title="Français / English">🌐 FR</button>
       <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">☰</button>
     </div>
@@ -591,6 +608,7 @@
         <div class="contact-row" id="contactEmailRow"><span class="ic">✉️</span><span><a id="contactEmailLink" href="#"></a></span></div>
         <div class="contact-row" id="contactAddressRow"><span class="ic">📍</span><span id="contactAddressText"></span></div>
         <div class="contact-row" id="contactHoursRow"><span class="ic">🕒</span><span id="contactHoursText"></span></div>
+        <div id="contactExtraRows"></div>
       </div>
     </div>
   </section>
@@ -656,6 +674,7 @@
       <button class="drawer-close" id="closeTrack">&times;</button>
     </div>
     <div class="drawer-body">
+      <div id="myOrdersSection"></div>
       <div class="field"><label for="trackId" data-i18n="orderNumber">Order number</label><input id="trackId" type="text" placeholder="e.g. 1001" data-i18n-placeholder="orderNumberPh"></div>
       <button class="btn-primary" id="trackBtn" style="width:100%;" data-i18n="checkStatus">Check Status</button>
       <div id="trackResult" style="margin-top:18px;"></div>
@@ -813,6 +832,11 @@
             <div class="field"><label for="cContactNote">Intro note</label><textarea id="cContactNote" rows="3" placeholder="e.g. Have a question about an order or want to reserve a bird? Reach us any of these ways."></textarea></div>
             <div class="field"><label for="cContactPhone">Phone number</label><input id="cContactPhone" type="text" placeholder="e.g. +237 6XX XXX XXX"></div>
             <div class="field"><label for="cContactWhatsapp">WhatsApp number</label><input id="cContactWhatsapp" type="text" placeholder="e.g. +237 6XX XXX XXX"></div>
+            <div class="field">
+              <label>Additional contact numbers</label>
+              <div id="cContactExtraList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:8px;"></div>
+              <button type="button" class="btn-ghost" id="addContactNumberBtn" style="width:100%;">+ Add another number</button>
+            </div>
             <div class="field"><label for="cContactEmail">Email address</label><input id="cContactEmail" type="email" placeholder="e.g. hello@sohlam.farm"></div>
             <div class="field"><label for="cContactAddress">Address</label><input id="cContactAddress" type="text" placeholder="e.g. Batoke-Limbe farm gate"></div>
             <div class="field"><label for="cContactHours">Opening hours</label><input id="cContactHours" type="text" placeholder="e.g. Mon–Sat, 7am–6pm"></div>
@@ -871,6 +895,11 @@
 <div class="toast" id="toast"></div>
 <div class="notify-stack" id="notifyStack"></div>
 
+<div id="proofLightboxOverlay">
+  <button class="proof-lightbox-close" id="proofLightboxClose" aria-label="Close">&times;</button>
+  <img id="proofLightboxImg" src="" alt="Payment proof screenshot">
+</div>
+
 <div class="floating-actions" id="floatingActions">
   <a class="fab fab-call" id="fabCall" href="#" title="Call us" style="display:none;">📞</a>
   <a class="fab fab-whatsapp" id="fabWhatsapp" href="#" target="_blank" rel="noopener" title="Message us on WhatsApp" style="display:none;">
@@ -919,7 +948,7 @@
   // auto-translate it reliably without a translation API.
   const I18N = {
     en: {
-      callUs:'Call Us', orderBasket:'Order Basket',
+      callUs:'Call Us', orderBasket:'Order Basket', myOrders:'Orders',
       navShop:'Shop', navContact:'Contact', navTrack:'Track Order', navSignIn:'Sign In',
       heroPlaceOrder:'🛒 Place an Order', heroTrackOrder:'Track an Order', heroFindUs:'📍 Find Us',
       onTheBoard:'On the board', cutsAvailable:'cuts available right now',
@@ -946,14 +975,19 @@
       downloadReceipt:'⬇ Download Receipt', cancelOrderBtn:'Cancel Order',
       paidLabel:'Paid', unpaidLabel:'Unpaid', readyForPickup:'Ready for Pickup',
       yourPlacedOrders:'Your Placed Orders', placedOn:'Placed', paymentRef:'Payment ref:',
+      noOrdersYetOnDevice:"No orders placed from this device yet. Look one up by number below.",
       confirmCancelOrder:"Cancel order #{id}? This can't be undone.",
       orderCancelledToast:"Order #{id} cancelled.",
       numberCopied:'Number copied.', copyManually:'Copy manually:',
       payViaMobileMoney:'Pay via Mobile Money', refLabel:'Ref: Order', copyBtn:'Copy',
-      paymentInstructions:"Copy the number above, open your Mobile Money app or dial your provider's transfer code, then send the amount shown to that number."
+      paymentInstructions:"Copy the number above, open your Mobile Money app or dial your provider's transfer code, then send the amount shown to that number.",
+      uploadProofTitle:'Upload Payment Screenshot', uploadProofNote:'After sending the money, upload a screenshot of the confirmation so we can verify your payment faster.',
+      uploadProofBtn:'📷 Upload Screenshot', replaceProofBtn:'Replace Screenshot', takePhotoBtn:'📸 Take Photo',
+      proofUploaded:'Screenshot received — awaiting verification', proofUploading:'Uploading…',
+      proofUploadFailed:'Could not upload — check your connection and try again.', proofTooLarge:'That image is too large. Please pick a smaller photo.'
     },
     fr: {
-      callUs:'Appelez-nous', orderBasket:'Mon Panier',
+      callUs:'Appelez-nous', orderBasket:'Mon Panier', myOrders:'Commandes',
       navShop:'Boutique', navContact:'Contact', navTrack:'Suivre Commande', navSignIn:'Connexion',
       heroPlaceOrder:'🛒 Passer Commande', heroTrackOrder:'Suivre une Commande', heroFindUs:'📍 Nous Trouver',
       onTheBoard:'Au tableau', cutsAvailable:"morceaux disponibles maintenant",
@@ -980,11 +1014,16 @@
       downloadReceipt:'⬇ Télécharger le Reçu', cancelOrderBtn:'Annuler la Commande',
       paidLabel:'Payé', unpaidLabel:'Non payé', readyForPickup:'Prête pour Retrait',
       yourPlacedOrders:'Vos Commandes', placedOn:'Passée le', paymentRef:'Réf. paiement :',
+      noOrdersYetOnDevice:"Aucune commande passée depuis cet appareil. Recherchez-en une par numéro ci-dessous.",
       confirmCancelOrder:"Annuler la commande #{id} ? Cette action est irréversible.",
       orderCancelledToast:"Commande #{id} annulée.",
       numberCopied:'Numéro copié.', copyManually:'Copier manuellement :',
       payViaMobileMoney:'Payer par Mobile Money', refLabel:'Réf : Commande', copyBtn:'Copier',
-      paymentInstructions:"Copiez le numéro ci-dessus, ouvrez votre application Mobile Money ou composez le code de transfert de votre opérateur, puis envoyez le montant indiqué à ce numéro."
+      paymentInstructions:"Copiez le numéro ci-dessus, ouvrez votre application Mobile Money ou composez le code de transfert de votre opérateur, puis envoyez le montant indiqué à ce numéro.",
+      uploadProofTitle:'Téléverser la Capture de Paiement', uploadProofNote:"Après l'envoi de l'argent, téléversez une capture d'écran de la confirmation pour que nous puissions vérifier votre paiement plus vite.",
+      uploadProofBtn:"📷 Téléverser la Capture", replaceProofBtn:'Remplacer la Capture', takePhotoBtn:'📸 Prendre une Photo',
+      proofUploaded:'Capture reçue — en attente de vérification', proofUploading:'Téléversement…',
+      proofUploadFailed:'Échec du téléversement — vérifiez votre connexion et réessayez.', proofTooLarge:'Cette image est trop grande. Choisissez une photo plus petite.'
     }
   };
   let lang = localStorage.getItem('sohlam_lang') || 'en';
@@ -1327,6 +1366,7 @@
           </div>
         `).join('')}
         <div class="payment-note">${t('paymentInstructions')}${content.paymentNote ? ' ' + content.paymentNote : ''}</div>
+        ${order ? paymentProofBlock(order) : ''}
       </div>`;
   }
   // Wires up the Copy buttons inside a just-rendered payment-methods block.
@@ -1342,6 +1382,163 @@
       });
     });
   }
+
+  // ---------------- Payment proof (customer screenshot upload) ----------------
+  // Lets a customer attach a screenshot/photo of their Mobile Money
+  // confirmation directly to the order, so admin can eyeball it before
+  // marking the order paid — no separate WhatsApp round-trip needed.
+  // Stored as a compressed base64 JPEG on the order record itself (same
+  // approach as product photos) so it works with or without cloud sync.
+  const MAX_PROOF_SOURCE_BYTES = 15 * 1024 * 1024; // reject absurdly large source files outright
+  function paymentProofBlock(order){
+    const has = !!order.paymentProofImage;
+    return `
+      <div class="payment-proof">
+        <div class="payment-block-title">${t('uploadProofTitle')}</div>
+        ${has ? `
+          <div class="proof-thumb-wrap">
+            <img src="${order.paymentProofImage}" class="proof-thumb" data-proof-view alt="Payment proof screenshot">
+            <div>
+              <div class="proof-status-ok">✓ ${t('proofUploaded')}</div>
+            </div>
+          </div>
+          <div class="proof-upload-row">
+            <label class="icon-btn proof-upload-label">${t('replaceProofBtn')}<input type="file" accept="image/*" data-proof-input="${order.id}" style="display:none;"></label>
+            <label class="icon-btn proof-upload-label">${t('takePhotoBtn')}<input type="file" accept="image/*" capture="environment" data-proof-input="${order.id}" style="display:none;"></label>
+          </div>
+        ` : `
+          <div class="payment-note" style="margin-top:0;">${t('uploadProofNote')}</div>
+          <div class="proof-upload-row">
+            <label class="btn-ghost proof-upload-label">${t('uploadProofBtn')}<input type="file" accept="image/*" data-proof-input="${order.id}" style="display:none;"></label>
+            <label class="btn-ghost proof-upload-label">${t('takePhotoBtn')}<input type="file" accept="image/*" capture="environment" data-proof-input="${order.id}" style="display:none;"></label>
+          </div>
+        `}
+        <div class="proof-uploading" data-proof-uploading style="display:none;">
+          <div data-proof-uploading-label>${t('proofUploading')}</div>
+          <div class="proof-progress-track"><div class="proof-progress-fill" data-proof-progress-fill></div></div>
+          <div class="proof-progress-pct" data-proof-progress-pct>0%</div>
+        </div>
+      </div>`;
+  }
+  // Compresses an uploaded image file down to a small base64 JPEG (mirrors
+  // the product-photo pipeline) so it comfortably fits a Firestore doc field.
+  function compressImageFile(file, maxW, quality){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onerror = ()=> reject(new Error('read failed'));
+      reader.onload = (ev)=>{
+        const img = new Image();
+        img.onerror = ()=> reject(new Error('decode failed'));
+        img.onload = ()=>{
+          const canvas = document.createElement('canvas');
+          const scale = Math.min(1, maxW / img.width);
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  // Drives the visible progress bar during a proof upload. There's no
+  // byte-level progress event for a Firestore doc write (unlike a Storage
+  // upload), so this "trickles" toward 90% while the compress+save promise
+  // chain is in flight, then snaps to 100% the instant it actually resolves.
+  // Users get continuous, honest-feeling feedback instead of a bar that
+  // either sits frozen or lies about exact bytes sent.
+  function startProofProgress(fillEl, pctEl){
+    let pct = 0;
+    if(fillEl) fillEl.style.width = '0%';
+    if(pctEl) pctEl.textContent = '0%';
+    const timer = setInterval(()=>{
+      // Slows down as it approaches the 90% ceiling so it never looks
+      // "stuck" at a round number while still never falsely reaching 100%
+      // before the upload has actually finished.
+      pct += Math.max(0.4, (90 - pct) * 0.12);
+      if(pct > 90) pct = 90;
+      if(fillEl) fillEl.style.width = pct.toFixed(0) + '%';
+      if(pctEl) pctEl.textContent = pct.toFixed(0) + '%';
+    }, 180);
+    return {
+      finish(){
+        clearInterval(timer);
+        if(fillEl) fillEl.style.width = '100%';
+        if(pctEl) pctEl.textContent = '100%';
+      },
+      stop(){
+        clearInterval(timer);
+      }
+    };
+  }
+  // Wires the upload input(s) inside a just-rendered payment-proof block.
+  // `onDone` is called after a successful save so the caller can re-render
+  // its own copy of the block with the fresh order data.
+  function wirePaymentProofUpload(container, onDone){
+    container.querySelectorAll('[data-proof-input]').forEach(input=>{
+      input.addEventListener('change', (e)=>{
+        const file = e.target.files[0];
+        if(!file) return;
+        const orderId = parseInt(input.getAttribute('data-proof-input'), 10);
+        if(file.size > MAX_PROOF_SOURCE_BYTES){
+          toast(t('proofTooLarge'));
+          e.target.value = '';
+          return;
+        }
+        const statusEl = container.querySelector('[data-proof-uploading]');
+        const fillEl = container.querySelector('[data-proof-progress-fill]');
+        const pctEl = container.querySelector('[data-proof-progress-pct]');
+        if(statusEl) statusEl.style.display = 'block';
+        input.disabled = true;
+        const progress = startProofProgress(fillEl, pctEl);
+        let compressed = null;
+        compressImageFile(file, 640, 0.55)
+          .then(dataUrl=>{
+            compressed = dataUrl;
+            const patch = {paymentProofImage: dataUrl, paymentProofAt: new Date().toISOString()};
+            return updateOrder(orderId, patch);
+          })
+          .then(()=>{
+            progress.finish();
+            // Optimistically reflect the change locally in case the cloud
+            // snapshot listener hasn't round-tripped yet.
+            const idx = orders.findIndex(o=>o.id===orderId);
+            if(idx>=0) orders[idx] = {...orders[idx], paymentProofImage: compressed, paymentProofAt: new Date().toISOString()};
+            toast(t('proofUploaded'));
+            if(onDone) onDone();
+          })
+          .catch(err=>{
+            console.error('Payment proof upload failed:', err);
+            progress.stop();
+            toast(t('proofUploadFailed'));
+            if(statusEl) statusEl.style.display = 'none';
+            input.disabled = false;
+            e.target.value = '';
+          });
+      });
+    });
+    wireProofLightbox(container);
+  }
+  // Opens any proof thumbnail in the shared full-screen lightbox.
+  function wireProofLightbox(container){
+    container.querySelectorAll('[data-proof-view]').forEach(img=>{
+      img.addEventListener('click', ()=> openProofLightbox(img.src));
+    });
+  }
+  function openProofLightbox(src){
+    const overlay = document.getElementById('proofLightboxOverlay');
+    const img = document.getElementById('proofLightboxImg');
+    if(!overlay || !img) return;
+    img.src = src;
+    overlay.classList.add('open');
+    pushLayer('proofLightbox', ()=> overlay.classList.remove('open'));
+  }
+  document.getElementById('proofLightboxClose').addEventListener('click', ()=> requestClose('proofLightbox'));
+  document.getElementById('proofLightboxOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'proofLightboxOverlay') requestClose('proofLightbox');
+  });
 
   // Stock is only decremented once an order is marked "Delivered" by the admin.
   // Until then, quantities from open orders (new/preparing/ready) are held as
@@ -1403,9 +1600,54 @@
   // Pop-up notification cards (new orders for staff, delivered orders for
   // customers). Several can stack at once; each auto-dismisses after a
   // few seconds or can be closed by hand.
+
+  // --- Sound for notifications --------------------------------------------
+  // Generated with the Web Audio API (no audio file needed). Browsers block
+  // audio until the page has seen at least one tap/click, so we lazily
+  // create the AudioContext and "unlock" it on the very first user gesture.
+  let audioCtx = null;
+  function getAudioCtx(){
+    if(!audioCtx){
+      const Ctor = window.AudioContext || window.webkitAudioContext;
+      if(!Ctor) return null;
+      audioCtx = new Ctor();
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume().catch(()=>{});
+    return audioCtx;
+  }
+  ['click','touchstart','keydown'].forEach(evt=>{
+    document.addEventListener(evt, ()=> getAudioCtx(), {once:true, passive:true});
+  });
+  // Plays a short two-note chime. `kind` picks the pitch pattern so a new
+  // order sounds different from a delivered-order confirmation.
+  function playNotifySound(kind){
+    try{
+      const ctx = getAudioCtx();
+      if(!ctx) return;
+      const now = ctx.currentTime;
+      const notes = kind === 'new-order' ? [880, 1318.5]
+                  : kind === 'delivered' ? [659.3, 987.8]
+                  : [740];
+      notes.forEach((freq, i)=>{
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const start = now + i * 0.15;
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.28, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.24);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.26);
+      });
+    }catch(e){ console.warn('Notification sound failed:', e); }
+  }
+
   function showNotification(title, body, kind){
     const stack = document.getElementById('notifyStack');
     if(!stack) return;
+    playNotifySound(kind);
     const card = document.createElement('div');
     card.className = 'notify-card' + (kind ? ' notify-' + kind : '');
     card.innerHTML = `
@@ -1569,8 +1811,44 @@
     endY += 30;
     doc.setFont('helvetica','italic'); doc.setFontSize(9.5); doc.setTextColor(110);
     doc.text('Thank you for ordering with SOHLAM. Keep this receipt for your records.', marginX, endY);
+    doc.setTextColor(0,0,0);
+
+    // Attach the customer's payment screenshot as proof, on its own page if
+    // there isn't room left on this one. Keep track of the original page so
+    // the PAID stamp below (which is meant for the summary page) lands in
+    // the right place even if a new page got added here.
+    const summaryPage = doc.internal.getCurrentPageInfo ? doc.internal.getCurrentPageInfo().pageNumber : 1;
+    if(order.paymentProofImage){
+      endY += 20;
+      const pageH = doc.internal.pageSize.getHeight();
+      const proofCaptionH = 34;
+      let proofY = endY;
+      if(proofY + 120 > pageH - 40){
+        doc.addPage();
+        proofY = 50;
+      }
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.text('Payment Proof', marginX, proofY);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(110);
+      if(order.paymentProofAt) doc.text('Uploaded ' + fmtDateTime(order.paymentProofAt), marginX, proofY + 13);
+      doc.setTextColor(0,0,0);
+      proofY += proofCaptionH;
+      try{
+        const dims = doc.getImageProperties(order.paymentProofImage);
+        const maxW = 300, maxH = pageH - proofY - 40;
+        let w = dims.width, h = dims.height;
+        const scale = Math.min(maxW / w, maxH / h, 1);
+        w *= scale; h *= scale;
+        doc.addImage(order.paymentProofImage, 'JPEG', marginX, proofY, w, h);
+        doc.setDrawColor(180);
+        doc.rect(marginX, proofY, w, h);
+      }catch(e){
+        console.error('Could not embed payment proof image in receipt:', e);
+      }
+    }
 
     if(order.paymentStatus === 'paid'){
+      if(doc.setPage) doc.setPage(summaryPage);
       drawPaidStamp(doc);
     }
 
@@ -1720,14 +1998,6 @@
     document.getElementById('contactStamp').textContent = content.contactStamp || '';
     document.getElementById('contactNote').textContent = content.contactNote || '';
 
-    const callBtn = document.getElementById('callSupportBtn');
-    if(content.contactPhone){
-      callBtn.style.display = 'inline-flex';
-      callBtn.href = 'tel:' + content.contactPhone.replace(/[^+\d]/g,'');
-    } else {
-      callBtn.style.display = 'none';
-    }
-
     const fabCall = document.getElementById('fabCall');
     if(fabCall){
       if(content.contactPhone){
@@ -1790,6 +2060,32 @@
       hoursRow.style.display = 'flex';
       document.getElementById('contactHoursText').textContent = content.contactHours;
     } else { hoursRow.style.display = 'none'; }
+
+    const extraContainer = document.getElementById('contactExtraRows');
+    extraContainer.innerHTML = '';
+    (content.contactExtras || []).forEach(item => {
+      if(!item.number) return;
+      const callDigits = item.number.replace(/[^+\d]/g,'');
+      const waDigits = item.number.replace(/[^\d]/g,'');
+      const waIntro = encodeURIComponent("Hi! I'm a customer from your SOHLAM website and I'd like to buy some of your products");
+      const labelPrefix = item.label ? item.label + ': ' : '';
+      let icon = '📞';
+      let linksHtml = '';
+      if(item.type === 'whatsapp'){
+        icon = '💬';
+        linksHtml = `<a href="https://wa.me/${waDigits}?text=${waIntro}" target="_blank" rel="noopener">${labelPrefix}${item.number} (WhatsApp)</a>`;
+      } else if(item.type === 'call'){
+        icon = '📞';
+        linksHtml = `<a href="tel:${callDigits}">${labelPrefix}${item.number}</a>`;
+      } else {
+        icon = '📞';
+        linksHtml = `<span>${labelPrefix}<a href="tel:${callDigits}">${item.number}</a> &middot; <a href="https://wa.me/${waDigits}?text=${waIntro}" target="_blank" rel="noopener">WhatsApp</a></span>`;
+      }
+      const row = document.createElement('div');
+      row.className = 'contact-row';
+      row.innerHTML = `<span class="ic">${icon}</span><span>${linksHtml}</span>`;
+      extraContainer.appendChild(row);
+    });
   }
   function renderFlock(){
     const strip = document.getElementById('flockStrip');
@@ -2024,8 +2320,46 @@
       </div>`;
   }
 
+  // Wires the receipt/cancel/payment-copy buttons inside a rendered
+  // "my orders" block, wherever it's shown (basket drawer or Orders panel).
+  function wireOrderCardButtons(container, onChange){
+    container.querySelectorAll('[data-basket-receipt]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = parseInt(btn.getAttribute('data-basket-receipt'),10);
+        const o = orders.find(x=>x.id===id);
+        if(o) downloadReceipt(o);
+      });
+    });
+    container.querySelectorAll('[data-basket-cancel]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = parseInt(btn.getAttribute('data-basket-cancel'),10);
+        if(!confirm(tf('confirmCancelOrder', {id}))) return;
+        btn.disabled = true;
+        updateOrder(id, {status:'cancelled'}).then(()=>{
+          if(onChange) onChange();
+          toast(tf('orderCancelledToast', {id}));
+        }).catch(e=>{
+          console.error('Cancel failed:', e);
+          toast('Could not cancel order — check your connection.');
+          btn.disabled = false;
+        });
+      });
+    });
+    wirePaymentCopyButtons(container);
+  }
+
+  // Renders the customer's placed-orders list into the header Orders panel
+  // and wires its buttons; re-invoked after actions like cancelling an order.
+  function refreshMyOrdersPanel(){
+    const el = document.getElementById('myOrdersSection');
+    if(!el) return;
+    const html = renderMyOrdersSection();
+    el.innerHTML = html || `<div class="empty-mini" style="margin-bottom:14px;">${t('noOrdersYetOnDevice')}</div>`;
+    wireOrderCardButtons(el, refreshMyOrdersPanel);
+  }
+
   function renderCart(){
-    document.getElementById('cartCount').textContent = cart.length;
+    document.getElementById('cartCount').textContent = myPlacedOrders().length;
     const body = document.getElementById('cartBody');
     body.dataset.hasCart = cart.length>0 ? '1' : '0';
     let html = '';
@@ -2051,29 +2385,7 @@
     document.querySelectorAll('[data-rm]').forEach(btn=>{
       btn.addEventListener('click', ()=> removeFromCart(btn.getAttribute('data-rm')));
     });
-    wirePaymentCopyButtons(body);
-    document.querySelectorAll('[data-basket-receipt]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = parseInt(btn.getAttribute('data-basket-receipt'),10);
-        const o = orders.find(x=>x.id===id);
-        if(o) downloadReceipt(o);
-      });
-    });
-    document.querySelectorAll('[data-basket-cancel]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const id = parseInt(btn.getAttribute('data-basket-cancel'),10);
-        if(!confirm(tf('confirmCancelOrder', {id}))) return;
-        btn.disabled = true;
-        updateOrder(id, {status:'cancelled'}).then(()=>{
-          renderCart();
-          toast(tf('orderCancelledToast', {id}));
-        }).catch(e=>{
-          console.error('Cancel failed:', e);
-          toast('Could not cancel order — check your connection.');
-          btn.disabled = false;
-        });
-      });
-    });
+    wireOrderCardButtons(body, renderCart);
     document.getElementById('cartSubtotal').textContent = fmtMoney(cartTotal());
     document.getElementById('checkoutTotal').textContent = fmtMoney(cartTotal());
   }
@@ -2229,8 +2541,7 @@
   }, true);
 
   document.getElementById('openCart').addEventListener('click', ()=>{
-    renderCart();
-    openCartDrawer();
+    openTrack();
   });
   document.getElementById('closeCart').addEventListener('click', ()=> requestClose('cart'));
   document.getElementById('overlay').addEventListener('click', ()=> requestClose('cart'));
@@ -2291,9 +2602,7 @@
       document.getElementById('checkoutOverlay').classList.remove('open');
       document.getElementById('confirmOrderId').textContent = '#' + order.id;
       lastPlacedOrder = order;
-      const payBlock = document.getElementById('confirmPaymentBlock');
-      payBlock.innerHTML = paymentMethodsBlock(order);
-      wirePaymentCopyButtons(payBlock);
+      renderConfirmPaymentBlock(order.id);
       document.getElementById('confirmOverlay').classList.add('open');
       replaceLayer('confirm', ()=> document.getElementById('confirmOverlay').classList.remove('open'));
       ['custName','custPhone','custAddress','custNotes'].forEach(id=> document.getElementById(id).value='');
@@ -2306,6 +2615,17 @@
     });
   });
 
+  // Re-renders the confirmation modal's payment block from the freshest
+  // copy of the order (so it can redraw itself after a proof upload).
+  function renderConfirmPaymentBlock(orderId){
+    const order = orders.find(o=>o.id===orderId) || lastPlacedOrder;
+    if(!order) return;
+    const payBlock = document.getElementById('confirmPaymentBlock');
+    payBlock.innerHTML = paymentMethodsBlock(order);
+    wirePaymentCopyButtons(payBlock);
+    wirePaymentProofUpload(payBlock, ()=> renderConfirmPaymentBlock(orderId));
+  }
+
   document.getElementById('confirmDone').addEventListener('click', ()=> requestClose('confirm'));
   document.getElementById('confirmDownloadReceipt').addEventListener('click', ()=>{
     if(!lastPlacedOrder) return;
@@ -2315,6 +2635,7 @@
 
   // ---------------- Track Order ----------------
   function openTrack(){
+    refreshMyOrdersPanel();
     document.getElementById('trackOverlay').classList.add('open');
     pushLayer('track', ()=> document.getElementById('trackOverlay').classList.remove('open'));
   }
@@ -2341,9 +2662,10 @@
           <button class="icon-btn" id="trackDownloadReceipt">${t('downloadReceipt')}</button>
           ${order.status==='new' ? `<button class="icon-btn danger" id="trackCancelOrder">${t('cancelOrderBtn')}</button>` : ''}
         </div>
-        ${!paid ? paymentMethodsBlock(order) : ''}
+        ${!paid ? paymentMethodsBlock(order) : (order.paymentProofImage ? `<div class="payment-block">${paymentProofBlock(order)}</div>` : '')}
       </div>`;
     wirePaymentCopyButtons(result);
+    wirePaymentProofUpload(result, ()=> refreshTrackResultIfOpen());
     const dlBtn = document.getElementById('trackDownloadReceipt');
     if(dlBtn) dlBtn.addEventListener('click', ()=> downloadReceipt(order));
     const cancelBtn = document.getElementById('trackCancelOrder');
@@ -2709,6 +3031,36 @@
   }
 
   // ---------------- Admin: Site Content ----------------
+  function buildContactExtraRow(item){
+    item = item || {};
+    const row = document.createElement('div');
+    row.className = 'contact-extra-row';
+    row.dataset.rowId = item.id || ('extra_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7));
+    row.style.cssText = 'display:flex; gap:6px; align-items:center; border:1.5px solid var(--ink); border-radius:9px; padding:8px; flex-wrap:wrap;';
+    const label = (item.label || '').replace(/"/g,'&quot;');
+    const number = (item.number || '').replace(/"/g,'&quot;');
+    const type = item.type || 'both';
+    row.innerHTML = `
+      <input type="text" class="cExtraLabel" placeholder="Label (e.g. Sales, Delivery)" style="flex:1 1 140px; min-width:0; padding:8px; border:1.5px solid var(--ink); border-radius:7px;" value="${label}">
+      <input type="text" class="cExtraNumber" placeholder="+237 6XX XXX XXX" style="flex:1 1 140px; min-width:0; padding:8px; border:1.5px solid var(--ink); border-radius:7px;" value="${number}">
+      <select class="cExtraType" style="padding:8px; border:1.5px solid var(--ink); border-radius:7px;">
+        <option value="call" ${type==='call' ? 'selected' : ''}>Call</option>
+        <option value="whatsapp" ${type==='whatsapp' ? 'selected' : ''}>WhatsApp</option>
+        <option value="both" ${type==='both' ? 'selected' : ''}>Call &amp; WhatsApp</option>
+      </select>
+      <button type="button" class="icon-btn cExtraRemove" title="Remove this number">🗑️</button>
+    `;
+    row.querySelector('.cExtraRemove').addEventListener('click', ()=> row.remove());
+    return row;
+  }
+  function renderContactExtraFormRows(list){
+    const container = document.getElementById('cContactExtraList');
+    container.innerHTML = '';
+    (list || []).forEach(item => container.appendChild(buildContactExtraRow(item)));
+  }
+  document.getElementById('addContactNumberBtn').addEventListener('click', ()=>{
+    document.getElementById('cContactExtraList').appendChild(buildContactExtraRow());
+  });
   function populateContentForm(){
     document.getElementById('cEyebrow').value = content.heroEyebrow;
     document.getElementById('cLine1').value = content.heroLine1;
@@ -2725,6 +3077,7 @@
     document.getElementById('cContactNote').value = content.contactNote || '';
     document.getElementById('cContactPhone').value = content.contactPhone || '';
     document.getElementById('cContactWhatsapp').value = content.contactWhatsapp || '';
+    renderContactExtraFormRows(content.contactExtras || []);
     document.getElementById('cContactEmail').value = content.contactEmail || '';
     document.getElementById('cContactAddress').value = content.contactAddress || '';
     document.getElementById('cContactHours').value = content.contactHours || '';
@@ -2772,6 +3125,12 @@
       contactNote: document.getElementById('cContactNote').value.trim(),
       contactPhone: document.getElementById('cContactPhone').value.trim(),
       contactWhatsapp: document.getElementById('cContactWhatsapp').value.trim(),
+      contactExtras: Array.from(document.querySelectorAll('#cContactExtraList .contact-extra-row')).map(row => ({
+        id: row.dataset.rowId,
+        label: row.querySelector('.cExtraLabel').value.trim(),
+        number: row.querySelector('.cExtraNumber').value.trim(),
+        type: row.querySelector('.cExtraType').value
+      })).filter(item => item.number),
       contactEmail: document.getElementById('cContactEmail').value.trim(),
       contactAddress: document.getElementById('cContactAddress').value.trim(),
       contactHours: document.getElementById('cContactHours').value.trim()
@@ -2963,6 +3322,9 @@
         <div class="order-items">${o.items.map(i=>`${i.name} (${formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel)})`).join(', ')}</div>
         <div class="mono" style="font-weight:700;">${fmtMoney(o.total)}</div>
         ${o.transactionId ? `<div style="font-size:12px; color:rgba(33,26,20,0.6); margin-top:4px;">Txn ID: <span class="mono">${o.transactionId}</span></div>` : ''}
+        ${o.paymentProofImage
+          ? `<div class="admin-proof-row"><img src="${o.paymentProofImage}" class="admin-proof-thumb" data-proof-view alt="Payment proof from customer"><span style="font-size:12px; color:var(--sage); font-weight:700;">📎 Payment screenshot — tap to verify</span></div>`
+          : `<div class="admin-proof-missing">No payment screenshot uploaded yet.</div>`}
         <div class="order-actions">
           ${next ? `<button class="icon-btn" data-advance="${o.id}">Mark ${statusMap[next]}</button>` : ''}
           <button class="icon-btn" data-toggle-paid="${o.id}">${paid ? 'Mark Unpaid' : 'Mark Paid'}</button>
@@ -3043,6 +3405,7 @@
         if(o) downloadReceipt(o);
       });
     });
+    wireProofLightbox(list);
     list.querySelectorAll('[data-cancel-order]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const id = parseInt(btn.getAttribute('data-cancel-order'),10);
