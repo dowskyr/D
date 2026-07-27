@@ -397,6 +397,12 @@
     .order-head .oid{word-break:break-all;}
     .order-items{word-break:break-word;}
     footer.site{flex-direction:column; align-items:flex-start; padding:22px 16px 34px;}
+    /* .icon-btn sat around 28-30px tall at its base padding/font-size —
+       below the ~44px minimum recommended tap target — so order-card
+       actions (Mark Paid, Cancel, Advance status, etc.) were fiddly to
+       hit accurately on a phone. */
+    .icon-btn{min-height:44px; padding:8px 14px; font-size:13px;}
+    .proof-cancel-btn{min-height:36px; padding:6px 14px;}
   }
   @media (max-width:420px){
     .role-grid{grid-template-columns:1fr;}
@@ -481,6 +487,8 @@
   .proof-progress-track{width:100%; height:8px; border-radius:6px; background:rgba(31,122,92,0.15); margin-top:6px; overflow:hidden;}
   .proof-progress-fill{height:100%; width:0%; background:var(--sage); border-radius:6px; transition:width 0.25s ease;}
   .proof-progress-pct{font-family:'Space Mono',monospace; font-size:11px; color:rgba(33,26,20,0.6); margin-top:3px;}
+  .proof-still-working{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; font-size:11.5px; color:rgba(33,26,20,0.65);}
+  .proof-cancel-btn{flex-shrink:0; border:1px solid var(--rust); color:var(--rust); background:none; border-radius:6px; padding:4px 10px; font-size:11.5px; font-weight:700; cursor:pointer;}
   .admin-proof-thumb{width:52px; height:52px; object-fit:cover; border-radius:8px; border:2px solid var(--ink); cursor:zoom-in;}
   .admin-proof-row{display:flex; align-items:center; gap:10px; margin-top:8px;}
   .admin-proof-missing{font-size:12px; color:rgba(33,26,20,0.5); font-style:italic; margin-top:8px;}
@@ -941,9 +949,6 @@
   <span class="floating-actions-label" id="floatingActionsLabel" style="display:none;">Live support</span>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1017,7 +1022,10 @@
       proofUploaded:'Screenshot received — awaiting verification', proofUploading:'Uploading…',
       proofUploadFailed:'Could not upload — check your connection and try again.', proofTooLarge:'That image is too large. Please pick a smaller photo.',
       askQtyPrompt:'How many {unit} of {name} would you like?', invalidQty:'Please enter a valid quantity.',
-      proofUploadTimedOut:'Upload timed out — your connection may be weak. Please try again.'
+      proofUploadTimedOut:'Upload timed out — your connection may be weak. Please try again.',
+      proofProcessingFailed:'Could not process that photo. Please try a different one.',
+      proofStillWorking:'Still working — this can take a while on a weak connection.', proofCancelUpload:'Cancel',
+      proofUploadCancelled:'Upload cancelled.'
     },
     fr: {
       callUs:'Appelez-nous', orderBasket:'Mon Panier', myOrders:'Commandes',
@@ -1058,7 +1066,10 @@
       proofUploaded:'Capture reçue — en attente de vérification', proofUploading:'Téléversement…',
       proofUploadFailed:'Échec du téléversement — vérifiez votre connexion et réessayez.', proofTooLarge:'Cette image est trop grande. Choisissez une photo plus petite.',
       askQtyPrompt:'Combien de {unit} de {name} souhaitez-vous ?', invalidQty:'Veuillez entrer une quantité valide.',
-      proofUploadTimedOut:"Le téléversement a expiré — votre connexion est peut-être faible. Veuillez réessayer."
+      proofUploadTimedOut:"Le téléversement a expiré — votre connexion est peut-être faible. Veuillez réessayer.",
+      proofProcessingFailed:"Impossible de traiter cette photo. Veuillez en essayer une autre.",
+      proofStillWorking:'Toujours en cours — cela peut prendre du temps sur une connexion faible.', proofCancelUpload:'Annuler',
+      proofUploadCancelled:"Téléversement annulé."
     }
   };
   let lang = localStorage.getItem('sohlam_lang') || 'en';
@@ -1094,6 +1105,32 @@
     let chain = Promise.reject();
     urls.forEach(u=>{ chain = chain.catch(()=> loadScript(u)); });
     return chain;
+  }
+  // jsPDF/autotable/xlsx are only needed for receipt downloads and admin
+  // exports — not for browsing, cart, checkout, or payment-proof upload,
+  // which is what most mobile visitors actually do. Loading ~1.3MB of PDF
+  // and spreadsheet libraries up front on every page load (xlsx.full alone
+  // is close to 1MB) was pure dead weight for that majority. These load on
+  // first real use instead, and the promise is cached so a second tap
+  // (e.g. downloading two receipts in a row) doesn't re-fetch anything.
+  let jsPdfLoadPromise = null;
+  function ensureJsPDF(){
+    if(window.jspdf) return Promise.resolve();
+    if(!jsPdfLoadPromise){
+      jsPdfLoadPromise = loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+        .then(()=> loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'))
+        .catch(err=>{ jsPdfLoadPromise = null; throw err; }); // let a failed load be retried on the next tap
+    }
+    return jsPdfLoadPromise;
+  }
+  let xlsxLoadPromise = null;
+  function ensureXLSX(){
+    if(window.XLSX) return Promise.resolve();
+    if(!xlsxLoadPromise){
+      xlsxLoadPromise = loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js')
+        .catch(err=>{ xlsxLoadPromise = null; throw err; });
+    }
+    return xlsxLoadPromise;
   }
   function setCloudStatus(state, detail){
     // state: 'off' | 'connecting' | 'on' | 'error'
@@ -1460,6 +1497,10 @@
           <div data-proof-uploading-label>${t('proofUploading')}</div>
           <div class="proof-progress-track"><div class="proof-progress-fill" data-proof-progress-fill></div></div>
           <div class="proof-progress-pct" data-proof-progress-pct>0%</div>
+          <div class="proof-still-working" data-proof-still-working style="display:none;">
+            <span>${t('proofStillWorking')}</span>
+            <button type="button" class="proof-cancel-btn" data-proof-cancel>${t('proofCancelUpload')}</button>
+          </div>
         </div>
       </div>`;
   }
@@ -1550,13 +1591,23 @@
   // write can sit pending indefinitely — the SDK doesn't reject, it just
   // waits for connectivity. Without a client-side deadline that leaves the
   // progress bar frozen at 90% forever with no error and no way to retry,
-  // which is exactly the "it just gets stuck" symptom. PROOF_UPLOAD_TIMEOUT_MS
-  // puts a hard ceiling on the whole compress+save chain so it always either
-  // finishes or fails visibly.
-  const PROOF_UPLOAD_TIMEOUT_MS = 25000;
-  function withTimeout(promise, ms){
+  // which is exactly the "it just gets stuck" symptom.
+  // Compression and the write get their own separate deadlines rather than
+  // one shared clock, so a slow decode on a weak device doesn't eat into
+  // the budget meant for a weak connection (or vice versa). Decoding a
+  // photo should never legitimately take long, hence the short ceiling;
+  // the Firestore write gets a generous 60s since that's the one genuinely
+  // at the mercy of the network.
+  const PROOF_COMPRESS_TIMEOUT_MS = 10000;
+  const PROOF_WRITE_TIMEOUT_MS = 60000;
+  // How long to wait before revealing a manual cancel option — even with a
+  // real timeout underneath, 60s of a frozen-looking bar with no way out
+  // feels broken, so this hands control back to the person sooner without
+  // lowering the actual deadline that protects a slow-but-working upload.
+  const PROOF_STILL_WORKING_DELAY_MS = 15000;
+  function withTimeout(promise, ms, tag){
     return new Promise((resolve, reject)=>{
-      const timer = setTimeout(()=> reject(new Error('timeout')), ms);
+      const timer = setTimeout(()=> reject(new Error(tag || 'timeout')), ms);
       promise.then(v=>{ clearTimeout(timer); resolve(v); }, e=>{ clearTimeout(timer); reject(e); });
     });
   }
@@ -1590,22 +1641,49 @@
         const statusEl = container.querySelector('[data-proof-uploading]');
         const fillEl = container.querySelector('[data-proof-progress-fill]');
         const pctEl = container.querySelector('[data-proof-progress-pct]');
+        const stillWorkingEl = container.querySelector('[data-proof-still-working]');
+        const cancelBtn = container.querySelector('[data-proof-cancel]');
         if(statusEl) statusEl.style.display = 'block';
+        if(stillWorkingEl) stillWorkingEl.style.display = 'none';
         // Lock every upload control in this block (not just the one tapped)
         // so a second tap can't start a race while this one is in flight.
         allProofInputs.forEach(i=> i.disabled = true);
         const progress = startProofProgress(fillEl, pctEl);
         let compressed = null;
-        withTimeout(
-          compressImageFile(file, 480, 0.45).then(dataUrl=>{
+        let cancelled = false;
+
+        const stillWorkingTimer = setTimeout(()=>{
+          if(stillWorkingEl) stillWorkingEl.style.display = 'flex';
+        }, PROOF_STILL_WORKING_DELAY_MS);
+
+        function resetControls(){
+          clearTimeout(stillWorkingTimer);
+          if(stillWorkingEl) stillWorkingEl.style.display = 'none';
+          allProofInputs.forEach(i=> i.disabled = false);
+        }
+
+        // Assigned via onclick (not addEventListener) so a retry after a
+        // failed attempt on this same, un-re-rendered block replaces the
+        // old handler instead of stacking a second one on top of it.
+        if(cancelBtn){
+          cancelBtn.onclick = ()=>{
+            cancelled = true;
+            progress.stop();
+            resetControls();
+            if(statusEl) statusEl.style.display = 'none';
+            e.target.value = '';
+            toast(t('proofUploadCancelled'));
+          };
+        }
+
+        withTimeout(compressImageFile(file, 480, 0.45), PROOF_COMPRESS_TIMEOUT_MS, 'compress-timeout')
+          .then(dataUrl=>{
             compressed = dataUrl;
             const patch = {paymentProofImage: dataUrl, paymentProofAt: new Date().toISOString()};
-            return updateOrder(orderId, patch);
-          }),
-          PROOF_UPLOAD_TIMEOUT_MS
-        )
+            return withTimeout(updateOrder(orderId, patch), PROOF_WRITE_TIMEOUT_MS, 'write-timeout');
+          })
           .then(()=>{
-            progress.finish();
+            clearTimeout(stillWorkingTimer);
             // Optimistically reflect the change locally in case the cloud
             // snapshot listener hasn't round-tripped yet.
             const proofPatch = {paymentProofImage: compressed, paymentProofAt: new Date().toISOString()};
@@ -1619,16 +1697,32 @@
             if(lastPlacedOrder && lastPlacedOrder.id === orderId){
               lastPlacedOrder = {...lastPlacedOrder, ...proofPatch};
             }
+            if(cancelled){
+              // They gave up waiting, but it actually landed — quietly
+              // refresh so the block reflects reality instead of leaving
+              // stale upload buttons showing after a save that did succeed.
+              if(onDone) onDone();
+              return;
+            }
+            progress.finish();
+            resetControls();
             toast(t('proofUploaded'));
             if(onDone) onDone();
           })
           .catch(err=>{
-            const timedOut = err && err.message === 'timeout';
-            console.error(timedOut ? 'Payment proof upload timed out (weak/dropped connection):' : 'Payment proof upload failed:', err);
+            if(cancelled) return; // UI already reset — don't surface a stale error
+            const phase = err && err.message;
+            console.error(
+              phase === 'compress-timeout' ? 'Payment proof processing timed out:' :
+              phase === 'write-timeout' ? 'Payment proof upload timed out (weak/dropped connection):' :
+              'Payment proof upload failed:', err);
             progress.stop();
-            toast(timedOut ? t('proofUploadTimedOut') : t('proofUploadFailed'));
+            resetControls();
+            const msg = phase === 'compress-timeout' ? t('proofProcessingFailed')
+              : phase === 'write-timeout' ? t('proofUploadTimedOut')
+              : t('proofUploadFailed');
+            toast(msg);
             if(statusEl) statusEl.style.display = 'none';
-            allProofInputs.forEach(i=> i.disabled = false);
             e.target.value = '';
           });
       });
@@ -2010,14 +2104,24 @@
 
 
   function downloadReceipt(order){
-    const doc = buildReceiptPDF(order);
-    if(!doc) return;
-    doc.save('SOHLAM-Receipt-' + order.id + '.pdf');
+    ensureJsPDF().then(()=>{
+      const doc = buildReceiptPDF(order);
+      if(!doc) return;
+      doc.save('SOHLAM-Receipt-' + order.id + '.pdf');
+    }).catch(err=>{
+      console.error('Failed to load receipt tool:', err);
+      toast('Receipt tool failed to load. Check your connection.');
+    });
   }
 
   function exportOrdersPDF(){
     if(orders.length===0){ toast('No orders to export.'); return; }
-    if(!window.jspdf){ toast('Export tool failed to load. Check your connection.'); return; }
+    ensureJsPDF().then(_runExportOrdersPDF).catch(err=>{
+      console.error('Failed to load PDF export tool:', err);
+      toast('Export tool failed to load. Check your connection.');
+    });
+  }
+  function _runExportOrdersPDF(){
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'pt', format:'a4', orientation:'landscape' });
     doc.setFont('helvetica','bold'); doc.setFontSize(16);
@@ -2055,8 +2159,12 @@
 
   function exportOrdersExcel(){
     if(orders.length===0){ toast('No orders to export.'); return; }
-    if(!window.XLSX){ toast('Export tool failed to load. Check your connection.'); return; }
-
+    ensureXLSX().then(_runExportOrdersExcel).catch(err=>{
+      console.error('Failed to load Excel export tool:', err);
+      toast('Export tool failed to load. Check your connection.');
+    });
+  }
+  function _runExportOrdersExcel(){
     const paymentLabelMap = {paid:'Paid', unpaid:'Unpaid'};
     const summaryRows = [...orders].reverse().map(o=>({
       'Order #': o.id,
@@ -2235,7 +2343,7 @@
     }
     strip.innerHTML = content.flock.map(f => `
       <div class="flock-card ${f.color || 'c1'}" data-flock-id="${f.id}" role="button" tabindex="0">
-        ${f.image ? `<img class="photo" src="${f.image}" alt="${f.species}">` : `<span class="icon">${f.icon || '🐣'}</span>`}
+        ${f.image ? `<img class="photo" src="${f.image}" alt="${f.species}" loading="lazy" decoding="async">` : `<span class="icon">${f.icon || '🐣'}</span>`}
         <div class="species">${f.species}</div>
         <div class="call-name">${f.callName || ''}</div>
         <span class="age-pill">${f.age || ''}</span>
@@ -2333,7 +2441,7 @@
         return `
         <div class="ticket">
           <span class="badge ${s}">${statusLabel(s)}</span>
-          <img class="ticket-img" src="${img}" alt="${p.name}">
+          <img class="ticket-img" src="${img}" alt="${p.name}" loading="lazy" decoding="async">
           ${p.video ? (isYoutubeEmbedUrl(p.video)
             ? `<iframe class="ticket-video" src="${p.video}" style="width:100%; aspect-ratio:16/9; border:0; border-radius:6px; margin-top:8px; display:block;" allowfullscreen loading="lazy"></iframe>`
             : `<video class="ticket-video" src="${p.video}" controls playsinline preload="metadata" style="width:100%; border-radius:6px; margin-top:8px; display:block;"></video>`) : ''}
