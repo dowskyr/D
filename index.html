@@ -463,6 +463,20 @@
   }
 
   /* ---------- Payment (Mobile Money) ---------- */
+  .conn-banner{
+    font-size:12.5px; font-weight:700; text-align:center; padding:9px 16px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    border-bottom:1.5px solid var(--ink);
+  }
+  .conn-banner.conn-offline{background:var(--rust); color:var(--cream);}
+  .conn-banner.conn-error{background:var(--yolk-deep); color:var(--ink);}
+  .conn-banner.conn-connecting{background:rgba(33,26,20,0.08); color:var(--ink);}
+  .conn-banner.conn-ok{background:var(--sage); color:var(--cream);}
+  .conn-banner .conn-retry-btn{
+    font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;
+    background:rgba(255,255,255,0.25); border:1.5px solid currentColor; border-radius:20px;
+    padding:3px 10px; cursor:pointer; color:inherit; flex-shrink:0;
+  }
   .payment-block{margin-top:14px; padding:14px 16px; border:2px dashed var(--ink); border-radius:6px; background:var(--paper-light); text-align:left;}
   .payment-block-title{font-family:'Bitter',serif; font-weight:800; font-size:12.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--rust); margin-bottom:8px;}
   .payment-amount{font-family:'Space Mono',monospace; font-weight:700; font-size:15px; margin-bottom:10px;}
@@ -581,6 +595,8 @@
   </div>
   <div class="ticker-wrap"><div class="ticker mono" id="tickerText">Loading today's stock...</div></div>
 </header>
+
+<div id="connBanner" class="conn-banner" style="display:none;" role="status"></div>
 
 <main id="storefront">
   <div class="hero">
@@ -797,7 +813,8 @@
             <label for="pImage">Photo</label>
             <input id="pImage" type="file" accept="image/*">
             <img id="pImagePreview" class="thumb-preview">
-            <div class="helper">Photos are resized and stored in this browser only.</div>
+            <div id="pImageProgress" class="helper" style="display:none;"></div>
+            <div class="helper">Photos are uploaded to Cloudinary — needs an internet connection.</div>
           </div>
           <div class="field">
             <label for="pVideoUrl">YouTube link (recommended)</label>
@@ -808,7 +825,7 @@
             <label for="pVideo">Or upload a video file (optional, under 30MB)</label>
             <input id="pVideo" type="file" accept="video/*">
             <div id="pVideoProgress" class="helper" style="display:none;"></div>
-            <div class="helper">Uploaded to cloud storage — needs an internet connection. Prefer the YouTube link above when you can; it's lighter and loads faster for customers.</div>
+            <div class="helper">Uploaded to Cloudinary — needs an internet connection but not cloud sync. Prefer the YouTube link above when you can; it's lighter and loads faster for customers.</div>
           </div>
           <div class="field" id="pVideoPreviewField" style="display:none;">
             <label>Video preview</label>
@@ -893,7 +910,8 @@
               <label for="fImage">Photo (optional — replaces the emoji icon)</label>
               <input id="fImage" type="file" accept="image/*">
               <img id="fImagePreview" class="thumb-preview">
-              <div class="helper">Photos are resized and stored in this browser only.</div>
+              <div id="fImageProgress" class="helper" style="display:none;"></div>
+              <div class="helper">Photos are uploaded to Cloudinary — needs an internet connection.</div>
             </div>
             <div class="field"><label for="fColor">Card color</label>
               <select id="fColor">
@@ -973,8 +991,22 @@
   };
   const CLOUD_ENABLED = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
   let db = null;
-  let storage = null;
   let cloudConnected = false;
+
+  // All image/video uploads (payment proof screenshots, product photos,
+  // flock photos, product videos) go through Cloudinary instead of
+  // Firebase Storage or in-Firestore base64 — this keeps Firestore
+  // documents small (no more multi-hundred-KB base64 fields) and works
+  // independently of whether Firestore itself is reachable, since this is
+  // a plain unsigned upload preset with no auth step.
+  //
+  // NOTE: "SOHLAM presets" contains a space. That's unusual for a
+  // Cloudinary preset name — double-check it matches exactly (including
+  // case) what's shown under Settings → Upload → Upload presets in the
+  // Cloudinary console. A mismatch here fails every upload with a 400 and
+  // an "Upload preset not found" message from Cloudinary.
+  const CLOUDINARY_CLOUD_NAME = "yqrkbgch";
+  const CLOUDINARY_UPLOAD_PRESET = "SOHLAM presets";
 
   // ---------------- Language (EN / FR) ----------------
   // Covers the app's own static chrome — nav, buttons, form labels, statuses,
@@ -1025,7 +1057,11 @@
       proofUploadTimedOut:'Upload timed out — your connection may be weak. Please try again.',
       proofProcessingFailed:'Could not process that photo. Please try a different one.',
       proofStillWorking:'Still working — this can take a while on a weak connection.', proofCancelUpload:'Cancel',
-      proofUploadCancelled:'Upload cancelled.'
+      proofUploadCancelled:'Upload cancelled.',
+      connOfflineMsg:"You're offline — your basket, order and any photos will save on this device and sync once you're back online.",
+      connErrorMsg:'Having trouble reaching our servers — your changes are saved here and will sync automatically.',
+      connConnectingMsg:'Connecting…',
+      connRestoredMsg:"Back online — syncing now."
     },
     fr: {
       callUs:'Appelez-nous', orderBasket:'Mon Panier', myOrders:'Commandes',
@@ -1069,7 +1105,11 @@
       proofUploadTimedOut:"Le téléversement a expiré — votre connexion est peut-être faible. Veuillez réessayer.",
       proofProcessingFailed:"Impossible de traiter cette photo. Veuillez en essayer une autre.",
       proofStillWorking:'Toujours en cours — cela peut prendre du temps sur une connexion faible.', proofCancelUpload:'Annuler',
-      proofUploadCancelled:"Téléversement annulé."
+      proofUploadCancelled:"Téléversement annulé.",
+      connOfflineMsg:"Vous êtes hors ligne — votre panier, votre commande et vos photos seront enregistrés sur cet appareil et synchronisés dès que vous serez reconnecté.",
+      connErrorMsg:'Difficulté à joindre nos serveurs — vos modifications sont enregistrées ici et se synchroniseront automatiquement.',
+      connConnectingMsg:'Connexion en cours…',
+      connRestoredMsg:"De retour en ligne — synchronisation en cours."
     }
   };
   let lang = localStorage.getItem('sohlam_lang') || 'en';
@@ -1132,22 +1172,84 @@
     }
     return xlsxLoadPromise;
   }
+  let cloudStatusState = 'off'; // mirrors the states setCloudStatus renders, kept for the connectivity banner
   function setCloudStatus(state, detail){
     // state: 'off' | 'connecting' | 'on' | 'error'
+    cloudStatusState = state;
     const pill = document.getElementById('cloudStatusPill');
-    if(!pill) return;
-    const map = {
-      off:   {label:'Local only (this device)', color:'rgba(33,26,20,0.55)'},
-      connecting: {label:'Connecting…', color:'var(--yolk-deep)'},
-      on:    {label:'🟢 Live — synced across devices', color:'var(--sage)'},
-      error: {label:'⚠ Offline — tap to retry' + (detail ? ` (${detail})` : ''), color:'var(--rust)'}
-    };
-    const s = map[state] || map.off;
-    pill.textContent = s.label;
-    pill.style.color = s.color;
-    pill.style.cursor = state === 'error' ? 'pointer' : 'default';
-    pill.title = detail || '';
+    if(pill){
+      const map = {
+        off:   {label:'Local only (this device)', color:'rgba(33,26,20,0.55)'},
+        connecting: {label:'Connecting…', color:'var(--yolk-deep)'},
+        on:    {label:'🟢 Live — synced across devices', color:'var(--sage)'},
+        error: {label:'⚠ Offline — tap to retry' + (detail ? ` (${detail})` : ''), color:'var(--rust)'}
+      };
+      const s = map[state] || map.off;
+      pill.textContent = s.label;
+      pill.style.color = s.color;
+      pill.style.cursor = state === 'error' ? 'pointer' : 'default';
+      pill.title = detail || '';
+    }
+    updateConnBanner();
   }
+
+  // Customer-facing connectivity indicator. Combines two independent
+  // signals: the browser's own online/offline events (catches airplane
+  // mode, dead wifi, etc. instantly) and the Firestore connection state
+  // (catches cases where the network is up but our backend specifically
+  // can't be reached — blocked domain, DNS filtering, backend outage).
+  // Hidden entirely for local-only installs (CLOUD_ENABLED false) except
+  // for genuine browser offline, since there's no backend to lose sync
+  // with in that mode.
+  function updateConnBanner(){
+    const banner = document.getElementById('connBanner');
+    if(!banner) return;
+    const browserOffline = !navigator.onLine;
+    let state = 'ok';
+    if(browserOffline){
+      state = 'offline';
+    } else if(CLOUD_ENABLED && cloudStatusState === 'error'){
+      state = 'error';
+    } else if(CLOUD_ENABLED && cloudStatusState === 'connecting'){
+      state = 'connecting';
+    }
+
+    if(state === 'ok'){
+      if(banner.dataset.wasDown === '1'){
+        banner.dataset.wasDown = '0';
+        banner.className = 'conn-banner conn-ok';
+        banner.textContent = '🟢 ' + t('connRestoredMsg');
+        banner.style.display = 'flex';
+        clearTimeout(banner._hideTimer);
+        banner._hideTimer = setTimeout(()=>{ if(banner.dataset.wasDown !== '1') banner.style.display = 'none'; }, 3000);
+      } else {
+        banner.style.display = 'none';
+      }
+      return;
+    }
+
+    banner.dataset.wasDown = '1';
+    clearTimeout(banner._hideTimer);
+    banner.className = 'conn-banner conn-' + state;
+    const icon = state === 'connecting' ? '⏳' : '⚠';
+    const msg = state === 'offline' ? t('connOfflineMsg') : state === 'error' ? t('connErrorMsg') : t('connConnectingMsg');
+    banner.innerHTML = '';
+    const span = document.createElement('span');
+    span.textContent = icon + ' ' + msg;
+    banner.appendChild(span);
+    if(state === 'error'){
+      const retryBtn = document.createElement('button');
+      retryBtn.type = 'button';
+      retryBtn.className = 'conn-retry-btn';
+      retryBtn.textContent = '↻';
+      retryBtn.title = 'Retry connection';
+      retryBtn.addEventListener('click', ()=> connectCloud());
+      banner.appendChild(retryBtn);
+    }
+    banner.style.display = 'flex';
+  }
+  window.addEventListener('online', updateConnBanner);
+  window.addEventListener('offline', updateConnBanner);
 
   // ---------------- State ----------------
   const PRODUCTS_KEY = 'ftf_products_v1';
@@ -1290,10 +1392,20 @@
   // A targeted Firestore field update, not a whole-array overwrite, so it
   // can never clobber an order someone else just placed a moment ago.
   function updateOrder(id, patch){
-    if(CLOUD_ENABLED && db){
-      return db.collection('orders').doc(String(id)).update(patch);
-    }
+    // Always refresh the local/offline cache immediately, regardless of
+    // cloud mode — so a proof photo (or any patch) is never lost purely
+    // because the network write is slow or fails, and a page refresh can
+    // still show what was captured.
     saveOrdersLocal(orders.map(o=> o.id===id ? {...o, ...patch} : o));
+    if(CLOUD_ENABLED && db){
+      // set(...,{merge:true}) instead of update(): .update() rejects with
+      // "no document to update" if the doc isn't found under this exact
+      // path (a real risk right after createOrder on a slow connection,
+      // or if the ID type ever mismatches). set+merge writes the patch
+      // whether or not the doc already exists, so a payment proof upload
+      // can't silently fail purely on that account.
+      return db.collection('orders').doc(String(id)).set(patch, {merge:true});
+    }
     return Promise.resolve();
   }
   // Permanently removes an order record (used for tidying up old
@@ -1341,17 +1453,12 @@
           `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-firestore-compat.js`,
           `https://cdnjs.cloudflare.com/ajax/libs/firebase/${FB_VERSION}/firebase-firestore-compat.min.js`
         ]);
-        await loadScriptWithFallback([
-          `https://www.gstatic.com/firebasejs/${FB_VERSION}/firebase-storage-compat.js`,
-          `https://cdnjs.cloudflare.com/ajax/libs/firebase/${FB_VERSION}/firebase-storage-compat.min.js`
-        ]);
       }
       if(!window.firebase){
         throw new Error('Firebase SDK did not load from any source (gstatic.com or cdnjs.cloudflare.com). This usually means the device/network is blocking those domains — check Wi-Fi, VPN, or DNS-filtering apps.');
       }
       firebase.initializeApp(FIREBASE_CONFIG);
       db = firebase.firestore();
-      try{ storage = firebase.storage(); }catch(e){ console.warn('Firebase Storage unavailable — video uploads will be disabled:', e); storage = null; }
 
       db.collection('orders').onSnapshot(snap=>{
         cloudConnected = true;
@@ -1554,6 +1661,18 @@
       reader.readAsDataURL(file);
     });
   }
+  // Converts a canvas-produced base64 data URL into a Blob so it can be
+  // handed to Cloudinary (or anywhere else expecting a real file body)
+  // instead of being embedded inline as text.
+  function dataUrlToBlob(dataUrl){
+    const [header, base64] = dataUrl.split(',');
+    const mimeMatch = header.match(/data:(.*?);base64/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for(let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], {type: mime});
+  }
   // Drives the visible progress bar during a proof upload. There's no
   // byte-level progress event for a Firestore doc write (unlike a Storage
   // upload), so this "trickles" toward 90% while the compress+save promise
@@ -1611,6 +1730,65 @@
       promise.then(v=>{ clearTimeout(timer); resolve(v); }, e=>{ clearTimeout(timer); reject(e); });
     });
   }
+
+  // ---------------- Cloudinary upload ----------------
+  // Single place all image/video uploads go through. Unsigned upload (no
+  // API secret needed client-side) via the preset configured above.
+  // Uses XMLHttpRequest rather than fetch when a progress callback is
+  // given, since fetch has no native upload-progress event — XHR is the
+  // only way to get real byte-level percentages in the browser.
+  function uploadFileToCloudinary(file, {resourceType = 'auto', onProgress} = {}){
+    if(!file) return Promise.resolve(null);
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+    if(!onProgress){
+      return fetch(endpoint, {method:'POST', body: formData}).then(async response=>{
+        const data = await response.json().catch(()=>({}));
+        if(!response.ok || !data.secure_url){
+          throw new Error((data.error && data.error.message) || `Cloudinary upload failed (HTTP ${response.status})`);
+        }
+        return data.secure_url;
+      });
+    }
+
+    return new Promise((resolve, reject)=>{
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', endpoint);
+      xhr.upload.addEventListener('progress', ev=>{
+        if(ev.lengthComputable) onProgress(Math.round((ev.loaded / ev.total) * 100));
+      });
+      xhr.onload = ()=>{
+        let data = {};
+        try{ data = JSON.parse(xhr.responseText); }catch(e){ /* fall through to error below */ }
+        if(xhr.status >= 200 && xhr.status < 300 && data.secure_url){
+          resolve(data.secure_url);
+        } else {
+          reject(new Error((data.error && data.error.message) || `Cloudinary upload failed (HTTP ${xhr.status})`));
+        }
+      };
+      xhr.onerror = ()=> reject(new Error('Network error during Cloudinary upload'));
+      xhr.send(formData);
+    });
+  }
+
+  // Matches the exact signature requested: takes a <input type="file">
+  // element, uploads its first selected file as an image, and resolves to
+  // the public secure_url (or null on any failure — check the console for
+  // details, since the specific error is logged there).
+  async function uploadImageToCloudinary(fileInput){
+    const file = fileInput && fileInput.files && fileInput.files[0];
+    if(!file) return null;
+    try{
+      return await uploadFileToCloudinary(file, {resourceType: 'image'});
+    }catch(error){
+      console.error('Cloudinary upload failed:', error);
+      return null;
+    }
+  }
+
   function wirePaymentProofUpload(container, onDone){
     // Some Android WebViews fail to forward a label tap into a nested
     // display:none file input, so we drive it explicitly here instead of
@@ -1678,8 +1856,22 @@
 
         withTimeout(compressImageFile(file, 480, 0.45), PROOF_COMPRESS_TIMEOUT_MS, 'compress-timeout')
           .then(dataUrl=>{
-            compressed = dataUrl;
-            const patch = {paymentProofImage: dataUrl, paymentProofAt: new Date().toISOString()};
+            // Compression is done — hand off to real upload progress from
+            // here instead of the simulated trickle.
+            progress.stop();
+            const blob = dataUrlToBlob(dataUrl);
+            return withTimeout(
+              uploadFileToCloudinary(blob, {resourceType:'image', onProgress: pct=>{
+                if(fillEl) fillEl.style.width = pct + '%';
+                if(pctEl) pctEl.textContent = pct + '%';
+              }}),
+              PROOF_WRITE_TIMEOUT_MS, 'upload-timeout'
+            );
+          })
+          .then(url=>{
+            if(!url) throw new Error('Cloudinary did not return a secure_url');
+            compressed = url;
+            const patch = {paymentProofImage: url, paymentProofAt: new Date().toISOString()};
             return withTimeout(updateOrder(orderId, patch), PROOF_WRITE_TIMEOUT_MS, 'write-timeout');
           })
           .then(()=>{
@@ -1712,14 +1904,20 @@
           .catch(err=>{
             if(cancelled) return; // UI already reset — don't surface a stale error
             const phase = err && err.message;
+            // err.code (e.g. 'permission-denied', 'unavailable') is the
+            // single most useful thing for diagnosing a silent save
+            // failure — logged explicitly here rather than just the
+            // generic message so it's visible in the console even if the
+            // toast is missed.
             console.error(
               phase === 'compress-timeout' ? 'Payment proof processing timed out:' :
-              phase === 'write-timeout' ? 'Payment proof upload timed out (weak/dropped connection):' :
-              'Payment proof upload failed:', err);
+              phase === 'upload-timeout' ? 'Payment proof upload to Cloudinary timed out (weak/dropped connection):' :
+              phase === 'write-timeout' ? 'Payment proof saved to Cloudinary but the Firestore write timed out:' :
+              'Payment proof upload failed:', err, err && err.code ? `[code: ${err.code}]` : '');
             progress.stop();
             resetControls();
             const msg = phase === 'compress-timeout' ? t('proofProcessingFailed')
-              : phase === 'write-timeout' ? t('proofUploadTimedOut')
+              : (phase === 'upload-timeout' || phase === 'write-timeout') ? t('proofUploadTimedOut')
               : t('proofUploadFailed');
             toast(msg);
             if(statusEl) statusEl.style.display = 'none';
@@ -3052,9 +3250,11 @@
 
   // ---------------- Admin: Inventory ----------------
   let pendingImage = '';
+  let imageUploading = false;
   document.getElementById('pImage').addEventListener('change', (e)=>{
     const file = e.target.files[0];
     if(!file) return;
+    const progressEl = document.getElementById('pImageProgress');
     const reader = new FileReader();
     reader.onload = function(ev){
       const img = new Image();
@@ -3066,10 +3266,33 @@
         canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        pendingImage = canvas.toDataURL('image/jpeg', 0.8);
+        // Show the resized photo instantly (from the local canvas) while
+        // the real upload happens in the background — the preview doesn't
+        // have to wait on the network.
+        const localPreviewUrl = canvas.toDataURL('image/jpeg', 0.8);
         const preview = document.getElementById('pImagePreview');
-        preview.src = pendingImage;
+        preview.src = localPreviewUrl;
         preview.style.display = 'block';
+
+        imageUploading = true;
+        progressEl.style.display = 'block';
+        progressEl.textContent = 'Uploading… 0%';
+        canvas.toBlob(blob=>{
+          uploadFileToCloudinary(blob, {resourceType:'image', onProgress: pct=>{
+            progressEl.textContent = `Uploading… ${pct}%`;
+          }}).then(url=>{
+            imageUploading = false;
+            if(!url) throw new Error('Cloudinary did not return a secure_url');
+            pendingImage = url;
+            progressEl.textContent = 'Uploaded ✓';
+          }).catch(err=>{
+            imageUploading = false;
+            console.error('Product photo upload failed:', err);
+            progressEl.style.display = 'none';
+            toast('Photo upload failed — check your connection and try again.');
+            e.target.value = '';
+          });
+        }, 'image/jpeg', 0.8);
       };
       img.src = ev.target.result;
     };
@@ -3104,12 +3327,13 @@
   }
 
   // Videos are too big for base64/Firestore, so instead of embedding them
-  // in the product record like photos, we upload the raw file to Firebase
-  // Storage and just save the resulting URL (a short string) on the
-  // product. This needs cloud sync to be connected, since there's no
-  // "local only" fallback for a multi-megabyte file. A pasted YouTube link
-  // (see above) sidesteps all of this — no upload, no storage weight — and
-  // is the recommended path in the form.
+  // in the product record like photos, we upload the raw file to
+  // Cloudinary and just save the resulting URL (a short string) on the
+  // product. Unlike the old Firebase Storage version, this doesn't need
+  // Firestore cloud sync to be connected — Cloudinary's unsigned upload
+  // preset only needs the device itself to be online. A pasted YouTube
+  // link (see above) sidesteps all of this — no upload, no storage weight
+  // — and is the recommended path in the form.
   const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
   let pendingVideo = '';
   let videoRemoved = false;
@@ -3146,11 +3370,6 @@
       e.target.value = '';
       return;
     }
-    if(!CLOUD_ENABLED || !cloudConnected || !storage){
-      toast('Video upload needs cloud sync to be connected — check the status pill at the top, or paste a YouTube link instead.');
-      e.target.value = '';
-      return;
-    }
 
     videoUploading = true;
     videoRemoved = false;
@@ -3159,38 +3378,31 @@
     progressEl.textContent = 'Uploading… 0%';
     setVideoPreview('');
 
-    const path = `product-videos/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-    const ref = storage.ref().child(path);
-    const task = ref.put(file);
-    task.on('state_changed',
-      snap=>{
-        const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+    uploadFileToCloudinary(file, {resourceType:'video', onProgress: pct=>{
         progressEl.textContent = `Uploading… ${pct}%`;
-      },
-      err=>{
+      }})
+      .then(url=>{
+        videoUploading = false;
+        if(!url) throw new Error('Cloudinary did not return a secure_url');
+        // If the admin pasted a YouTube link while this upload was still
+        // in flight, that link wins — don't clobber it with the file that
+        // just finished behind it.
+        const urlField = document.getElementById('pVideoUrl').value.trim();
+        if(extractYoutubeId(urlField)){
+          progressEl.style.display = 'none';
+          return;
+        }
+        pendingVideo = url;
+        progressEl.textContent = 'Uploaded ✓';
+        setVideoPreview(url);
+      })
+      .catch(err=>{
         console.error('Video upload failed:', err);
-        toast('Video upload failed — check your connection and that Firebase Storage rules allow writes.');
+        toast('Video upload failed — check your connection and try again.');
         progressEl.style.display = 'none';
         videoUploading = false;
         e.target.value = '';
-      },
-      ()=>{
-        task.snapshot.ref.getDownloadURL().then(url=>{
-          videoUploading = false;
-          // If the admin pasted a YouTube link while this upload was still
-          // in flight, that link wins — don't clobber it with the file that
-          // just finished behind it.
-          const urlField = document.getElementById('pVideoUrl').value.trim();
-          if(extractYoutubeId(urlField)){
-            progressEl.style.display = 'none';
-            return;
-          }
-          pendingVideo = url;
-          progressEl.textContent = 'Uploaded ✓';
-          setVideoPreview(url);
-        });
-      }
-    );
+      });
   });
 
   document.getElementById('removeVideoBtn').addEventListener('click', ()=>{
@@ -3213,7 +3425,9 @@
     document.getElementById('pNotes').value = '';
     document.getElementById('pImage').value = '';
     document.getElementById('pImagePreview').style.display = 'none';
+    document.getElementById('pImageProgress').style.display = 'none';
     pendingImage = '';
+    imageUploading = false;
     document.getElementById('pVideo').value = '';
     document.getElementById('pVideoUrl').value = '';
     document.getElementById('pVideoProgress').style.display = 'none';
@@ -3252,6 +3466,10 @@
     }
     if(videoUploading){
       toast('Hang on — the video file is still uploading (or paste a YouTube link instead to skip the wait).');
+      return;
+    }
+    if(imageUploading){
+      toast('Hang on — the photo is still uploading.');
       return;
     }
     if(unitType === 'count') stock = Math.round(stock);
@@ -3517,9 +3735,11 @@
   });
 
   let pendingFlockImage = '';
+  let flockImageUploading = false;
   document.getElementById('fImage').addEventListener('change', (e)=>{
     const file = e.target.files[0];
     if(!file) return;
+    const progressEl = document.getElementById('fImageProgress');
     const reader = new FileReader();
     reader.onload = function(ev){
       const img = new Image();
@@ -3531,10 +3751,30 @@
         canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        pendingFlockImage = canvas.toDataURL('image/jpeg', 0.8);
+        const localPreviewUrl = canvas.toDataURL('image/jpeg', 0.8);
         const preview = document.getElementById('fImagePreview');
-        preview.src = pendingFlockImage;
+        preview.src = localPreviewUrl;
         preview.style.display = 'block';
+
+        flockImageUploading = true;
+        progressEl.style.display = 'block';
+        progressEl.textContent = 'Uploading… 0%';
+        canvas.toBlob(blob=>{
+          uploadFileToCloudinary(blob, {resourceType:'image', onProgress: pct=>{
+            progressEl.textContent = `Uploading… ${pct}%`;
+          }}).then(url=>{
+            flockImageUploading = false;
+            if(!url) throw new Error('Cloudinary did not return a secure_url');
+            pendingFlockImage = url;
+            progressEl.textContent = 'Uploaded ✓';
+          }).catch(err=>{
+            flockImageUploading = false;
+            console.error('Flock photo upload failed:', err);
+            progressEl.style.display = 'none';
+            toast('Photo upload failed — check your connection and try again.');
+            e.target.value = '';
+          });
+        }, 'image/jpeg', 0.8);
       };
       img.src = ev.target.result;
     };
@@ -3551,7 +3791,9 @@
     document.getElementById('fColor').value = 'c1';
     document.getElementById('fImage').value = '';
     document.getElementById('fImagePreview').style.display = 'none';
+    document.getElementById('fImageProgress').style.display = 'none';
     pendingFlockImage = '';
+    flockImageUploading = false;
     document.getElementById('flockFormTitle').textContent = 'Add a Flock Card';
     document.getElementById('saveFlockBtn').textContent = 'Add Card';
     document.getElementById('cancelFlockEditBtn').style.display = 'none';
@@ -3560,6 +3802,7 @@
   document.getElementById('saveFlockBtn').addEventListener('click', ()=>{
     const species = document.getElementById('fSpecies').value.trim();
     if(!species){ toast('Please enter a species name.'); return; }
+    if(flockImageUploading){ toast('Hang on — the photo is still uploading.'); return; }
     const icon = document.getElementById('fIcon').value.trim() || '🐣';
     const callName = document.getElementById('fCallName').value.trim();
     const age = document.getElementById('fAge').value.trim();
@@ -3797,6 +4040,7 @@
     try{ renderGrid(); }catch(e){ console.error('renderGrid failed:', e); }
     try{ renderCart(); }catch(e){ console.error('renderCart failed:', e); }
     try{ if(typeof refreshTrackResultIfOpen === 'function') refreshTrackResultIfOpen(); }catch(e){ console.error('refreshTrackResultIfOpen failed:', e); }
+    try{ updateConnBanner(); }catch(e){ console.error('updateConnBanner failed:', e); }
   });
 
   // ---------------- Init ----------------
@@ -3805,6 +4049,7 @@
   try{ renderGrid(); }catch(e){ console.error('renderGrid failed:', e); }
   try{ renderCart(); }catch(e){ console.error('renderCart failed:', e); }
   setCloudStatus(CLOUD_ENABLED ? 'connecting' : 'off');
+  updateConnBanner();
   const cloudPillEl = document.getElementById('cloudStatusPill');
   if(cloudPillEl) cloudPillEl.addEventListener('click', ()=> connectCloud());
   connectCloud();
