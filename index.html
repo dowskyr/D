@@ -114,6 +114,25 @@
   /* ---------- Ticker ---------- */
   .ticker-wrap{background:var(--rust); color:var(--cream); overflow:hidden; white-space:nowrap; border-bottom:1px solid rgba(255,255,255,0.15);}
   .ticker{display:inline-block; padding:7px 0; font-family:'Space Mono',monospace; font-size:12.5px; letter-spacing:0.03em; animation:tick 28s linear infinite;}
+
+  /* ---------- Connectivity banner ---------- */
+  .connectivity-banner{
+    display:none; align-items:center; justify-content:center; gap:9px;
+    padding:10px 16px; font-weight:700; font-size:13.5px; color:var(--cream);
+    background:var(--sage); text-align:center;
+  }
+  .connectivity-banner.show{ display:flex; }
+  .connectivity-banner.offline{ background:var(--rust); }
+  .connectivity-dot{
+    width:11px; height:11px; border-radius:50%; background:#3DDC84; flex-shrink:0;
+    animation:connectivityPulse 1.4s ease-out infinite;
+  }
+  .connectivity-banner.offline .connectivity-dot{ background:#FFD8D0; animation:none; }
+  @keyframes connectivityPulse{
+    0%{ box-shadow:0 0 0 0 rgba(61,220,132,0.55); }
+    70%{ box-shadow:0 0 0 8px rgba(61,220,132,0); }
+    100%{ box-shadow:0 0 0 0 rgba(61,220,132,0); }
+  }
   @keyframes tick{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
 
   /* ---------- Hero ---------- */
@@ -466,6 +485,8 @@
   .notify-card.notify-out{ animation:notifyOut 0.22s ease forwards; }
   .notify-card.notify-delivered{ border-color:var(--sage); }
   .notify-card.notify-new-order{ border-color:var(--yolk-deep); }
+  .notify-card.notify-preparing{ border-color:var(--sky); }
+  .notify-card.notify-ready{ border-color:var(--rust); }
   .notify-text{ flex:1; min-width:0; }
   .notify-title{ font-family:'Bitter',serif; font-weight:800; font-size:14px; margin-bottom:2px; }
   .notify-body{ font-size:12.5px; color:rgba(33,26,20,0.75); line-height:1.35; }
@@ -480,6 +501,12 @@
     display:none; background:var(--rust); color:var(--cream); font-size:11px; font-weight:800;
     border-radius:20px; padding:1px 7px; margin-left:6px; vertical-align:middle;
   }
+  .sound-toggle-btn{
+    background:var(--sage); color:var(--cream); border:2px solid var(--cream);
+    width:38px; height:38px; border-radius:50%; font-size:16px; display:inline-flex;
+    align-items:center; justify-content:center; padding:0; flex-shrink:0;
+  }
+  .sound-toggle-btn:hover{filter:brightness(1.1);}
 
   /* ---------- Payment (Mobile Money) ---------- */
   .payment-block{margin-top:14px; padding:14px 16px; border:2px dashed var(--ink); border-radius:6px; background:var(--paper-light); text-align:left;}
@@ -561,7 +588,7 @@
       <button class="navlink" id="navSignIn" data-i18n="navSignIn">Sign In</button>
     </nav>
     <div class="header-actions">
-      <a class="call-btn" id="callSupportBtn" href="#" style="display:none;" title="Call live support">📞 <span class="call-btn-label" data-i18n="callUs">Call Us</span></a>
+      <button class="sound-toggle-btn" id="soundToggleBtn" title="Toggle notification sounds" aria-label="Toggle notification sounds">🔔</button>
       <button class="cart-btn" id="openCart"><span class="cart-btn-label" data-i18n="orderBasket">Order Basket</span> <span class="cart-count" id="cartCount">0</span></button>
       <button class="lang-toggle" id="langToggle" title="Français / English">🌐 FR</button>
       <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false">☰</button>
@@ -569,6 +596,11 @@
   </div>
   <div class="ticker-wrap"><div class="ticker mono" id="tickerText">Loading today's stock...</div></div>
 </header>
+
+<div class="connectivity-banner" id="connectivityBanner" role="status" aria-live="polite">
+  <span class="connectivity-dot" id="connectivityDot"></span>
+  <span id="connectivityText">Back online — syncing now.</span>
+</div>
 
 <main id="storefront">
   <div class="hero">
@@ -1139,8 +1171,12 @@
     urls.forEach(u=>{ chain = chain.catch(()=> loadScript(u)); });
     return chain;
   }
+  let lastCloudState = null;
   function setCloudStatus(state, detail){
     // state: 'off' | 'connecting' | 'on' | 'error'
+    if(state === 'on' && lastCloudState !== 'on'){ showConnectivityBanner('online'); }
+    else if(state === 'error'){ showConnectivityBanner('offline'); }
+    lastCloudState = state;
     const pill = document.getElementById('cloudStatusPill');
     if(!pill) return;
     const map = {
@@ -1825,6 +1861,69 @@
   function formatProductQty(p, qty){ return formatQty(qty, unitTypeOf(p), p.unitLabel); }
   function qtyStepOf(p){ return unitTypeOf(p) === 'count' ? 1 : 0.5; }
 
+  // ---------------- Notification sound ----------------
+  // Small self-contained beeps generated with the Web Audio API, so
+  // notifications have sound without needing an external audio file.
+  // Muted state is remembered per device. Browsers block audio until the
+  // user has interacted with the page at least once, so we prime the
+  // AudioContext on the first tap/click/keypress.
+  const SOUND_PREF_KEY = 'sohlam_sound_enabled';
+  let soundEnabled = (function(){
+    try{ const v = localStorage.getItem(SOUND_PREF_KEY); return v === null ? true : v === '1'; }catch(e){ return true; }
+  })();
+  let audioCtx = null;
+  function ensureAudioCtx(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+    }
+    if(audioCtx && audioCtx.state === 'suspended'){ audioCtx.resume().catch(()=>{}); }
+    return audioCtx;
+  }
+  ['click','touchstart','keydown'].forEach(evt=>{
+    document.addEventListener(evt, ()=> ensureAudioCtx(), {once:true, passive:true});
+  });
+  function playTone(ctx, freq, startTime, duration, type, peak){
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, startTime);
+    gain.gain.linearRampToValueAtTime(peak || 0.16, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(startTime); osc.stop(startTime + duration + 0.03);
+  }
+  function playChime(kind){
+    if(!soundEnabled) return;
+    const ctx = ensureAudioCtx();
+    if(!ctx) return;
+    const now = ctx.currentTime;
+    if(kind === 'new-order'){
+      playTone(ctx, 880, now, 0.14, 'square', 0.14);
+      playTone(ctx, 880, now + 0.18, 0.14, 'square', 0.14);
+    } else if(kind === 'delivered'){
+      playTone(ctx, 660, now, 0.16, 'sine', 0.16);
+      playTone(ctx, 990, now + 0.15, 0.24, 'sine', 0.16);
+    } else if(kind === 'ready'){
+      playTone(ctx, 740, now, 0.14, 'sine', 0.15);
+      playTone(ctx, 880, now + 0.13, 0.2, 'sine', 0.15);
+    } else {
+      playTone(ctx, 700, now, 0.15, 'sine', 0.12);
+    }
+  }
+  function setSoundEnabled(v){
+    soundEnabled = v;
+    try{ localStorage.setItem(SOUND_PREF_KEY, v ? '1' : '0'); }catch(e){}
+    const btn = document.getElementById('soundToggleBtn');
+    if(btn){ btn.textContent = v ? '🔔' : '🔕'; btn.setAttribute('aria-pressed', v ? 'false' : 'true'); }
+  }
+  document.getElementById('soundToggleBtn').addEventListener('click', ()=>{
+    ensureAudioCtx();
+    setSoundEnabled(!soundEnabled);
+    if(soundEnabled) playChime('preparing');
+  });
+  setSoundEnabled(soundEnabled);
+
   function toast(msg){
     const t = document.getElementById('toast');
     t.textContent = msg;
@@ -1855,6 +1954,7 @@
     };
     card.querySelector('.notify-close').addEventListener('click', remove);
     stack.appendChild(card);
+    playChime(kind);
     setTimeout(remove, 7000);
   }
 
@@ -1903,6 +2003,26 @@
           `🛎️ New order #${o.id}`,
           `${o.customerName || 'A customer'} · ${fmtMoney(o.total || 0)} · ${itemCount} item${itemCount===1?'':'s'}`,
           'new-order'
+        );
+      }
+
+      if(was && was !== 'preparing' && o.status === 'preparing'){
+        const isMine = myOrderIds.includes(o.id);
+        if(isMine){
+          showNotification(
+            `👨‍🍳 Your order #${o.id} is being prepared`,
+            `We're getting it ready for you now.`,
+            'preparing'
+          );
+        }
+      }
+
+      if(was && was !== 'ready' && o.status === 'ready'){
+        const isMine = myOrderIds.includes(o.id);
+        showNotification(
+          isMine ? `📦 Your order #${o.id} is ready!` : `📦 Order #${o.id} is ready`,
+          isMine ? `Come grab it whenever you're set — see you soon!` : `${o.customerName || 'A customer'}'s order is ready for pickup.`,
+          'ready'
         );
       }
 
@@ -2241,13 +2361,6 @@
     document.getElementById('contactNote').textContent = content.contactNote || '';
 
     const phone = primaryPhone();
-    const callBtn = document.getElementById('callSupportBtn');
-    if(phone){
-      callBtn.style.display = 'inline-flex';
-      callBtn.href = 'tel:' + phone.replace(/[^+\d]/g,'');
-    } else {
-      callBtn.style.display = 'none';
-    }
 
     const fabCall = document.getElementById('fabCall');
     if(fabCall){
@@ -2723,8 +2836,7 @@
   }, true);
 
   document.getElementById('openCart').addEventListener('click', ()=>{
-    renderCart();
-    openCartDrawer();
+    openHistory();
   });
   document.getElementById('closeCart').addEventListener('click', ()=> requestClose('cart'));
   document.getElementById('overlay').addEventListener('click', ()=> requestClose('cart'));
@@ -3878,6 +3990,35 @@
     try{ if(lastPlacedOrder && document.getElementById('confirmOverlay').classList.contains('open')) renderConfirmFlow(lastPlacedOrder.id); }catch(e){ console.error('renderConfirmFlow failed:', e); }
   });
 
+  // ---------------- Connectivity banner ----------------
+  // Customer-facing, tied to the browser's own online/offline events — so
+  // anyone who loses or regains their network connection sees it, not
+  // just staff (that's what the small cloudStatusPill in the admin panel
+  // is for). "Back online" auto-hides after a few seconds; "offline"
+  // stays up until the connection returns.
+  let connectivityBannerTimer = null;
+  function showConnectivityBanner(state){
+    const el = document.getElementById('connectivityBanner');
+    const text = document.getElementById('connectivityText');
+    if(!el || !text) return;
+    clearTimeout(connectivityBannerTimer);
+    if(state === 'offline'){
+      el.classList.remove('online');
+      el.classList.add('offline','show');
+      text.textContent = "You're offline — showing saved data.";
+    } else {
+      el.classList.remove('offline');
+      el.classList.add('online','show');
+      text.textContent = 'Back online — syncing now.';
+      connectivityBannerTimer = setTimeout(()=> el.classList.remove('show'), 4000);
+    }
+  }
+  window.addEventListener('offline', ()=> showConnectivityBanner('offline'));
+  window.addEventListener('online', ()=>{
+    showConnectivityBanner('online');
+    if(CLOUD_ENABLED && !cloudConnected) connectCloud();
+  });
+
   // ---------------- Init ----------------
   applyLanguage();
   try{ renderSiteContent(); }catch(e){ console.error('renderSiteContent failed:', e); }
@@ -3887,6 +4028,7 @@
   const cloudPillEl = document.getElementById('cloudStatusPill');
   if(cloudPillEl) cloudPillEl.addEventListener('click', ()=> connectCloud());
   connectCloud();
+  if(!navigator.onLine) showConnectivityBanner('offline');
 })();
 </script>
 </body>
