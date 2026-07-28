@@ -851,6 +851,14 @@
             <button type="button" class="icon-btn" id="removeVideoBtn" style="display:none; margin-top:6px;">Remove video</button>
             <div class="helper">Uploaded to cloud storage — needs an internet connection, and won't work if this device is offline.</div>
           </div>
+          <div class="field">
+            <label for="pVideoUrl">Or paste a YouTube link</label>
+            <input id="pVideoUrl" type="url" placeholder="https://youtube.com/watch?v=...">
+            <div id="pVideoUrlPreviewWrap" style="display:none; margin-top:8px;">
+              <iframe id="pVideoUrlPreview" style="width:100%; aspect-ratio:16/9; border:none; border-radius:6px;" allowfullscreen></iframe>
+            </div>
+            <div class="helper">Streams directly from YouTube — skips the upload and cloud storage entirely, but still needs internet to play. Replaces the uploaded video above if both are set.</div>
+          </div>
           <button class="btn-primary" id="saveProductBtn" style="width:100%; margin-top:8px;">Post Cut</button>
           <button class="icon-btn" id="cancelEditBtn" style="width:100%; margin-top:8px; display:none;">Cancel Edit</button>
         </div>
@@ -2535,7 +2543,10 @@
         <div class="ticket">
           <span class="badge ${s}">${statusLabel(s)}</span>
           <img class="ticket-img" src="${img}" alt="${p.name}">
-          ${p.video ? `<video class="ticket-video" src="${p.video}" controls playsinline preload="metadata" style="width:100%; border-radius:6px; margin-top:8px; display:block;"></video>` : ''}
+          ${p.video ? (youTubeEmbedUrl(p.video)
+            ? `<iframe class="ticket-video" src="${youTubeEmbedUrl(p.video)}" style="width:100%; aspect-ratio:16/9; border:none; border-radius:6px; margin-top:8px; display:block;" allowfullscreen></iframe>`
+            : `<video class="ticket-video" src="${p.video}" controls playsinline preload="metadata" style="width:100%; border-radius:6px; margin-top:8px; display:block;"></video>`
+          ) : ''}
           <div class="ticket-body">
             <h3>${p.name}</h3>
             <div class="ticket-cut">${p.cut} &middot; ${qtyText}</div>
@@ -3257,6 +3268,17 @@
   // product. This needs cloud sync to be connected, since there's no
   // "local only" fallback for a multi-megabyte file.
   const MAX_VIDEO_BYTES = 30 * 1024 * 1024;
+  // Recognizes youtube.com/watch, youtu.be, /embed/, and /shorts/ links and
+  // pulls out the 11-character video ID; returns null for anything else.
+  function youTubeVideoId(url){
+    if(!url) return null;
+    const m = String(url).match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+  }
+  function youTubeEmbedUrl(url){
+    const id = youTubeVideoId(url);
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  }
   let pendingVideo = '';
   let videoRemoved = false;
   let videoUploading = false;
@@ -3319,6 +3341,39 @@
     document.getElementById('pVideoPreview').style.display = 'none';
     document.getElementById('pVideoProgress').style.display = 'none';
     document.getElementById('removeVideoBtn').style.display = 'none';
+    document.getElementById('pVideoUrl').value = '';
+    document.getElementById('pVideoUrlPreviewWrap').style.display = 'none';
+  });
+
+  document.getElementById('pVideoUrl').addEventListener('input', (e)=>{
+    const url = e.target.value.trim();
+    const previewWrap = document.getElementById('pVideoUrlPreviewWrap');
+    const preview = document.getElementById('pVideoUrlPreview');
+    if(!url){
+      previewWrap.style.display = 'none';
+      preview.src = '';
+      if(youTubeVideoId(pendingVideo)){
+        pendingVideo = '';
+        videoRemoved = true;
+        document.getElementById('removeVideoBtn').style.display = 'none';
+      }
+      return;
+    }
+    const embed = youTubeEmbedUrl(url);
+    if(!embed){
+      previewWrap.style.display = 'none';
+      preview.src = '';
+      return;
+    }
+    // A YouTube link replaces any uploaded file — clear that side of the form.
+    document.getElementById('pVideo').value = '';
+    document.getElementById('pVideoPreview').style.display = 'none';
+    document.getElementById('pVideoProgress').style.display = 'none';
+    document.getElementById('removeVideoBtn').style.display = 'inline-block';
+    pendingVideo = url;
+    videoRemoved = false;
+    preview.src = embed;
+    previewWrap.style.display = 'block';
   });
 
   function clearProductForm(){
@@ -3337,6 +3392,8 @@
     document.getElementById('pVideoPreview').style.display = 'none';
     document.getElementById('pVideoProgress').style.display = 'none';
     document.getElementById('removeVideoBtn').style.display = 'none';
+    document.getElementById('pVideoUrl').value = '';
+    document.getElementById('pVideoUrlPreviewWrap').style.display = 'none';
     pendingVideo = '';
     videoRemoved = false;
     videoUploading = false;
@@ -3438,8 +3495,22 @@
         document.getElementById('pVideo').value = '';
         const vPreview = document.getElementById('pVideoPreview');
         const removeBtn = document.getElementById('removeVideoBtn');
-        if(p.video){ vPreview.src = p.video; vPreview.style.display='block'; removeBtn.style.display='inline-block'; }
-        else { vPreview.style.display='none'; removeBtn.style.display='none'; }
+        const ytUrlInput = document.getElementById('pVideoUrl');
+        const ytPreviewWrap = document.getElementById('pVideoUrlPreviewWrap');
+        const ytPreview = document.getElementById('pVideoUrlPreview');
+        const ytEmbed = p.video ? youTubeEmbedUrl(p.video) : null;
+        if(ytEmbed){
+          ytUrlInput.value = p.video;
+          ytPreview.src = ytEmbed;
+          ytPreviewWrap.style.display = 'block';
+          vPreview.style.display = 'none';
+          removeBtn.style.display = 'inline-block';
+        } else {
+          ytUrlInput.value = '';
+          ytPreviewWrap.style.display = 'none';
+          if(p.video){ vPreview.src = p.video; vPreview.style.display='block'; removeBtn.style.display='inline-block'; }
+          else { vPreview.style.display='none'; removeBtn.style.display='none'; }
+        }
         document.getElementById('formTitle').textContent = 'Edit Cut';
         document.getElementById('saveProductBtn').textContent = 'Save Changes';
         document.getElementById('cancelEditBtn').style.display = 'block';
