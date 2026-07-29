@@ -913,6 +913,16 @@
           <button class="btn-primary" id="savePasscodeBtn" style="width:100%; margin-top:4px;">Update Passcode</button>
           <div class="helper" id="passcodeMsg" style="margin-top:8px;"></div>
         </div>
+        <div class="admin-form-card" style="margin-bottom:20px;">
+          <h3 style="font-size:17px; margin-bottom:14px;">Site QR Code</h3>
+          <div class="helper" style="margin-bottom:12px;">Upload a QR code — for your site, WhatsApp, or menu. It's printed in the top-right corner of every customer receipt.</div>
+          <div class="field"><label for="cSiteQr">QR code image</label><input id="cSiteQr" type="file" accept="image/*"></div>
+          <div style="display:flex; align-items:center; gap:14px; margin:12px 0;">
+            <img id="cSiteQrPreview" src="" alt="Site QR code preview" style="display:none; width:88px; height:88px; object-fit:contain; border:1px solid rgba(33,26,20,0.18); border-radius:8px; background:#fff; padding:6px;">
+            <button type="button" class="icon-btn" id="removeSiteQrBtn" style="display:none;">Remove QR Code</button>
+          </div>
+          <button class="btn-primary" id="saveSiteQrBtn" style="width:100%; margin-top:8px;">Save QR Code</button>
+        </div>
         <div>
           <div class="admin-form-card" style="margin-bottom:20px;">
             <h3 style="font-size:17px; margin-bottom:14px;">Payment Methods (Mobile Money)</h3>
@@ -1349,6 +1359,7 @@
     }catch(e){}
     const seed = {
       businessName: 'SOHLAM',
+      siteQr: '',
       paymentMethods: [],
       heroEyebrow: '🐓 Raised in Batoke-Limbe',
       heroLine1: 'Sow little,',
@@ -2142,12 +2153,31 @@
     return map[status] || statusLabelMap[status] || status;
   }
 
+  function imgFormatFromDataUrl(dataUrl){
+    const match = /^data:image\/(\w+);base64,/.exec(dataUrl || '');
+    if(!match) return 'PNG';
+    const ext = match[1].toLowerCase();
+    if(ext === 'jpg' || ext === 'jpeg') return 'JPEG';
+    if(ext === 'webp') return 'WEBP';
+    return 'PNG';
+  }
+
   function buildReceiptPDF(order){
     if(!window.jspdf){ toast('Receipt tool failed to load. Check your connection.'); return null; }
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:'pt', format:'a4' });
     const marginX = 40;
     let y = 50;
+
+    if(content.siteQr){
+      try{
+        const qrSize = 64;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        doc.addImage(content.siteQr, imgFormatFromDataUrl(content.siteQr), pageWidth - marginX - qrSize, 28, qrSize, qrSize);
+      }catch(e){
+        console.error('Could not embed site QR on receipt:', e);
+      }
+    }
 
     doc.setFont('helvetica','bold'); doc.setFontSize(18);
     doc.text(bizName(), marginX, y);
@@ -3696,6 +3726,7 @@
   let editWhatsapps = [];
   let editPayments = [];
   let editLocations = [];
+  let pendingSiteQrDataUrl = null;
 
   function makeRowInput(placeholder, value, flex, type){
     const inp = document.createElement('input');
@@ -3824,6 +3855,20 @@
     document.getElementById('cContactHours').value = content.contactHours || '';
     document.getElementById('cPaymentNote').value = content.paymentNote || '';
 
+    pendingSiteQrDataUrl = null;
+    document.getElementById('cSiteQr').value = '';
+    const qrPreview = document.getElementById('cSiteQrPreview');
+    const removeQrBtn = document.getElementById('removeSiteQrBtn');
+    if(content.siteQr){
+      qrPreview.src = content.siteQr;
+      qrPreview.style.display = 'inline-block';
+      removeQrBtn.style.display = 'inline-flex';
+    } else {
+      qrPreview.src = '';
+      qrPreview.style.display = 'none';
+      removeQrBtn.style.display = 'none';
+    }
+
     editPhones = JSON.parse(JSON.stringify(content.contactPhones || []));
     editWhatsapps = JSON.parse(JSON.stringify(content.contactWhatsapps || []));
     editLocations = JSON.parse(JSON.stringify(content.locations || []));
@@ -3857,6 +3902,44 @@
     saveContent(updated);
     renderSiteContent();
     toast('Header text updated.');
+  });
+
+  document.getElementById('cSiteQr').addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      pendingSiteQrDataUrl = reader.result;
+      const preview = document.getElementById('cSiteQrPreview');
+      preview.src = pendingSiteQrDataUrl;
+      preview.style.display = 'inline-block';
+      document.getElementById('removeSiteQrBtn').style.display = 'inline-flex';
+    };
+    reader.onerror = ()=> toast('Could not read that image — try another file.');
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('saveSiteQrBtn').addEventListener('click', ()=>{
+    if(!pendingSiteQrDataUrl && !content.siteQr){
+      toast('Choose a QR code image first.');
+      return;
+    }
+    const updated = {...content, siteQr: pendingSiteQrDataUrl || content.siteQr};
+    saveContent(updated);
+    pendingSiteQrDataUrl = null;
+    document.getElementById('cSiteQr').value = '';
+    toast('QR code saved — it will now print on receipts.');
+  });
+
+  document.getElementById('removeSiteQrBtn').addEventListener('click', ()=>{
+    pendingSiteQrDataUrl = null;
+    document.getElementById('cSiteQr').value = '';
+    document.getElementById('cSiteQrPreview').src = '';
+    document.getElementById('cSiteQrPreview').style.display = 'none';
+    document.getElementById('removeSiteQrBtn').style.display = 'none';
+    const updated = {...content, siteQr: ''};
+    saveContent(updated);
+    toast('QR code removed from receipts.');
   });
 
   document.getElementById('saveLocationsBtn').addEventListener('click', ()=>{
