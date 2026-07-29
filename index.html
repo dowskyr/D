@@ -43,12 +43,14 @@
   button:active:not(:disabled){transform:scale(0.97);}
   button:disabled{opacity:0.5; cursor:not-allowed; filter:none; transform:none;}
   :focus-visible{outline:3px solid var(--rust); outline-offset:2px;}
-  .admin-tabs, .flock-strip{
+  .admin-tabs{
     scrollbar-width:thin; scrollbar-color:var(--rust) transparent;
   }
-  .admin-tabs::-webkit-scrollbar, .flock-strip::-webkit-scrollbar{height:5px;}
-  .admin-tabs::-webkit-scrollbar-thumb, .flock-strip::-webkit-scrollbar-thumb{background:var(--rust); border-radius:10px;}
-  .admin-tabs::-webkit-scrollbar-track, .flock-strip::-webkit-scrollbar-track{background:transparent;}
+  .admin-tabs::-webkit-scrollbar{height:5px;}
+  .admin-tabs::-webkit-scrollbar-thumb{background:var(--rust); border-radius:10px;}
+  .admin-tabs::-webkit-scrollbar-track{background:transparent;}
+  .flock-strip{scrollbar-width:none;}
+  .flock-strip::-webkit-scrollbar{display:none;}
   @media (prefers-reduced-motion: reduce){
     *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important;}
   }
@@ -136,7 +138,7 @@
   @keyframes tick{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
 
   /* ---------- Hero ---------- */
-  .hero{max-width:1180px; margin:0 auto; padding:64px 24px 40px; display:grid; grid-template-columns:1.2fr 0.8fr; gap:40px; align-items:center;}
+  .hero{max-width:1180px; margin:0 auto; padding:64px 24px 10px;}
   .hero-eyebrow{
     display:inline-flex; align-items:center; gap:8px; background:var(--yolk); color:var(--ink);
     font-family:'Space Mono',monospace; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -144,7 +146,9 @@
   }
   .hero h1{font-size:clamp(40px, 6vw, 74px); font-weight:800; color:var(--ink);}
   .hero h1 em{font-style:normal; color:var(--rust);}
-  .hero p.lede{font-size:17px; max-width:46ch; margin:18px 0 26px; color:rgba(33,26,20,0.8);}
+  .hero p.lede{font-size:17px; max-width:46ch; margin:18px 0 0; color:rgba(33,26,20,0.8);}
+  .stockboard-wrap{max-width:1180px; margin:0 auto; padding:10px 24px 30px;}
+  .hero-ctas-wrap{max-width:1180px; margin:0 auto; padding:0 24px 40px;}
   .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
   .btn-primary{
     background:var(--rust); color:var(--cream); border:none; padding:13px 26px;
@@ -170,6 +174,7 @@
   .stockboard{
     background:var(--ink); color:var(--cream); border-radius:6px; padding:22px;
     border:3px solid var(--yolk); transform:rotate(1.5deg); box-shadow:var(--shadow);
+    max-width:460px;
   }
   .stockboard .stamp{font-size:13px; color:var(--yolk); letter-spacing:0.16em;}
   .stockboard .big{font-family:'Space Mono',monospace; font-size:42px; font-weight:700; margin:6px 0;}
@@ -185,7 +190,7 @@
   .contact-head h2{font-size:26px;}
   .contact-head .stamp{font-size:12px; color:var(--rust); margin-top:4px; display:block;}
   .contact-card{
-    background:var(--paper-light); border:2px solid var(--ink); border-radius:6px;
+    background:var(--paper-light); border-radius:6px;
     padding:26px; box-shadow:var(--shadow); display:grid; grid-template-columns:1.2fr 1fr; gap:26px;
   }
   .contact-note{font-size:14.5px; line-height:1.6;}
@@ -201,13 +206,12 @@
   .flock-head h2{font-size:26px;}
   .flock-head .stamp{font-size:12px; color:var(--rust); margin-top:4px; display:block;}
   .flock-strip{
-    display:grid; grid-template-columns:repeat(5, minmax(150px,1fr)); gap:16px;
-    overflow-x:auto; padding-bottom:6px; scroll-snap-type:x mandatory;
+    display:flex; flex-wrap:nowrap; gap:16px;
+    overflow-x:auto; padding-bottom:6px; scroll-snap-type:none;
   }
-  @media (max-width:1100px){ .flock-strip{grid-auto-flow:column; grid-template-columns:unset;} }
   .flock-card{
-    scroll-snap-align:start; border-radius:10px; padding:20px 16px; position:relative; overflow:hidden;
-    min-width:150px; border:3px solid var(--ink); box-shadow:var(--shadow); transition:transform 0.15s ease;
+    flex:0 0 clamp(150px, 18vw, 200px); border-radius:10px; padding:20px 16px; position:relative; overflow:hidden;
+    box-shadow:var(--shadow); transition:transform 0.15s ease;
     cursor:pointer;
   }
   .flock-card:hover{transform:translateY(-4px) rotate(-1deg);}
@@ -227,11 +231,17 @@
   .flock-card.c3{background:#7EBF6B;}
   .flock-card.c4{background:#5FC7DE;}
   .flock-card.c5{background:#E8829F;}
+  .flock-dots{display:flex; justify-content:center; align-items:center; gap:8px; margin-top:14px;}
+  .flock-dot{
+    width:7px; height:7px; padding:0; border:none; border-radius:50%;
+    background:var(--rust); opacity:0.3; cursor:pointer; transform:scale(1);
+    will-change:transform, opacity;
+  }
 
   .flock-popup{
     position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.95); opacity:0;
     width:340px; max-width:88vw; max-height:80vh; overflow-y:auto; background:var(--cream);
-    border-radius:10px; border:3px solid var(--ink); box-shadow:var(--shadow); padding:22px 22px 26px;
+    border-radius:10px; box-shadow:var(--shadow); padding:22px 22px 26px;
     z-index:70; pointer-events:none; transition:all 0.18s ease;
   }
   .overlay.open .flock-popup{opacity:1; transform:translate(-50%,-50%) scale(1); pointer-events:auto;}
@@ -266,7 +276,7 @@
     content:""; position:absolute; top:-8px; left:50%; transform:translateX(-50%) rotate(-3deg);
     width:26px; height:16px; background:var(--yolk-deep); border-radius:2px; box-shadow:var(--shadow);
   }
-  .ticket-img{width:100%; height:150px; object-fit:cover; display:block; border-bottom:2px solid var(--ink); background:var(--paper);}
+  .ticket-img{width:100%; height:150px; object-fit:cover; display:block; border-bottom:2px solid var(--ink); background:var(--paper); cursor:zoom-in;}
   .ticket-body{padding:14px 16px 0;}
   .ticket-body h3{font-size:19px;}
   .ticket-cut{font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--sage); font-family:'Space Mono',monospace; margin-top:4px;}
@@ -388,7 +398,7 @@
   footer.site button{background:none; border:none; text-decoration:underline; color:inherit; font-size:12.5px;}
 
   @media (max-width:1100px){
-    .hero{grid-template-columns:1fr; padding-top:40px;}
+    .hero{padding-top:40px;}
     .admin-layout{grid-template-columns:1fr;}
     .header-inner{position:relative; row-gap:0;}
     .nav-toggle{display:flex;}
@@ -413,11 +423,13 @@
     .header-inner{padding:12px 16px;}
     .ticker-wrap{padding:0 2px;}
     .ticker{font-size:11px;}
-    .hero{padding:24px 16px 30px;}
+    .hero{padding:24px 16px 8px;}
     .hero h1{font-size:34px; word-break:break-word;}
     .hero .lede{font-size:14.5px; max-width:100%;}
     .hero-eyebrow{font-size:11px; padding:5px 12px; white-space:normal;}
-    .stockboard{padding:16px; transform:none;}
+    .stockboard-wrap{padding:8px 16px 24px;}
+    .hero-ctas-wrap{padding:0 16px 30px;}
+    .stockboard{padding:16px; transform:none; max-width:100%;}
     .stockboard .big{font-size:32px;}
     .stockboard .rows{font-size:12px;}
     .stockboard .rows div{flex-wrap:wrap; gap:2px;}
@@ -484,6 +496,7 @@
   }
   .notify-card.notify-out{ animation:notifyOut 0.22s ease forwards; }
   .notify-card.notify-delivered{ border-color:var(--sage); }
+  .notify-card.notify-placed{ border-color:var(--sage); }
   .notify-card.notify-new-order{ border-color:var(--yolk-deep); }
   .notify-card.notify-preparing{ border-color:var(--sky); }
   .notify-card.notify-ready{ border-color:var(--rust); }
@@ -604,22 +617,9 @@
 
 <main id="storefront">
   <div class="hero">
-    <div>
-      <div class="hero-eyebrow" id="heroEyebrow"></div>
-      <h1><span id="heroLine1"></span><br><em id="heroLine2"></em></h1>
-      <p class="lede" id="heroLede"></p>
-      <div class="hero-ctas">
-        <button class="btn-primary" id="heroPlaceOrderBtn"><span data-i18n="heroPlaceOrder">🛒 Place an Order</span></button>
-        <button class="btn-ghost" id="navTrack2" data-i18n="heroTrackOrder">Track an Order</button>
-        <a id="heroMapLink" class="btn-map" href="#" target="_blank" rel="noopener"><span data-i18n="heroFindUs">📍 Find Us</span></a>
-      </div>
-    </div>
-    <div class="stockboard">
-      <div class="stamp" data-i18n="onTheBoard">On the board</div>
-      <div class="big" id="boardCount">0</div>
-      <div style="font-size:12px; color:rgba(255,252,244,0.7);" data-i18n="cutsAvailable">cuts available right now</div>
-      <div class="rows" id="boardRows"></div>
-    </div>
+    <div class="hero-eyebrow" id="heroEyebrow"></div>
+    <h1><span id="heroLine1"></span><br><em id="heroLine2"></em></h1>
+    <p class="lede" id="heroLede"></p>
   </div>
 
   <section class="flock">
@@ -628,7 +628,25 @@
       <span class="stamp" id="flockStamp"></span>
     </div>
     <div class="flock-strip" id="flockStrip"></div>
+    <div class="flock-dots" id="flockDots"></div>
   </section>
+
+  <div class="stockboard-wrap">
+    <div class="stockboard">
+      <div class="stamp" data-i18n="onTheBoard">On the board</div>
+      <div class="big" id="boardCount">0</div>
+      <div style="font-size:12px; color:rgba(255,252,244,0.7);" data-i18n="cutsAvailable">cuts available right now</div>
+      <div class="rows" id="boardRows"></div>
+    </div>
+  </div>
+
+  <div class="hero-ctas-wrap">
+    <div class="hero-ctas">
+      <button class="btn-primary" id="heroPlaceOrderBtn"><span data-i18n="heroPlaceOrder">🛒 Place an Order</span></button>
+      <button class="btn-ghost" id="navTrack2" data-i18n="heroTrackOrder">Track an Order</button>
+      <a id="heroMapLink" class="btn-map" href="#" target="_blank" rel="noopener"><span data-i18n="heroFindUs">📍 Find Us</span></a>
+    </div>
+  </div>
 
   <section class="shop" id="shop">
     <div class="shop-head">
@@ -1863,6 +1881,11 @@
       img.addEventListener('click', ()=> openProofLightbox(img.src));
     });
   }
+  // Shared full-screen lightbox — despite the "proof" name (its original use
+  // was payment-proof screenshots), this just shows whatever src it's given
+  // at full size, so it's also reused for product images in the grid. Opens
+  // the image at the exact src already on the page (the same file that was
+  // uploaded — no separate low-res thumbnail is generated).
   function openProofLightbox(src){
     const overlay = document.getElementById('proofLightboxOverlay');
     const img = document.getElementById('proofLightboxImg');
@@ -2494,54 +2517,101 @@
   }
   function renderFlock(){
     const strip = document.getElementById('flockStrip');
+    const dotsWrap = document.getElementById('flockDots');
     if(!content.flock || content.flock.length === 0){
       strip.innerHTML = `<div class="empty-state">No flock cards yet.</div>`;
+      if(dotsWrap) dotsWrap.innerHTML = '';
       return;
     }
-    strip.innerHTML = content.flock.map(f => `
-      <div class="flock-card ${f.color || 'c1'}" data-flock-id="${f.id}" role="button" tabindex="0">
+    const flockCardHtml = (f, hidden) => `
+      <div class="flock-card ${f.color || 'c1'}" data-flock-id="${f.id}" role="button" tabindex="${hidden ? -1 : 0}" ${hidden ? 'aria-hidden="true"' : ''}>
         ${f.image ? `<img class="photo" src="${f.image}" alt="${f.species}">` : `<span class="icon">${f.icon || '🐣'}</span>`}
         <div class="species">${f.species}</div>
         <div class="call-name">${f.callName || ''}</div>
         <span class="age-pill">${f.age || ''}</span>
       </div>
-    `).join('');
+    `;
+    // Render the set twice back-to-back so the strip can scroll continuously
+    // in one direction and loop seamlessly once the first set scrolls out of view.
+    strip.innerHTML = content.flock.map(f => flockCardHtml(f, false)).join('')
+      + content.flock.map(f => flockCardHtml(f, true)).join('');
     strip.querySelectorAll('[data-flock-id]').forEach(card=>{
       card.addEventListener('click', ()=> openFlockPopup(card.getAttribute('data-flock-id')));
       card.addEventListener('keydown', (e)=>{
         if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openFlockPopup(card.getAttribute('data-flock-id')); }
       });
     });
+    if(dotsWrap){
+      dotsWrap.innerHTML = content.flock.map((f,i)=>`<button type="button" class="flock-dot" data-index="${i}" aria-label="Jump to ${f.species}"></button>`).join('');
+      dotsWrap.querySelectorAll('.flock-dot').forEach(dot=>{
+        dot.addEventListener('click', ()=>{
+          const idx = parseInt(dot.getAttribute('data-index'), 10);
+          scrollFlockToIndex(idx);
+        });
+      });
+    }
     startFlockAutoScroll();
   }
 
-  let flockAutoTimer = null;
+  function scrollFlockToIndex(idx){
+    const strip = document.getElementById('flockStrip');
+    if(!strip || !content.flock || !content.flock.length) return;
+    const halfWidth = strip.scrollWidth / 2;
+    const cardWidth = halfWidth / content.flock.length;
+    strip.scrollTo({ left: cardWidth * idx, behavior: 'smooth' });
+    pauseFlockAutoScroll();
+  }
+
+  function updateFlockDots(strip){
+    const dotsWrap = document.getElementById('flockDots');
+    if(!dotsWrap || !content.flock || !content.flock.length) return;
+    const dots = dotsWrap.querySelectorAll('.flock-dot');
+    if(!dots.length) return;
+    const n = content.flock.length;
+    const halfWidth = strip.scrollWidth / 2;
+    const cardWidth = halfWidth / n;
+    const progress = (strip.scrollLeft / cardWidth) % n;
+    dots.forEach((d,i)=>{
+      let dist = Math.abs(progress - i);
+      dist = Math.min(dist, n - dist); // shortest distance, wrapping around the loop
+      const closeness = Math.max(0, 1 - dist); // 1 right at this dot, fading out to neighbors
+      d.style.transform = `scale(${1 + closeness * 1.1})`;
+      d.style.opacity = 0.3 + closeness * 0.7;
+    });
+  }
+
+  let flockAutoRAF = null;
   let flockAutoPaused = false;
   let flockResumeTimer = null;
+  const FLOCK_SCROLL_SPEED = 42; // px/sec — a touch faster than before
+
   function startFlockAutoScroll(){
     const strip = document.getElementById('flockStrip');
     if(!strip) return;
-    clearInterval(flockAutoTimer);
-    const cards = strip.querySelectorAll('.flock-card');
-    if(cards.length < 2) return; // nothing to slide between
-    flockAutoTimer = setInterval(()=>{
-      if(flockAutoPaused) return;
-      const cardEls = strip.querySelectorAll('.flock-card');
-      if(!cardEls.length) return;
-      const gap = 16;
-      const cardWidth = cardEls[0].getBoundingClientRect().width + gap;
-      const maxScroll = strip.scrollWidth - strip.clientWidth;
-      if(strip.scrollLeft >= maxScroll - 5){
-        strip.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        strip.scrollBy({ left: cardWidth, behavior: 'smooth' });
+    cancelAnimationFrame(flockAutoRAF);
+    if(!content.flock || content.flock.length < 2) return; // nothing to loop between
+    let lastTime = null;
+
+    function step(timestamp){
+      if(lastTime === null) lastTime = timestamp;
+      const delta = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+      if(!flockAutoPaused){
+        const halfWidth = strip.scrollWidth / 2; // width of one full (non-duplicated) set
+        strip.scrollLeft += FLOCK_SCROLL_SPEED * delta;
+        if(strip.scrollLeft >= halfWidth){
+          strip.scrollLeft -= halfWidth; // wrap seamlessly into the duplicated set
+        }
       }
-    }, 3200);
+      updateFlockDots(strip);
+      flockAutoRAF = requestAnimationFrame(step);
+    }
+    flockAutoRAF = requestAnimationFrame(step);
   }
   function pauseFlockAutoScroll(){
     flockAutoPaused = true;
     clearTimeout(flockResumeTimer);
-    flockResumeTimer = setTimeout(()=>{ flockAutoPaused = false; }, 5000);
+    flockResumeTimer = setTimeout(()=>{ flockAutoPaused = false; }, 1000);
   }
   (function setupFlockAutoScrollPause(){
     const strip = document.getElementById('flockStrip');
@@ -2550,7 +2620,7 @@
       strip.addEventListener(evt, pauseFlockAutoScroll, { passive: true });
     });
     document.addEventListener('visibilitychange', ()=>{
-      if(document.hidden){ clearInterval(flockAutoTimer); }
+      if(document.hidden){ cancelAnimationFrame(flockAutoRAF); }
       else { startFlockAutoScroll(); }
     });
   })();
@@ -2617,6 +2687,9 @@
         </div>`;
       }).join('');
     }
+    document.querySelectorAll('.ticket-img').forEach(img=>{
+      img.addEventListener('click', ()=> openProofLightbox(img.src));
+    });
     document.querySelectorAll('[data-qty]').forEach(inp=>{
       // Tapping into the box clears the placeholder "0" so the customer
       // just types the number they want, instead of having to backspace
@@ -2977,6 +3050,11 @@
     placeBtn.disabled = true;
     createOrder(draft).then(order=>{
       rememberMyOrder(order.id);
+      showNotification(
+        `✅ Order #${order.id} placed!`,
+        `We've got it — you'll see it move through Preparing, Ready, then Delivered.`,
+        'placed'
+      );
 
       cart = [];
       renderCart();
