@@ -1420,13 +1420,57 @@
     saveOrdersLocal(orders.map(o=> o.id===id ? {...o, ...patch} : o));
     return Promise.resolve();
   }
+  // Customer-facing cancel: only ever flips status to 'cancelled', never
+  // touches Storage or removes the Firestore doc. This is the one function
+  // customer UI (Track Order, Order History) is allowed to call — permanent
+  // removal via deleteOrder() is reserved for the admin dashboard.
+  // Callers are expected to have already checked order.status==='new'
+  // before showing the button; this is re-checked here as a guard against
+  // stale UI (e.g. two tabs open, or the order having moved on in the
+  // background) so a customer can never "cancel" an order that's already
+  // being prepared, ready, delivered, or cancelled.
+  function cancelOrder(id){
+    const current = orders.find(o=> o.id===id);
+    if(current && current.status !== 'new'){
+      return Promise.reject(new Error('This order can no longer be cancelled.'));
+    }
+    return updateOrder(id, {status:'cancelled'});
+  }
   // Permanently removes an order record (used for tidying up old
   // delivered/cancelled orders — not for backing out an active one, which
-  // should go through updateOrder's 'cancelled' status instead so the
-  // customer's tracker still shows what happened to it).
+  // should go through cancelOrder() instead so the customer's tracker still
+  // shows what happened to it). Admin-only: only ever called from the admin
+  // dashboard's delete button, gated behind the admin passcode. Note this is
+  // a client-side gate for UI purposes only — for real enforcement, your
+  // Firestore security rules should also restrict order deletes to
+  // authenticated admins.
   function deleteOrder(id){
     if(CLOUD_ENABLED && db){
-      return db.collection('orders').doc(String(id)).delete();
+      const ref = db.collection('orders').doc(String(id));
+      // Read the doc first so we know whether it points at a Storage file —
+      // covers a few possible field names since older orders / other flows
+      // may have saved the proof under a different key.
+      return ref.get()
+        .then(snap=>{
+          const data = snap.exists ? snap.data() : null;
+          const proofUrl = data && (data.proofUrl || data.paymentProof || data.receiptUrl || data.paymentProofImage);
+          // Payment proofs are currently saved as compressed base64 data
+          // URLs living directly inside the Firestore doc, so most of the
+          // time there's nothing in Storage to clean up — deleting the doc
+          // is enough. This only calls Storage when the value is actually a
+          // Storage download URL (e.g. if a future flow starts uploading
+          // proofs there instead), so it's safe either way.
+          if(!storage || !proofUrl || !/^https?:\/\//.test(proofUrl) || !proofUrl.includes('firebasestorage')){
+            return;
+          }
+          return storage.refFromURL(proofUrl).delete().catch(err=>{
+            console.warn(`Order #${id}: payment proof image cleanup failed (continuing with order delete anyway):`, err);
+          });
+        })
+        .catch(err=>{
+          console.warn(`Order #${id}: could not read order before delete, skipping proof cleanup:`, err);
+        })
+        .then(()=> ref.delete());
     }
     saveOrdersLocal(orders.filter(o=> o.id !== id));
     return Promise.resolve();
@@ -1669,6 +1713,16 @@
     if(!raw.startsWith('237')) raw = '237' + raw.replace(/^0+/, '');
     const msg = `Hi ${order.customerName || ''}, this is ${bizName()}. We received a payment verification request for your order #${order.id} (${fmtMoney(order.total)}). Could you confirm you've sent the payment, or share your Mobile Money reference so we can check?`;
     return `https://wa.me/${raw}?text=${encodeURIComponent(msg)}`;
+  }
+  // Builds a tel: link to the customer's own number, for the admin's "Call"
+  // button on each order card — same Cameroon-number normalization as
+  // clientWhatsAppHref above (customers usually type just the 9-digit local
+  // number without a country code).
+  function clientCallHref(order){
+    let raw = (order.phone || '').replace(/[^\d]/g, '');
+    if(!raw) return '';
+    if(!raw.startsWith('237')) raw = '237' + raw.replace(/^0+/, '');
+    return `tel:+${raw}`;
   }
 
   // Compresses an uploaded image file down to a small base64 JPEG (mirrors
@@ -3049,14 +3103,15 @@
     if(cancelBtn) cancelBtn.addEventListener('click', ()=>{
       if(!confirm(`Cancel order #${order.id}? This can't be undone.`)) return;
       cancelBtn.disabled = true;
-      updateOrder(order.id, {status:'cancelled'}).then(()=>{
+      cancelOrder(order.id).then(()=>{
         toast(`Order #${order.id} cancelled.`);
         refreshTrackResultIfOpen();
         renderCart();
       }).catch(e=>{
         console.error('Cancel failed:', e);
-        toast('Could not cancel order — check your connection.');
+        toast(e && e.message === 'This order can no longer be cancelled.' ? e.message : 'Could not cancel order — check your connection.');
         cancelBtn.disabled = false;
+        refreshTrackResultIfOpen();
       });
     });
   }
@@ -3134,13 +3189,14 @@
         const id = parseInt(btn.getAttribute('data-history-cancel'),10);
         if(!confirm(`Cancel order #${id}? This can't be undone.`)) return;
         btn.disabled = true;
-        updateOrder(id, {status:'cancelled'}).then(()=>{
+        cancelOrder(id).then(()=>{
           toast(`Order #${id} cancelled.`);
           renderOrderHistory();
         }).catch(e=>{
           console.error('Cancel failed:', e);
-          toast('Could not cancel order — check your connection.');
+          toast(e && e.message === 'This order can no longer be cancelled.' ? e.message : 'Could not cancel order — check your connection.');
           btn.disabled = false;
+          renderOrderHistory();
         });
       });
     });
@@ -3935,6 +3991,7 @@
           ? `<div class="admin-proof-row"><img src="${proofImageFor(o)}" class="admin-proof-thumb" data-proof-view alt="Payment proof from customer"><span style="font-size:12px; color:var(--sage); font-weight:700;">📎 Payment screenshot — tap to verify</span></div>`
           : `<div class="admin-proof-missing">No payment screenshot uploaded yet.</div>`}
         <div class="order-actions">
+          ${o.phone ? `<a class="icon-btn" style="background:#2b6cb0; color:#fff; text-decoration:none;" href="${clientCallHref(o)}">📞 Call</a>` : ''}
           ${next ? `<button class="icon-btn" data-advance="${o.id}">Mark ${statusMap[next]}</button>` : ''}
           <button class="icon-btn" data-toggle-paid="${o.id}">${paid ? 'Mark Unpaid' : 'Mark Paid'}</button>
           <button class="icon-btn" data-edit-txn="${o.id}">${o.transactionId ? 'Edit Txn ID' : 'Add Txn ID'}</button>
