@@ -356,7 +356,19 @@
   section.admin{max-width:1180px; margin:0 auto; padding:40px 24px 90px; display:none;}
   section.admin.open{display:block;}
   .admin-gate{max-width:380px; margin:80px auto; background:var(--paper-light); padding:30px; border-radius:6px; box-shadow:var(--shadow); text-align:center;}
-  .admin-tabs{display:flex; gap:8px; margin-bottom:22px; border-bottom:2px solid var(--ink);}
+  .admin-tabs{display:flex; gap:8px; margin-bottom:22px; border-bottom:2px solid var(--ink); align-items:center;}
+  .admin-tab-search-btn{
+    margin-left:auto; background:none; border:none; font-size:17px; line-height:1; cursor:pointer;
+    padding:8px 10px; color:rgba(33,26,20,0.55); border-radius:6px; transition:color 0.15s ease, background 0.15s ease;
+    flex-shrink:0;
+  }
+  .admin-tab-search-btn:hover, .admin-tab-search-btn.active{color:var(--ink); background:rgba(33,26,20,0.06);}
+  .order-search-bar{display:flex; gap:10px; align-items:center; margin:-10px 0 18px;}
+  .order-search-bar input{
+    flex:1; padding:10px 14px; border-radius:8px; border:2px solid var(--ink); font-family:inherit; font-size:14px;
+    background:var(--paper-light);
+  }
+  .order-search-bar input:focus{outline:none; border-color:var(--rust); box-shadow:0 0 0 3px rgba(224,64,42,0.15);}
   .admin-tab{background:none; border:none; padding:10px 18px; font-weight:600; font-size:14.5px; color:rgba(33,26,20,0.55); border-bottom:3px solid transparent; margin-bottom:-2px; transition:color 0.15s ease, border-color 0.15s ease;}
   .admin-tab:hover{color:var(--ink);}
   .admin-tab.active{color:var(--ink); border-color:var(--rust);}
@@ -826,6 +838,11 @@
       <button class="admin-tab active" data-tab="inventory">Inventory</button>
       <button class="admin-tab" data-tab="content">Site Content</button>
       <button class="admin-tab" data-tab="orders">Orders<span class="tab-badge" id="pendingOrdersBadge"></span></button>
+      <button type="button" class="admin-tab-search-btn" id="orderSearchToggleBtn" aria-label="Search orders" title="Search orders">🔍</button>
+    </div>
+    <div class="order-search-bar" id="orderSearchBar" style="display:none;">
+      <input type="search" id="orderSearchInput" placeholder="Search by order #, name, phone, item, status…">
+      <button type="button" class="icon-btn" id="orderSearchCloseBtn">✕</button>
     </div>
 
     <div class="admin-panel active" id="tab-inventory">
@@ -3422,6 +3439,33 @@
     });
   });
 
+  document.getElementById('orderSearchToggleBtn').addEventListener('click', function(){
+    const bar = document.getElementById('orderSearchBar');
+    const opening = bar.style.display === 'none';
+    bar.style.display = opening ? 'flex' : 'none';
+    this.classList.toggle('active', opening);
+    if(opening){
+      const ordersTab = document.querySelector('.admin-tab[data-tab="orders"]');
+      if(ordersTab && !ordersTab.classList.contains('active')) ordersTab.click();
+      document.getElementById('orderSearchInput').focus();
+    } else {
+      document.getElementById('orderSearchInput').value = '';
+      orderSearchQuery = '';
+      renderAdminOrders();
+    }
+  });
+  document.getElementById('orderSearchCloseBtn').addEventListener('click', ()=>{
+    document.getElementById('orderSearchBar').style.display = 'none';
+    document.getElementById('orderSearchToggleBtn').classList.remove('active');
+    document.getElementById('orderSearchInput').value = '';
+    orderSearchQuery = '';
+    renderAdminOrders();
+  });
+  document.getElementById('orderSearchInput').addEventListener('input', (e)=>{
+    orderSearchQuery = e.target.value;
+    renderAdminOrders();
+  });
+
   // ---------------- Admin: Inventory ----------------
   let pendingImage = '';
   document.getElementById('pImage').addEventListener('change', (e)=>{
@@ -3727,6 +3771,7 @@
   let editPayments = [];
   let editLocations = [];
   let pendingSiteQrDataUrl = null;
+  let orderSearchQuery = '';
 
   function makeRowInput(placeholder, value, flex, type){
     const inp = document.createElement('input');
@@ -4149,7 +4194,22 @@
     const statusMap = {new:'New', preparing:'Preparing', ready:'Ready', delivered:'Delivered', cancelled:'Cancelled'};
     const paymentMap = {paid:'Paid', unpaid:'Unpaid'};
     const flow = ['new','preparing','ready','delivered'];
-    list.innerHTML = [...orders].reverse().map(o=>{
+    const q = orderSearchQuery.trim().toLowerCase();
+    const matchesSearch = (o)=>{
+      if(!q) return true;
+      const haystack = [
+        o.id, o.customerName, o.phone, o.address, o.notes, o.transactionId,
+        statusMap[o.status], paymentMap[o.paymentStatus],
+        ...(o.items || []).map(i=>i.name)
+      ].filter(Boolean).join(' ').toLowerCase();
+      return haystack.includes(q);
+    };
+    const filteredOrders = orders.filter(matchesSearch);
+    if(q && filteredOrders.length === 0){
+      list.innerHTML = `<div class="empty-mini">No orders match "${q}".</div>`;
+      return;
+    }
+    list.innerHTML = [...filteredOrders].reverse().map(o=>{
       const idx = flow.indexOf(o.status);
       const next = idx>=0 ? flow[idx+1] : undefined;
       const cancellable = o.status!=='delivered' && o.status!=='cancelled';
