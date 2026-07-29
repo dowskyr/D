@@ -1063,6 +1063,7 @@
       noLongerAvailable:'in your basket is no longer fully available. Please adjust your basket.',
       sorryPrefix:'Sorry,', anItem:'an item',
       addedToBasket:'added to basket.', onlyLeftOf:'Only', ofLeft:'of', leftWord:'left.',
+      enterQtyPrompt:'Please type in how many you\'d like before adding to your basket.',
       downloadReceipt:'⬇ Download Receipt', cancelOrderBtn:'Cancel Order',
       paidLabel:'Paid', unpaidLabel:'Unpaid', readyForPickup:'Ready for Pickup',
       yourPlacedOrders:'Your Placed Orders', yourOrder:'Your Order', placedOn:'Placed', paymentRef:'Payment ref:',
@@ -1116,6 +1117,7 @@
       noLongerAvailable:"dans votre panier n'est plus entièrement disponible. Veuillez ajuster votre panier.",
       sorryPrefix:'Désolé,', anItem:'un article',
       addedToBasket:'ajouté au panier.', onlyLeftOf:'Il ne reste que', ofLeft:'de', leftWord:'restant(s).',
+      enterQtyPrompt:'Veuillez indiquer la quantité souhaitée avant d\'ajouter au panier.',
       downloadReceipt:'⬇ Télécharger le Reçu', cancelOrderBtn:'Annuler la Commande',
       paidLabel:'Payé', unpaidLabel:'Non payé', readyForPickup:'Prête pour Retrait',
       yourPlacedOrders:'Vos Commandes', yourOrder:'Votre Commande', placedOn:'Passée le', paymentRef:'Réf. paiement :',
@@ -2608,23 +2610,41 @@
             ${p.notes ? `<div class="ticket-note">${p.notes}</div>` : ''}
           </div>
           <div class="qty-row">
-            <input type="number" min="${step}" max="${avail}" step="${step}" value="1" ${s==='sold'?'disabled':''} data-qty="${p.id}">
+            <input type="number" min="0" max="${avail}" step="${step}" value="0" ${s==='sold'?'disabled':''} data-qty="${p.id}">
             <span style="font-size:12px; color:rgba(33,26,20,0.6);">${unitNounOf(p)}</span>
           </div>
           <button class="add-btn" data-add="${p.id}" ${s==='sold'?'disabled':''}>${s==='sold' ? t('soldOut') : t('addToBasket')}</button>
         </div>`;
       }).join('');
     }
+    document.querySelectorAll('[data-qty]').forEach(inp=>{
+      // Tapping into the box clears the placeholder "0" so the customer
+      // just types the number they want, instead of having to backspace
+      // over it first.
+      inp.addEventListener('focus', ()=>{ if(inp.value === '0') inp.value = ''; });
+      // If they tap away without typing anything, put the "0" back so the
+      // Add to Basket check below still catches an empty box.
+      inp.addEventListener('blur', ()=>{ if(inp.value.trim() === '') inp.value = '0'; });
+    });
     document.querySelectorAll('[data-add]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const id = btn.getAttribute('data-add');
         const p = products.find(x=>x.id===id);
         const qtyInput = document.querySelector(`[data-qty="${id}"]`);
-        const step = qtyStepOf(p);
-        let qty = parseFloat(qtyInput.value) || step;
+        let qty = parseFloat(qtyInput.value);
+        // Quantity starts at 0 by default — a customer who taps "Add to
+        // Basket" without typing anything gets stopped here with a nudge,
+        // rather than the order silently going through at a fallback
+        // quantity of 1.
+        if(!qty || qty <= 0){
+          toast(t('enterQtyPrompt'));
+          qtyInput.focus();
+          return;
+        }
         if(unitTypeOf(p) === 'count') qty = Math.max(1, Math.round(qty));
         else qty = Math.max(0.5, qty);
         addToCart(id, qty);
+        qtyInput.value = '0';
       });
     });
     renderTicker();
@@ -2655,15 +2675,17 @@
     const p = products.find(x=>x.id===productId);
     if(!p) return;
     if(unitTypeOf(p) === 'count') qty = Math.round(qty);
-    const alreadyInCart = (cart.find(c=>c.productId===productId) || {}).qtyKg || 0;
     const avail = availableQtyOf(p);
-    if(alreadyInCart + qty > avail){
+    if(qty > avail){
       toast(`${t('onlyLeftOf')} ${formatProductQty(p, avail)} ${t('ofLeft')} ${p.name} ${t('leftWord')}`);
-      qty = Math.max(0, +(avail - alreadyInCart).toFixed(2));
+      qty = avail;
       if(qty <= 0) return;
     }
     const existing = cart.find(c=>c.productId===productId);
-    if(existing){ existing.qtyKg = Math.min(existing.qtyKg + qty, avail); }
+    // The number the customer just typed IS the quantity they want for
+    // this item — it replaces whatever was already in the basket for it,
+    // rather than stacking on top of it.
+    if(existing){ existing.qtyKg = qty; }
     else { cart.push({productId, qtyKg: qty}); }
     toast(`${p.name} ${t('addedToBasket')}`);
     renderCart();
