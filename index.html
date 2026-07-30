@@ -141,6 +141,17 @@
 
   /* ---------- Hero ---------- */
   .hero{max-width:1180px; margin:0 auto; padding:64px 24px 10px;}
+  .hero-top{display:flex; align-items:flex-start; justify-content:space-between; gap:24px;}
+  .hero-text{flex:1; min-width:0;}
+  .hero-photo{
+    width:112px; height:112px; border-radius:50%; object-fit:cover; object-position:center;
+    flex-shrink:0; box-shadow:var(--shadow); background:var(--paper-light); margin-top:4px;
+  }
+  @media (max-width:600px){ .hero-photo{width:76px; height:76px;} }
+  @media (min-width:1100px){
+    .hero-top{align-items:center;}
+    .hero-photo{width:150px; height:150px; margin-top:0;}
+  }
   .hero-eyebrow{
     display:inline-flex; align-items:center; gap:8px; background:var(--yolk); color:var(--ink);
     font-family:'Space Mono',monospace; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase;
@@ -168,6 +179,8 @@
     display:inline-flex; align-items:center; gap:8px; text-decoration:none;
   }
   .btn-map:hover{filter:brightness(1.08);}
+  .pin-icon{vertical-align:-3px; margin-right:3px; flex-shrink:0;}
+  .footer-map-links{display:flex; flex-wrap:wrap; gap:10px; margin-top:6px;}
   .footer-map-btn{
     background:var(--sage); color:var(--cream); padding:10px 20px; border-radius:12px;
     font-weight:700; font-size:13px; text-decoration:none; display:inline-flex; align-items:center; gap:6px;
@@ -645,8 +658,13 @@
 
 <main id="storefront">
   <div class="hero">
-    <div class="hero-eyebrow" id="heroEyebrow"></div>
-    <h1><span id="heroLine1"></span><br><em id="heroLine2"></em></h1>
+    <div class="hero-top">
+      <div class="hero-text">
+        <div class="hero-eyebrow" id="heroEyebrow"></div>
+        <h1><span id="heroLine1"></span><br><em id="heroLine2"></em></h1>
+      </div>
+      <img class="hero-photo" id="heroPhoto" src="" alt="" style="display:none;">
+    </div>
     <p class="lede" id="heroLede"></p>
   </div>
 
@@ -697,7 +715,7 @@
         <div id="contactPhoneRows"></div>
         <div id="contactWhatsappRows"></div>
         <div class="contact-row" id="contactEmailRow"><span class="ic">✉️</span><span><a id="contactEmailLink" href="#"></a></span></div>
-        <div class="contact-row" id="contactAddressRow"><span class="ic">📍</span><span id="contactAddressText"></span></div>
+        <div class="contact-row" id="contactAddressRow"><span class="ic"><svg class="pin-icon" viewBox="0 0 24 32" width="14" height="18" aria-hidden="true" focusable="false"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#E0402A"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg></span><span id="contactAddressText"></span></div>
         <div id="contactLocationRows"></div>
         <div class="contact-row" id="contactHoursRow"><span class="ic">🕒</span><span id="contactHoursText"></span></div>
       </div>
@@ -947,6 +965,16 @@
           <div class="helper" id="passcodeMsg" style="margin-top:8px;"></div>
         </div>
         <div class="admin-form-card" style="margin-bottom:20px;">
+          <h3 style="font-size:17px; margin-bottom:14px;">Hero Image</h3>
+          <div class="helper" style="margin-bottom:12px;">Optional — your logo, a founder photo, or a farm shot. Shown beside your headline at the top of the site.</div>
+          <div class="field"><label for="cHeroImage">Hero image</label><input id="cHeroImage" type="file" accept="image/*"></div>
+          <div style="display:flex; align-items:center; gap:14px; margin:12px 0;">
+            <img id="cHeroImagePreview" src="" alt="Hero image preview" style="display:none; width:88px; height:88px; object-fit:cover; border-radius:50%; border:1px solid rgba(33,26,20,0.18); background:#fff;">
+            <button type="button" class="icon-btn" id="removeHeroImageBtn" style="display:none;">Remove Image</button>
+          </div>
+          <button class="btn-primary" id="saveHeroImageBtn" style="width:100%; margin-top:8px;">Save Hero Image</button>
+        </div>
+        <div class="admin-form-card" style="margin-bottom:20px;">
           <h3 style="font-size:17px; margin-bottom:14px;">Site QR Code</h3>
           <div class="helper" style="margin-bottom:12px;">Upload a QR code — for your site, WhatsApp, or menu. It's printed in the top-right corner of every customer receipt.</div>
           <div class="field"><label for="cSiteQr">QR code image</label><input id="cSiteQr" type="file" accept="image/*"></div>
@@ -1040,7 +1068,7 @@
 <footer class="site">
   <div id="siteFooterCopyright">&copy; 2026 SOHLAM — Sow Little, Harvest More. Batoke-Limbe. Local prototype — data lives in this browser only.</div>
   <div style="opacity:0.35; font-size:10px; margin-top:4px;">build: close-btn-fix-3</div>
-  <a id="footerMapLink" class="footer-map-btn" href="#" target="_blank" rel="noopener">📍 Find us on the map</a>
+  <div class="footer-map-links" id="footerMapLinks"></div>
   <button id="footerAdminLink">Sign In</button>
 </footer>
 
@@ -1068,6 +1096,9 @@
 <script>
 (function(){
   "use strict";
+  // Custom location-pin icon, used instead of the 📍 emoji so it renders
+  // identically everywhere (emoji glyphs look different per OS/browser).
+  const PIN_ICON = '<svg class="pin-icon" viewBox="0 0 24 32" width="14" height="18" aria-hidden="true" focusable="false"><path d="M12 0C5.373 0 0 5.373 0 12c0 9 12 20 12 20s12-11 12-20C24 5.373 18.627 0 12 0z" fill="#E0402A"/><circle cx="12" cy="12" r="5" fill="#fff"/></svg>';
 
   // ---------------- Cloud sync (Firebase Firestore) ----------------
   // Fill this in with your own Firebase project's web config (Firebase
@@ -1137,7 +1168,7 @@
       uploadProofBtn:'📷 Upload Screenshot', replaceProofBtn:'Replace Screenshot',
       takePhotoBtn:'📸 Take Photo', replaceProofHint:'Tap a button below to replace it.',
       proofUploaded:'Screenshot received — awaiting verification', proofUploading:'Uploading…',
-      proofUploadedReceiptNote:'Screenshot added — downloading your updated receipt…',
+      proofUploadedReceiptNote:'Screenshot added to your order.',
       proofStageReading:'Reading photo…', proofStageCompressing:'Compressing photo…',
       proofStageAttaching:'Attaching to your order…',
       proofStageSaving:'Saving to your order…', proofStageDone:'Done ✓', proofStageFailed:'Upload failed',
@@ -1191,7 +1222,7 @@
       uploadProofBtn:"📷 Téléverser la Capture", replaceProofBtn:'Remplacer la Capture',
       takePhotoBtn:'📸 Prendre une Photo', replaceProofHint:'Touchez un bouton ci-dessous pour la remplacer.',
       proofUploaded:'Capture reçue — en attente de vérification', proofUploading:'Téléversement…',
-      proofUploadedReceiptNote:'Capture ajoutée — téléchargement de votre reçu mis à jour…',
+      proofUploadedReceiptNote:'Capture ajoutée à votre commande.',
       proofStageReading:'Lecture de la photo…', proofStageCompressing:'Compression de la photo…',
       proofStageAttaching:'Association à votre commande…',
       proofStageSaving:'Enregistrement sur votre commande…', proofStageDone:'Terminé ✓', proofStageFailed:'Échec du téléversement',
@@ -1393,6 +1424,7 @@
     const seed = {
       businessName: 'SOHLAM',
       siteQr: '',
+      heroImage: '',
       paymentMethods: [],
       heroEyebrow: '🐓 Raised in Batoke-Limbe',
       heroLine1: 'Sow little,',
@@ -1885,17 +1917,16 @@
           })
           .then(({dataUrl, atIso})=>{
             setProgress(100, t('proofStageDone'));
-            const idx = orders.findIndex(o=>o.id===orderId);
-            const updatedOrder = idx>=0 ? orders[idx] : null;
             console.log('Payment proof: attached locally to order', orderId);
             toast(t('proofUploadedReceiptNote'));
             if(onDone) onDone();
-            // The receipt that auto-downloaded when the order was first
-            // placed was generated before this photo existed, so it can't
-            // have it. Re-generate and re-download now — instantly, since
-            // the photo already lives on this device. (Skipped only if we
-            // somehow don't have the full order record in memory yet.)
-            if(updatedOrder) downloadReceipt(updatedOrder);
+            // Previously this auto re-downloaded the receipt with the fresh
+            // photo attached, but that meant a fresh download every single
+            // time a customer uploaded a screenshot — on top of the one
+            // that already downloaded when the order was placed. Now it's
+            // silent: the updated receipt (with the photo) is available any
+            // time via the "Download Receipt" button, without forcing a
+            // repeat download nobody asked for.
             container.querySelectorAll('[data-proof-input]').forEach(i=>{ i.disabled = false; });
             setTimeout(resetProgress, 900);
 
@@ -2013,16 +2044,28 @@
   ['click','touchstart','keydown'].forEach(evt=>{
     document.addEventListener(evt, ()=> ensureAudioCtx(), {once:true, passive:true});
   });
-  function playTone(ctx, freq, startTime, duration, type, peak){
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0, startTime);
-    gain.gain.linearRampToValueAtTime(peak || 0.16, startTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(startTime); osc.stop(startTime + duration + 0.03);
+  // Layers a warm fundamental with a brighter overtone so each note reads as
+  // a "chime" rather than a flat beep — louder and easier to pick out.
+  function playBellTone(ctx, freq, startTime, duration, peak){
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.value = freq;
+    gain1.gain.setValueAtTime(0, startTime);
+    gain1.gain.linearRampToValueAtTime(peak, startTime + 0.015);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    osc1.connect(gain1); gain1.connect(ctx.destination);
+    osc1.start(startTime); osc1.stop(startTime + duration + 0.05);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'triangle';
+    osc2.frequency.value = freq * 2.4;
+    gain2.gain.setValueAtTime(0, startTime);
+    gain2.gain.linearRampToValueAtTime(peak * 0.4, startTime + 0.01);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, startTime + duration * 0.6);
+    osc2.connect(gain2); gain2.connect(ctx.destination);
+    osc2.start(startTime); osc2.stop(startTime + duration + 0.05);
   }
   function playChime(kind){
     if(!soundEnabled) return;
@@ -2030,16 +2073,22 @@
     if(!ctx) return;
     const now = ctx.currentTime;
     if(kind === 'new-order'){
-      playTone(ctx, 880, now, 0.14, 'square', 0.14);
-      playTone(ctx, 880, now + 0.18, 0.14, 'square', 0.14);
+      // Bright rising 3-note arpeggio — the most important alert, so it's
+      // the loudest and most distinct pattern of the set.
+      playBellTone(ctx, 660, now, 0.16, 0.30);
+      playBellTone(ctx, 880, now + 0.14, 0.16, 0.30);
+      playBellTone(ctx, 1108, now + 0.28, 0.26, 0.32);
     } else if(kind === 'delivered'){
-      playTone(ctx, 660, now, 0.16, 'sine', 0.16);
-      playTone(ctx, 990, now + 0.15, 0.24, 'sine', 0.16);
+      // Warm descending resolve, like a satisfied "all done".
+      playBellTone(ctx, 988, now, 0.18, 0.26);
+      playBellTone(ctx, 740, now + 0.16, 0.22, 0.26);
+      playBellTone(ctx, 660, now + 0.34, 0.32, 0.24);
     } else if(kind === 'ready'){
-      playTone(ctx, 740, now, 0.14, 'sine', 0.15);
-      playTone(ctx, 880, now + 0.13, 0.2, 'sine', 0.15);
+      // Friendly two-note "ding-dong".
+      playBellTone(ctx, 880, now, 0.16, 0.28);
+      playBellTone(ctx, 660, now + 0.16, 0.28, 0.26);
     } else {
-      playTone(ctx, 700, now, 0.15, 'sine', 0.12);
+      playBellTone(ctx, 740, now, 0.2, 0.24);
     }
   }
   function setSoundEnabled(v){
@@ -2489,17 +2538,28 @@
     document.getElementById('heroLine1').textContent = content.heroLine1;
     document.getElementById('heroLine2').textContent = content.heroLine2;
     document.getElementById('heroLede').textContent = content.heroLede;
+    const heroPhotoEl = document.getElementById('heroPhoto');
+    if(content.heroImage){
+      heroPhotoEl.src = content.heroImage;
+      heroPhotoEl.alt = name;
+      heroPhotoEl.style.display = 'block';
+    } else {
+      heroPhotoEl.src = '';
+      heroPhotoEl.style.display = 'none';
+    }
     document.getElementById('shopHeading').textContent = content.shopHeading;
     document.getElementById('shopStamp').textContent = content.shopStamp;
     document.getElementById('flockHeading').textContent = content.flockHeading;
     document.getElementById('flockStamp').textContent = content.flockStamp;
     const primaryLoc = (content.locations && content.locations[0]) || null;
-    const footerLink = document.getElementById('footerMapLink');
-    footerLink.href = (primaryLoc && primaryLoc.mapUrl) || '#';
-    footerLink.textContent = '📍 ' + (primaryLoc ? primaryLoc.label : 'Find us on the map');
+    const footerLinksEl = document.getElementById('footerMapLinks');
+    const allLocs = (content.locations || []).filter(l=> l.label || l.mapUrl);
+    footerLinksEl.innerHTML = allLocs.length
+      ? allLocs.map(l=> `<a class="footer-map-btn" href="${l.mapUrl || '#'}" target="_blank" rel="noopener">${PIN_ICON} ${l.label || 'Find us on the map'}</a>`).join('')
+      : `<a class="footer-map-btn" href="#" target="_blank" rel="noopener">${PIN_ICON} Find us on the map</a>`;
     const heroLink = document.getElementById('heroMapLink');
     heroLink.href = (primaryLoc && primaryLoc.mapUrl) || '#';
-    heroLink.textContent = '📍 Find Us in ' + (primaryLoc ? primaryLoc.label : 'Batoke-Limbe');
+    heroLink.innerHTML = PIN_ICON + ' Find Us in ' + (primaryLoc ? primaryLoc.label : 'Batoke-Limbe');
     renderContact();
     renderFlock();
   }
@@ -2569,7 +2629,7 @@
     const locRowsEl = document.getElementById('contactLocationRows');
     const locs = content.locations || [];
     locRowsEl.innerHTML = locs.filter(l=>l.label || l.mapUrl).map(l=>`
-      <div class="contact-row"><span class="ic">🗺️</span><span>${l.mapUrl ? `<a href="${l.mapUrl}" target="_blank" rel="noopener">${l.label || 'View on map'}</a>` : (l.label || '')}</span></div>
+      <div class="contact-row"><span class="ic">${PIN_ICON}</span><span>${l.mapUrl ? `<a href="${l.mapUrl}" target="_blank" rel="noopener">${l.label || 'View on map'}</a>` : (l.label || '')}</span></div>
     `).join('');
 
     const hoursRow = document.getElementById('contactHoursRow');
@@ -3199,9 +3259,11 @@
     if(lastPlacedOrder) renderConfirmFlow(lastPlacedOrder.id);
   });
 
-  // Marks this order's verification as sent and regenerates the receipt —
-  // a new, updated receipt each time the verification status moves
-  // forward, on top of the one downloaded right after the order was placed.
+  // Marks this order's verification as sent. This used to also silently
+  // re-download the receipt every time — on top of the one that already
+  // downloaded when the order was placed — which added up to unnecessary
+  // repeat downloads. The customer can always grab an updated copy via the
+  // explicit "Download Receipt" button instead.
   document.getElementById('confirmMarkSent').addEventListener('click', ()=>{
     if(!lastPlacedOrder) return;
     const id = lastPlacedOrder.id;
@@ -3209,10 +3271,8 @@
     btn.disabled = true;
     updateOrder(id, {verificationSentAt: new Date().toISOString()}).then(()=>{
       if(lastPlacedOrder && lastPlacedOrder.id===id) lastPlacedOrder = {...lastPlacedOrder, verificationSentAt: new Date().toISOString()};
-      const order = currentConfirmOrder(id);
       renderConfirmFlow(id);
       toast(t('verificationSentNote'));
-      if(order) downloadReceipt(order);
     }).catch(e=>{
       console.error('Verification status update failed:', e);
       toast('Could not update verification status — check your connection.');
@@ -3787,6 +3847,7 @@
   let editPayments = [];
   let editLocations = [];
   let pendingSiteQrDataUrl = null;
+  let pendingHeroImageDataUrl = null;
   let orderSearchQuery = '';
 
   function makeRowInput(placeholder, value, flex, type){
@@ -3913,6 +3974,20 @@
     document.getElementById('cContactNote').value = content.contactNote || '';
     document.getElementById('cContactEmail').value = content.contactEmail || '';
     document.getElementById('cContactAddress').value = content.contactAddress || '';
+
+    pendingHeroImageDataUrl = null;
+    document.getElementById('cHeroImage').value = '';
+    const heroPreview = document.getElementById('cHeroImagePreview');
+    const removeHeroBtn = document.getElementById('removeHeroImageBtn');
+    if(content.heroImage){
+      heroPreview.src = content.heroImage;
+      heroPreview.style.display = 'inline-block';
+      removeHeroBtn.style.display = 'inline-flex';
+    } else {
+      heroPreview.src = '';
+      heroPreview.style.display = 'none';
+      removeHeroBtn.style.display = 'none';
+    }
     document.getElementById('cContactHours').value = content.contactHours || '';
     document.getElementById('cPaymentNote').value = content.paymentNote || '';
 
@@ -3963,6 +4038,44 @@
     saveContent(updated);
     renderSiteContent();
     toast('Header text updated.');
+  });
+
+  document.getElementById('cHeroImage').addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      pendingHeroImageDataUrl = reader.result;
+      const preview = document.getElementById('cHeroImagePreview');
+      preview.src = pendingHeroImageDataUrl;
+      preview.style.display = 'inline-block';
+      document.getElementById('removeHeroImageBtn').style.display = 'inline-flex';
+    };
+    reader.onerror = ()=> toast('Could not read that image — try another file.');
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('saveHeroImageBtn').addEventListener('click', ()=>{
+    if(!pendingHeroImageDataUrl && !content.heroImage){
+      toast('Choose an image first.');
+      return;
+    }
+    const updated = {...content, heroImage: pendingHeroImageDataUrl || content.heroImage};
+    saveContent(updated);
+    pendingHeroImageDataUrl = null;
+    document.getElementById('cHeroImage').value = '';
+    toast('Hero image saved.');
+  });
+
+  document.getElementById('removeHeroImageBtn').addEventListener('click', ()=>{
+    pendingHeroImageDataUrl = null;
+    document.getElementById('cHeroImage').value = '';
+    document.getElementById('cHeroImagePreview').src = '';
+    document.getElementById('cHeroImagePreview').style.display = 'none';
+    document.getElementById('removeHeroImageBtn').style.display = 'none';
+    const updated = {...content, heroImage: ''};
+    saveContent(updated);
+    toast('Hero image removed.');
   });
 
   document.getElementById('cSiteQr').addEventListener('change', (e)=>{
