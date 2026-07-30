@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>SOHLAM — Sow Little, Harvest More | Batoke-Limbe</title>
+<meta name="theme-color" content="#CC6A00">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SOHLAM">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..900&family=Bitter:wght@600;800&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" onload="this.onload=null; this.rel='stylesheet';">
@@ -163,6 +171,33 @@
   .stockboard-wrap{max-width:1180px; margin:0 auto; padding:10px 24px 30px;}
   .hero-ctas-wrap{max-width:1180px; margin:0 auto; padding:0 24px 40px;}
   .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
+
+  /* ---------- Hero entrance animation (plays once on load, then static) ---------- */
+  #heroLine1, #heroLine2{display:inline-block; clip-path:inset(0 0 100% 0); opacity:1; transform:none; filter:none;}
+  .hero-anim{opacity:0; transform:translateY(-26px); filter:blur(9px);}
+  .hero.is-live .hero-anim, .hero-ctas-wrap.is-live .hero-anim{
+    animation:heroRise 7s cubic-bezier(.19,.75,.24,1) both;
+  }
+  .hero.is-live .hero-eyebrow{animation-delay:0s;}
+  .hero.is-live .hero-photo{animation-delay:0.45s;}
+  .hero.is-live #heroLine1{animation:heroReveal 1.6s cubic-bezier(.22,.61,.36,1) both; animation-delay:0.8s;}
+  .hero.is-live #heroLine2{animation:heroReveal 1.6s cubic-bezier(.22,.61,.36,1) both; animation-delay:1.5s;}
+  /* Lede paragraph: reveals word-by-word with the same wipe used on the headline
+     (like a PowerPoint "Wipe" entrance animation applied per-word). */
+  .hero.is-live .lede{opacity:1; transform:none; filter:none; animation:none;}
+  .lede .reveal-word{display:inline-block; clip-path:inset(0 0 100% 0);}
+  .hero.is-live .lede .reveal-word{animation:heroReveal .3s cubic-bezier(.22,.61,.36,1) both;}
+  .hero-ctas-wrap.is-live .btn-primary{animation-delay:2.75s;}
+  .hero-ctas-wrap.is-live .btn-ghost{animation-delay:3.1s;}
+  .hero-ctas-wrap.is-live .btn-map{animation-delay:3.4s;}
+  @keyframes heroRise{
+    from{opacity:0; transform:translateY(-26px); filter:blur(9px);}
+    to{opacity:1; transform:translateY(0); filter:blur(0);}
+  }
+  @keyframes heroReveal{
+    from{clip-path:inset(0 0 100% 0);}
+    to{clip-path:inset(0 0 0% 0);}
+  }
   .btn-primary{
     background:var(--rust); color:var(--cream); border:none; padding:13px 26px;
     border-radius:12px; font-weight:600; font-size:15px; box-shadow:var(--shadow);
@@ -527,6 +562,7 @@
   .notify-card.notify-new-order{ border-color:var(--yolk-deep); }
   .notify-card.notify-preparing{ border-color:var(--sky); }
   .notify-card.notify-ready{ border-color:var(--rust); }
+  .notify-card.notify-branding{ border-color:var(--yolk); }
   .notify-text{ flex:1; min-width:0; }
   .notify-title{ font-family:'Bitter',serif; font-weight:800; font-size:14px; margin-bottom:2px; }
   .notify-body{ font-size:12.5px; color:rgba(33,26,20,0.75); line-height:1.35; }
@@ -608,9 +644,94 @@
     .fab{width:52px; height:52px; font-size:23px;}
     .floating-actions-label{font-size:9.5px; padding:2px 7px;}
   }
+
+  /* ---- PWA Install Modal ---- */
+  #pwaInstallOverlay{
+    position:fixed; inset:0; background:rgba(33,26,20,0.55); z-index:9998;
+    display:none; align-items:center; justify-content:center; padding:20px;
+    opacity:0; transition:opacity .25s ease;
+  }
+  #pwaInstallOverlay.show{ display:flex; opacity:1; }
+  #pwaInstallCard{
+    background:var(--cream); border-radius:22px; box-shadow:var(--shadow);
+    max-width:360px; width:100%; padding:28px 26px 22px; text-align:center;
+    transform:translateY(16px) scale(0.97); transition:transform .25s ease;
+    border:1.5px solid var(--line);
+  }
+  #pwaInstallOverlay.show #pwaInstallCard{ transform:translateY(0) scale(1); }
+  #pwaInstallCard .pwa-icon{
+    width:64px; height:64px; border-radius:16px; margin:0 auto 14px; display:block;
+    box-shadow:var(--shadow);
+  }
+  #pwaInstallCard h3{
+    font-family:'Fraunces',serif; font-weight:700; font-size:20px; margin:0 0 6px; color:var(--ink);
+  }
+  #pwaInstallCard p{
+    font-family:'Work Sans',sans-serif; font-size:13.5px; color:rgba(28,17,8,0.68);
+    margin:0 0 20px; line-height:1.5;
+  }
+  #pwaInstallCard .pwa-btn-row{ display:flex; flex-direction:column; gap:10px; }
+  #pwaInstallBtn{
+    background:var(--yolk-deep); color:var(--cream); border:none; border-radius:14px;
+    padding:13px 18px; font-family:'Work Sans',sans-serif; font-weight:600; font-size:14.5px;
+    cursor:pointer; box-shadow:var(--shadow); transition:transform .15s ease;
+  }
+  #pwaInstallBtn:active{ transform:scale(0.97); }
+  #pwaDismissBtn{
+    background:transparent; color:rgba(28,17,8,0.55); border:none; font-family:'Work Sans',sans-serif;
+    font-weight:600; font-size:13.5px; padding:8px; cursor:pointer;
+  }
+  /* ---- iOS Add-to-Home-Screen Banner ---- */
+  #iosInstallBanner{
+    position:fixed; left:50%; bottom:-140px; transform:translateX(-50%); z-index:9999;
+    width:min(400px,92vw); background:var(--cream); border-radius:18px 18px 0 0;
+    box-shadow:0 -8px 24px rgba(33,26,20,0.22); border:1.5px solid var(--line); border-bottom:none;
+    padding:16px 18px 18px; transition:bottom .35s ease; font-family:'Work Sans',sans-serif;
+  }
+  #iosInstallBanner.show{ bottom:0; }
+  #iosInstallBanner .ios-row{ display:flex; align-items:flex-start; gap:12px; }
+  #iosInstallBanner .ios-icon{
+    width:38px; height:38px; border-radius:10px; flex:none; box-shadow:var(--shadow);
+  }
+  #iosInstallBanner strong{ font-family:'Bitter',serif; font-size:14px; color:var(--ink); }
+  #iosInstallBanner p{ margin:3px 0 0; font-size:12.5px; color:rgba(28,17,8,0.68); line-height:1.4; }
+  #iosInstallBanner .ios-share-glyph{
+    display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px;
+    border:1.5px solid var(--sky); border-radius:5px; color:var(--sky); font-size:11px; margin:0 2px;
+    vertical-align:middle;
+  }
+  #iosInstallClose{
+    position:absolute; top:10px; right:12px; background:none; border:none; font-size:16px;
+    color:rgba(28,17,8,0.4); cursor:pointer; line-height:1;
+  }
 </style>
 </head>
 <body>
+
+<!-- PWA Install Modal -->
+<div id="pwaInstallOverlay">
+  <div id="pwaInstallCard">
+    <img src="icons/icon-192.png" alt="" class="pwa-icon">
+    <h3>Install SOHLAM</h3>
+    <p>Add SOHLAM to your home screen for faster access and offline use — no app store needed.</p>
+    <div class="pwa-btn-row">
+      <button id="pwaInstallBtn" type="button">Install Now</button>
+      <button id="pwaDismissBtn" type="button">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<!-- iOS Add to Home Screen Banner -->
+<div id="iosInstallBanner">
+  <button id="iosInstallClose" type="button" aria-label="Close">✕</button>
+  <div class="ios-row">
+    <img src="icons/icon-192.png" alt="" class="ios-icon">
+    <div>
+      <strong>Install SOHLAM</strong>
+      <p>Tap <span class="ios-share-glyph">⬆</span> Share, then "Add to Home Screen" to install.</p>
+    </div>
+  </div>
+</div>
 
 <div id="initial-loader" style="position:fixed; inset:0; z-index:99999; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px; background:#F7E8CB; font-family:sans-serif;">
   <div style="width:40px; height:40px; border:4px solid rgba(28,17,8,0.15); border-top-color:#E0402A; border-radius:50%; animation:sohlam-loader-spin 0.8s linear infinite;"></div>
@@ -660,12 +781,12 @@
   <div class="hero">
     <div class="hero-top">
       <div class="hero-text">
-        <div class="hero-eyebrow" id="heroEyebrow"></div>
-        <h1><span id="heroLine1"></span><br><em id="heroLine2"></em></h1>
+        <div class="hero-eyebrow hero-anim" id="heroEyebrow"></div>
+        <h1><span class="hero-anim" id="heroLine1"></span><br><em class="hero-anim" id="heroLine2"></em></h1>
       </div>
-      <img class="hero-photo" id="heroPhoto" src="" alt="" style="display:none;">
+      <img class="hero-photo hero-anim" id="heroPhoto" src="" alt="" style="display:none;">
     </div>
-    <p class="lede" id="heroLede"></p>
+    <p class="lede hero-anim" id="heroLede"></p>
   </div>
 
   <section class="flock">
@@ -688,9 +809,9 @@
 
   <div class="hero-ctas-wrap">
     <div class="hero-ctas">
-      <button class="btn-primary" id="heroPlaceOrderBtn"><span data-i18n="heroPlaceOrder">🛒 Place an Order</span></button>
-      <button class="btn-ghost" id="navTrack2" data-i18n="heroTrackOrder">Track an Order</button>
-      <a id="heroMapLink" class="btn-map" href="#" target="_blank" rel="noopener"><span data-i18n="heroFindUs">📍 Find Us</span></a>
+      <button class="btn-primary hero-anim" id="heroPlaceOrderBtn"><span data-i18n="heroPlaceOrder">🛒 Place an Order</span></button>
+      <button class="btn-ghost hero-anim" id="navTrack2" data-i18n="heroTrackOrder">Track an Order</button>
+      <a id="heroMapLink" class="btn-map hero-anim" href="#" target="_blank" rel="noopener"><span data-i18n="heroFindUs">📍 Find Us</span></a>
     </div>
   </div>
 
@@ -1299,6 +1420,13 @@
   const ORDERS_KEY = 'ftf_orders_v1';
   const CONTENT_KEY = 'sohlam_content_v1';
   const PASSCODE_KEY = 'sohlam_passcode_v1';
+  // Dynamic app branding (appName/tagline/logoUrl) — kept separate from
+  // CONTENT_KEY on purpose: this drives the header, tab title, favicon and
+  // PWA manifest, and needs to be readable synchronously on first paint
+  // before Firestore has connected, and re-appliable instantly whenever a
+  // change arrives over the app_settings/branding real-time listener.
+  const BRANDING_KEY = 'sohlam_branding_v1';
+  const DEFAULT_BRANDING = {appName:'SOHLAM', tagline:'Sow Little, Harvest More', logoUrl:''};
   const MY_ORDERS_KEY = 'ftf_my_orders_v1';
   // Payment-proof photos are kept in a dedicated local store, separate from
   // the cloud-synced order record. This is what lets the upload → thumbnail
@@ -1328,6 +1456,8 @@
   let localProofs = loadLocalProofs();
   let content = loadContent();
   let adminPasscode = loadPasscode();
+  let branding = loadBranding();
+  let brandingManifestBlobUrl = null; // revoked/replaced each time the manifest is regenerated
   let cart = []; // {productId, qtyKg}
   let lastPlacedOrder = null;
   let myOrderIds = loadMyOrderIds();
@@ -1467,6 +1597,17 @@
     }catch(e){}
     safeSetItem(PASSCODE_KEY, DEFAULT_PASSCODE);
     return DEFAULT_PASSCODE;
+  }
+  // Reads cached branding instantly from localStorage so the header, tab
+  // title and favicon can be painted correctly before the cloud listener
+  // below has had a chance to connect. Falls back to the built-in defaults
+  // on first-ever visit or if storage is unavailable.
+  function loadBranding(){
+    try{
+      const raw = localStorage.getItem(BRANDING_KEY);
+      if(raw) return Object.assign({}, DEFAULT_BRANDING, JSON.parse(raw));
+    }catch(e){}
+    return Object.assign({}, DEFAULT_BRANDING);
   }
   function savePasscode(pass){
     adminPasscode = pass;
@@ -1660,6 +1801,26 @@
           db.collection('site').doc('passcode').set({value: adminPasscode}).catch(()=>{});
         }
       }, err=> console.error('Passcode sync error:', err));
+
+      // Live app branding (appName/tagline/logoUrl). `brandingReady` gates the
+      // "please re-add to home screen" alert so it only ever fires on an
+      // actual live change after this device has already loaded once — never
+      // on the very first snapshot of a fresh session, which just confirms
+      // what was already painted from localStorage a moment ago.
+      let brandingReady = false;
+      db.collection('app_settings').doc('branding').onSnapshot(doc=>{
+        if(doc.exists){
+          const incoming = Object.assign({}, DEFAULT_BRANDING, doc.data());
+          const changed = brandingReady && JSON.stringify(incoming) !== JSON.stringify(branding);
+          branding = incoming;
+          safeSetItem(BRANDING_KEY, JSON.stringify(branding));
+          applyBranding(branding, {regenManifest: true, announceChange: changed});
+        } else {
+          // First device to connect to a brand-new project seeds it.
+          db.collection('app_settings').doc('branding').set(branding).catch(()=>{});
+        }
+        brandingReady = true;
+      }, err=> console.error('Branding sync error:', err));
 
     }catch(e){
       const reason = (e && e.message) ? e.message : String(e);
@@ -2525,6 +2686,95 @@
     if(words.length === 1) return words[0].slice(0,2).toUpperCase();
     return (words[0][0] + words[1][0]).toUpperCase();
   }
+  // ---------------- Branding: instant local load + real-time sync ----------------
+  // Swaps the header logo/name for the synced branding values. Falls back to
+  // the initials mark (same logic renderSiteContent already uses) whenever
+  // no logoUrl has been set, so an empty branding doc never leaves a broken
+  // <img>. Safe to call before Firestore connects — it only touches the DOM
+  // and whatever is already cached in `branding`.
+  function applyBrandingToHeader(b){
+    const nameEl = document.getElementById('siteBusinessName');
+    const markEl = document.getElementById('siteLogoMark');
+    const displayName = (b && b.appName && b.appName.trim()) || bizName();
+    if(nameEl) nameEl.textContent = displayName;
+    if(markEl){
+      if(b && b.logoUrl){
+        markEl.innerHTML = `<img src="${b.logoUrl}" alt="${displayName} logo" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.textContent='${bizInitials(displayName)}';">`;
+      } else {
+        markEl.textContent = bizInitials(displayName);
+      }
+    }
+  }
+  // Updates document.title, the iOS home-screen title, and both favicon
+  // links straight from cached/synced branding — no network round trip, so
+  // this can run the instant the page (or a live update) has the data.
+  function applyBrandingMeta(b){
+    if(!b) return;
+    const tagline = (b.tagline || '').trim();
+    document.title = b.appName ? (b.appName + (tagline ? ' — ' + tagline : '') + ' | Batoke-Limbe') : document.title;
+    const appleTitle = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+    if(appleTitle && b.appName) appleTitle.setAttribute('content', b.appName);
+    if(b.logoUrl){
+      const icon32 = document.querySelector('link[rel="icon"]');
+      const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+      if(icon32) icon32.href = b.logoUrl;
+      if(appleIcon) appleIcon.href = b.logoUrl;
+    }
+  }
+  // Rebuilds manifest.json on the fly as a Blob and points <link rel="manifest">
+  // at it, so a synced appName/logoUrl shows up in the "Add to Home Screen"
+  // prompt without needing a real file on the server. The previous blob URL
+  // is revoked once the new one is wired up, so we don't leak memory across
+  // repeated live branding updates.
+  async function applyBrandingManifest(b){
+    if(!b) return;
+    try{
+      const res = await fetch('manifest.webmanifest');
+      const base = res.ok ? await res.json() : {};
+      const name = b.appName || base.name || 'SOHLAM';
+      const merged = Object.assign({}, base, {
+        name: name,
+        short_name: name.slice(0, 12)
+      });
+      if(b.logoUrl){
+        merged.icons = [
+          {src: b.logoUrl, sizes: '192x192', type: 'image/png', purpose: 'any'},
+          {src: b.logoUrl, sizes: '512x512', type: 'image/png', purpose: 'any'},
+          {src: b.logoUrl, sizes: '512x512', type: 'image/png', purpose: 'maskable'}
+        ];
+      }
+      const blobUrl = URL.createObjectURL(new Blob([JSON.stringify(merged)], {type: 'application/manifest+json'}));
+      const link = document.querySelector('link[rel="manifest"]');
+      if(link) link.href = blobUrl;
+      if(brandingManifestBlobUrl) URL.revokeObjectURL(brandingManifestBlobUrl);
+      brandingManifestBlobUrl = blobUrl;
+    }catch(e){ console.warn('Branding manifest regeneration failed:', e); }
+  }
+  // Single entry point that applies a branding object everywhere it matters.
+  // Header/title/favicon are always updated synchronously. Manifest
+  // regeneration and the "re-install" alert are opt-in via `opts` — the
+  // instant local-cache load below only needs the synchronous part; the
+  // live Firestore listener further down asks for both.
+  function applyBranding(b, opts){
+    opts = opts || {};
+    applyBrandingToHeader(b);
+    applyBrandingMeta(b);
+    if(opts.regenManifest) applyBrandingManifest(b);
+    if(opts.announceChange){
+      showNotification(
+        'App branding updated!',
+        'To see the new logo on your home screen, please re-add the app to your home screen (so it replaces the old one).',
+        'branding'
+      );
+    }
+  }
+  // Instant local load: paints the cached branding (if any) the moment this
+  // script runs, well before the cloud listener below has a chance to
+  // connect — this is what keeps a returning visitor from ever seeing a
+  // flash of default branding. No manifest regen here; that only needs to
+  // happen when a live change actually arrives (see connectCloud below).
+  applyBranding(branding, null);
+
   function renderSiteContent(){
     const name = bizName();
     document.getElementById('siteBusinessName').textContent = name;
@@ -2537,7 +2787,16 @@
     document.getElementById('heroEyebrow').textContent = content.heroEyebrow;
     document.getElementById('heroLine1').textContent = content.heroLine1;
     document.getElementById('heroLine2').textContent = content.heroLine2;
-    document.getElementById('heroLede').textContent = content.heroLede;
+    (function(){
+      const ledeEl = document.getElementById('heroLede');
+      const words = (content.heroLede || '').split(' ');
+      const baseDelay = 2.0;   // seconds — starts right after the headline finishes wiping in
+      const stagger = 0.025;   // seconds between each word
+      ledeEl.innerHTML = words.map((w, i) => {
+        const delay = (baseDelay + i * stagger).toFixed(3);
+        return '<span class="reveal-word" style="animation-delay:' + delay + 's">' + w + '</span>';
+      }).join(' ');
+    })();
     const heroPhotoEl = document.getElementById('heroPhoto');
     if(content.heroImage){
       heroPhotoEl.src = content.heroImage;
@@ -2562,6 +2821,9 @@
     heroLink.innerHTML = PIN_ICON + ' Find Us in ' + (primaryLoc ? primaryLoc.label : 'Batoke-Limbe');
     renderContact();
     renderFlock();
+    // content.businessName above is the fallback identity; if a branding
+    // doc has actually been set, it takes priority over it in the header.
+    applyBrandingToHeader(branding);
   }
   function primaryPhone(){ return (content.contactPhones && content.contactPhones[0] && content.contactPhones[0].number) || ''; }
   function primaryWhatsapp(){ return (content.contactWhatsapps && content.contactWhatsapps[0] && content.contactWhatsapps[0].number) || ''; }
@@ -4529,12 +4791,113 @@
   // newer data afterward without blocking first paint on a slow network.
   const initialLoaderEl = document.getElementById('initial-loader');
   if(initialLoaderEl) initialLoaderEl.style.display = 'none';
+  requestAnimationFrame(()=>{
+    document.querySelector('.hero').classList.add('is-live');
+    document.querySelector('.hero-ctas-wrap').classList.add('is-live');
+  });
   setCloudStatus(CLOUD_ENABLED ? 'connecting' : 'off');
   const cloudPillEl = document.getElementById('cloudStatusPill');
   if(cloudPillEl) cloudPillEl.addEventListener('click', ()=> connectCloud());
   connectCloud();
   if(!navigator.onLine) showConnectivityBanner('offline');
 })();
+</script>
+<script>
+(function(){
+  const DISMISS_KEY = 'sohlam_pwa_install_dismissed';
+  let deferredPrompt = null;
+
+  const overlay   = document.getElementById('pwaInstallOverlay');
+  const installBtn= document.getElementById('pwaInstallBtn');
+  const dismissBtn= document.getElementById('pwaDismissBtn');
+  const iosBanner = document.getElementById('iosInstallBanner');
+  const iosClose  = document.getElementById('iosInstallClose');
+
+  function alreadyInstalled(){
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true; // iOS Safari
+  }
+
+  function wasDismissedRecently(){
+    const ts = localStorage.getItem(DISMISS_KEY);
+    if(!ts) return false;
+    const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+    return (Date.now() - Number(ts)) < THIRTY_DAYS;
+  }
+
+  function markDismissed(){
+    try{ localStorage.setItem(DISMISS_KEY, String(Date.now())); }catch(e){}
+  }
+
+  function isIOS(){
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function isSafari(){
+    const ua = navigator.userAgent;
+    return /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(ua);
+  }
+
+  // --- Chrome / Android / Desktop install prompt ---
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if(alreadyInstalled() || wasDismissedRecently()) return;
+    setTimeout(() => {
+      if(deferredPrompt){ overlay.classList.add('show'); }
+    }, 1000);
+  });
+
+  installBtn?.addEventListener('click', async () => {
+    overlay.classList.remove('show');
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome !== 'accepted'){ markDismissed(); }
+    deferredPrompt = null;
+  });
+
+  dismissBtn?.addEventListener('click', () => {
+    overlay.classList.remove('show');
+    markDismissed();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    overlay.classList.remove('show');
+    iosBanner?.classList.remove('show');
+    deferredPrompt = null;
+  });
+
+  // --- iOS Safari: no beforeinstallprompt support, show manual instructions ---
+  if(isIOS() && isSafari() && !alreadyInstalled() && !wasDismissedRecently()){
+    setTimeout(() => { iosBanner.classList.add('show'); }, 1000);
+  }
+
+  iosClose?.addEventListener('click', () => {
+    iosBanner.classList.remove('show');
+    markDismissed();
+  });
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('SOHLAM: new version cached, will activate on next load.');
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SOHLAM: service worker registration failed', err));
+  });
+}
 </script>
 </body>
 </html>
