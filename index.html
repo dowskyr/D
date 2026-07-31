@@ -153,6 +153,125 @@
   .download-app-btn:hover{filter:brightness(1.08);}
   .download-app-btn .dl-icon{font-size:14px; line-height:1;}
 
+  /* ---------- Top promo banner ---------- */
+  .promo-banner{
+    display:none; align-items:center; justify-content:center; gap:10px;
+    padding:9px 40px 9px 16px; background:var(--yolk-deep); color:var(--cream);
+    font-size:13px; font-weight:600; text-align:center; position:relative;
+    flex-wrap:wrap; row-gap:4px;
+  }
+  .promo-banner.show{ display:flex; }
+  .promo-banner-text{ letter-spacing:0.01em; }
+  .promo-banner-code{
+    background:var(--cream); color:var(--yolk-deep); border:none; cursor:pointer;
+    font-family:'Space Mono',monospace; font-weight:800; font-size:12.5px;
+    padding:3px 10px; border-radius:20px; letter-spacing:0.05em;
+  }
+  .promo-banner-code:hover{ filter:brightness(0.95); }
+  .promo-banner-timer{
+    font-family:'Space Mono',monospace; font-size:11.5px; opacity:0.9; white-space:nowrap;
+  }
+  .promo-banner-close{
+    position:absolute; right:10px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:var(--cream); opacity:0.75; font-size:15px;
+    cursor:pointer; padding:4px 6px; line-height:1;
+  }
+  .promo-banner-close:hover{ opacity:1; }
+
+  /* ---------- Trust & value props bar ---------- */
+  .trust-bar{ display:none; max-width:1180px; margin:0 auto; padding:0 24px 36px; }
+  .trust-bar.show{ display:block; }
+  .trust-bar-grid{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:14px;
+  }
+  @media (max-width:860px){ .trust-bar-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width:460px){ .trust-bar-grid{ grid-template-columns:1fr; } }
+  .trust-badge-item{
+    background:var(--paper-light); border:2px solid var(--ink); border-radius:10px;
+    padding:16px 14px; text-align:center; box-shadow:var(--shadow);
+  }
+  .trust-badge-icon{ font-size:26px; line-height:1; margin-bottom:8px; }
+  .trust-badge-title{ font-weight:800; font-size:13.5px; color:var(--ink); }
+  .trust-badge-subtitle{ font-size:12px; color:rgba(33,26,20,0.7); margin-top:3px; }
+
+  /* ---- Combo / bundle deals ---- */
+  .combo-section{ display:none; max-width:1180px; margin:0 auto; padding:0 24px 36px; }
+  .combo-section.show{ display:block; }
+  .combo-section-head{ margin-bottom:16px; }
+  .combo-section-head .stamp{ font-size:12px; color:var(--sage); }
+  .combo-section-head h2{ font-size:26px; margin-top:4px; }
+  .combo-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:18px; }
+  .combo-card{
+    position:relative; display:flex; gap:16px; align-items:center;
+    background:var(--cream); border:2px solid var(--sage); border-radius:18px;
+    padding:18px; box-shadow:var(--shadow); overflow:hidden;
+  }
+  .combo-card::before{
+    content:''; position:absolute; inset:0 0 auto 0; height:6px;
+    background:linear-gradient(90deg, var(--sage), var(--yolk-deep));
+  }
+  .combo-card-img{
+    width:88px; height:88px; flex:0 0 auto; border-radius:14px; object-fit:cover;
+    border:1px solid var(--line); background:var(--paper-light);
+  }
+  .combo-card-img.placeholder{
+    display:flex; align-items:center; justify-content:center; font-size:28px;
+  }
+  .combo-card-body{ flex:1; min-width:0; }
+  .combo-savings-badge{
+    display:inline-block; background:var(--yolk-deep); color:var(--cream);
+    font-family:'Bitter', serif; font-weight:800; font-size:11px; letter-spacing:0.04em;
+    text-transform:uppercase; padding:4px 10px; border-radius:20px; margin-bottom:8px;
+  }
+  .combo-card-title{ font-family:'Fraunces', serif; font-weight:700; font-size:19px; line-height:1.15; margin-bottom:4px; }
+  .combo-card-items{ font-size:12.5px; color:rgba(33,26,20,0.65); margin-bottom:10px; }
+  .combo-price-row{ display:flex; align-items:baseline; gap:9px; margin-bottom:12px; flex-wrap:wrap; }
+  .combo-price-original{ font-family:'Space Mono', monospace; font-size:13px; color:rgba(33,26,20,0.5); text-decoration:line-through; }
+  .combo-price-final{ font-family:'Space Mono', monospace; font-weight:700; font-size:19px; color:var(--sage); }
+  .combo-add-btn{
+    background:var(--sage); color:var(--cream); border:none; padding:11px 20px;
+    border-radius:10px; font-weight:700; font-size:13.5px; letter-spacing:0.01em;
+  }
+  .combo-add-btn:hover{ filter:brightness(1.08); }
+  @media (max-width:520px){
+    .combo-card{ flex-direction:column; align-items:flex-start; }
+    .combo-card-img{ width:100%; height:140px; }
+  }
+
+  /* ---- Customer Reviews (public) ---- */
+  .reviews-section{ display:none; max-width:1180px; margin:0 auto; padding:0 24px 40px; }
+  .reviews-section.show{ display:block; }
+  .reviews-head{ margin-bottom:18px; text-align:center; }
+  .reviews-head .stamp{ font-size:12px; color:var(--rust); }
+  .reviews-head h2{ font-size:26px; margin-top:4px; }
+  .reviews-summary{
+    display:flex; flex-direction:column; align-items:center; gap:4px; margin:14px 0 22px;
+  }
+  .reviews-summary-score{ font-family:'Space Mono', monospace; font-weight:700; font-size:32px; color:var(--ink); }
+  .reviews-summary-stars{ font-size:20px; color:var(--yolk-deep); letter-spacing:2px; }
+  .reviews-summary-count{ font-size:12.5px; color:rgba(33,26,20,0.65); }
+  .reviews-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:16px; margin-bottom:22px;
+  }
+  .review-card{
+    background:var(--paper-light); border:2px solid var(--ink); border-radius:14px;
+    padding:16px 18px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px;
+  }
+  .review-card-stars{ font-size:14px; color:var(--yolk-deep); letter-spacing:1px; }
+  .review-card-text{ font-size:13.5px; line-height:1.5; color:rgba(33,26,20,0.85); flex:1; }
+  .review-card-foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; }
+  .review-card-name{ font-weight:800; font-family:'Bitter',serif; }
+  .review-card-loc{
+    background:var(--sage); color:var(--cream); border-radius:20px; padding:2px 10px;
+    font-size:11px; font-weight:700; white-space:nowrap;
+  }
+  .review-card-verified{ color:var(--sage); font-size:11px; font-weight:700; }
+  .reviews-empty{ text-align:center; font-size:13px; color:rgba(33,26,20,0.6); margin-bottom:18px; }
+  .reviews-cta{ text-align:center; }
+  .star-picker{ display:flex; gap:6px; font-size:30px; line-height:1; margin-bottom:6px; }
+  .star-picker span{ cursor:pointer; color:rgba(33,26,20,0.25); transition:color .12s ease; }
+  .star-picker span.filled{ color:var(--yolk-deep); }
+
   /* ---------- Connectivity banner ---------- */
   .connectivity-banner{
     display:none; align-items:center; justify-content:center; gap:9px;
@@ -195,13 +314,11 @@
   .hero h1 em{font-style:normal; color:var(--rust);}
   .hero p.lede{font-size:17px; max-width:46ch; margin:18px 0 0; color:rgba(33,26,20,0.8);}
   .stockboard-wrap{max-width:1180px; margin:0 auto; padding:10px 24px 30px;}
-  .hero-ctas-wrap{max-width:1180px; margin:0 auto; padding:0 24px 40px;}
-  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap;}
 
   /* ---------- Hero entrance animation (plays once on load, then static) ---------- */
   #heroLine1, #heroLine2{display:inline-block; clip-path:inset(0 0 100% 0); opacity:1; transform:none; filter:none;}
   .hero-anim{opacity:0; transform:translateY(-26px); filter:blur(9px);}
-  .hero.is-live .hero-anim, .hero-ctas-wrap.is-live .hero-anim{
+  .hero.is-live .hero-anim{
     animation:heroRise 1.75s cubic-bezier(.19,.75,.24,1) both;
   }
   .hero.is-live .hero-eyebrow{animation-delay:0s;}
@@ -213,9 +330,6 @@
   .hero.is-live .lede{opacity:1; transform:none; filter:none; animation:none;}
   .lede .reveal-word{display:inline-block; clip-path:inset(0 0 100% 0);}
   .hero.is-live .lede .reveal-word{animation:heroReveal .075s cubic-bezier(.22,.61,.36,1) both;}
-  .hero-ctas-wrap.is-live .btn-primary{animation-delay:0.6875s;}
-  .hero-ctas-wrap.is-live .btn-ghost{animation-delay:0.775s;}
-  .hero-ctas-wrap.is-live .btn-map{animation-delay:0.85s;}
   @keyframes heroRise{
     from{opacity:0; transform:translateY(-26px); filter:blur(9px);}
     to{opacity:1; transform:translateY(0); filter:blur(0);}
@@ -223,6 +337,46 @@
   @keyframes heroReveal{
     from{clip-path:inset(0 0 100% 0);}
     to{clip-path:inset(0 0 0% 0);}
+  }
+
+  /* ---------- Hero slide rotator: text -> trust cards (one at a time) -> promo deal ---------- */
+  .hero{ position:relative; }
+  .hero.has-hero-bg{
+    border-radius:22px; overflow:hidden; background-size:cover; background-position:center;
+  }
+  .hero.has-hero-bg::before{
+    content:''; position:absolute; inset:0; z-index:0;
+    background:linear-gradient(180deg, rgba(255,252,244,0.26), rgba(255,252,244,0.1) 45%, rgba(255,252,244,0.32));
+  }
+  .hero > .hero-top, .hero > .hero-slide{ position:relative; z-index:1; }
+  .hero-slide{ display:none; }
+  .hero-slide.active{ display:block; }
+  .hero-anim-pop{ opacity:0; transform:translateY(-26px); filter:blur(9px); }
+  .hero-anim-pop.enter{ animation:heroRise 0.9s cubic-bezier(.19,.75,.24,1) both; }
+  .hero-slide-card-single{
+    display:inline-flex; flex-direction:column; align-items:flex-start; gap:10px;
+    background:rgba(255,252,244,0.28); border-radius:14px;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    padding:26px 26px; box-shadow:var(--shadow); max-width:420px;
+  }
+  .hero-slide-card-icon{ font-size:34px; line-height:1; }
+  .hero-slide-card-title{ font-family:'Bitter', serif; font-weight:800; font-size:22px; color:var(--ink); line-height:1.25; text-shadow:0 1px 6px rgba(255,252,244,0.75); }
+  .hero-slide-card-subtitle{ font-size:14px; color:rgba(33,26,20,0.8); text-shadow:0 1px 5px rgba(255,252,244,0.7); }
+  .hero-slide-promo-box{
+    display:flex; flex-direction:column; align-items:flex-start; gap:16px; padding:8px 0 4px;
+  }
+  .hero-slide-promo-text{
+    font-family:'Fraunces', serif; font-weight:800; color:var(--ink);
+    font-size:clamp(28px, 4.6vw, 48px); line-height:1.12; max-width:44ch;
+  }
+  .hero-slide-promo-code{
+    background:var(--yolk-deep); color:var(--cream); border:none; cursor:pointer;
+    font-family:'Space Mono',monospace; font-weight:800; font-size:16px;
+    padding:9px 22px; border-radius:999px; letter-spacing:0.05em; box-shadow:var(--shadow);
+  }
+  .hero-slide-promo-code:hover{ filter:brightness(1.08); }
+  .hero-slide-promo-timer{
+    font-family:'Space Mono',monospace; font-size:13px; color:rgba(33,26,20,0.7);
   }
   .btn-primary{
     background:var(--rust); color:var(--cream); border:none; padding:13px 26px;
@@ -371,6 +525,17 @@
     width:64px; padding:7px 8px; border:1.5px solid var(--ink); border-radius:8px; font-family:'Space Mono',monospace; font-size:14px; background:var(--cream);
   }
   .qty-input:focus, .qty-row input:focus{outline:none; border-color:var(--rust); box-shadow:0 0 0 3px rgba(224,64,42,0.15);}
+  .stock-overlay{
+    position:absolute; top:0; left:0; right:0; height:150px; z-index:2;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(28,17,8,0.55); pointer-events:none;
+  }
+  .stock-overlay span{
+    font-family:'Bitter',serif; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
+    color:#fff; background:rgba(224,64,42,0.92); padding:7px 16px; border-radius:4px; font-size:12.5px;
+    transform:rotate(-6deg); box-shadow:0 6px 14px rgba(0,0,0,0.35);
+  }
+  .qty-limit-msg{font-size:11.5px; color:var(--rust); padding:0 16px; margin-top:4px;}
   .add-btn{
     width:calc(100% - 32px); margin:12px 16px 0; background:var(--ink); color:var(--cream);
     border:none; padding:10px; border-radius:10px; font-weight:600; font-size:13.5px; letter-spacing:0.03em;
@@ -386,14 +551,99 @@
   }
   .drawer.open{right:0;}
   .drawer-head{padding:20px 20px 14px; border-bottom:3px solid var(--ink); display:flex; justify-content:space-between; align-items:center;}
+  .drawer-head-title{display:flex; align-items:center; gap:10px;}
+  .drawer-badge{
+    background:var(--rust); color:var(--cream); border-radius:20px; padding:2px 10px;
+    font-size:12px; font-weight:700; font-family:'Space Mono',monospace;
+  }
   .drawer-close{background:none; border:none; font-size:22px; color:var(--ink);}
   .drawer-body{flex:1; overflow-y:auto; padding:16px 20px;}
-  .cart-item{display:flex; gap:12px; padding:12px 0; border-bottom:1px dashed var(--line);}
-  .cart-item img{width:56px; height:56px; object-fit:cover; border-radius:3px; border:1px solid var(--line);}
-  .cart-item .ci-info{flex:1;}
-  .cart-item .ci-info .name{font-weight:600; font-size:14.5px;}
+  .cart-item{display:flex; gap:12px; padding:14px 0; border-bottom:1px dashed var(--line);}
+  .cart-item img{width:56px; height:56px; object-fit:cover; border-radius:3px; border:1px solid var(--line); flex-shrink:0;}
+  .cart-item .ci-info{flex:1; min-width:0;}
+  .cart-item .ci-top-row{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .cart-item .ci-info .name{font-weight:600; font-size:14.5px; line-height:1.25;}
   .cart-item .ci-info .meta{font-size:12px; color:rgba(33,26,20,0.6); font-family:'Space Mono',monospace; margin-top:2px;}
-  .cart-item button.rm{background:none; border:none; color:var(--rust); font-size:12px; text-decoration:underline; padding:0; margin-top:6px;}
+  .cart-item .ci-delete{
+    background:none; border:none; color:rgba(33,26,20,0.45); font-size:16px; line-height:1;
+    padding:2px 4px; flex-shrink:0; cursor:pointer;
+  }
+  .cart-item .ci-delete:hover{color:var(--rust);}
+  .cart-item .ci-bottom-row{display:flex; justify-content:space-between; align-items:center; margin-top:8px; gap:8px; flex-wrap:wrap;}
+  .qty-stepper{display:inline-flex; align-items:center; gap:0; border:1.5px solid var(--ink); border-radius:8px; overflow:hidden;}
+  .qty-stepper .qty-btn{
+    background:var(--paper-light); border:none; width:28px; height:28px; font-size:16px; font-weight:700;
+    color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;
+  }
+  .qty-stepper .qty-btn:hover{background:var(--yolk);}
+  .qty-stepper .qty-val{
+    min-width:52px; text-align:center; font-family:'Space Mono',monospace; font-size:12.5px; font-weight:700; padding:0 4px;
+  }
+  .cart-item .ci-line-total{font-family:'Space Mono',monospace; font-weight:700; font-size:13.5px;}
+  .cart-empty-state{text-align:center; padding:36px 10px;}
+  .cart-empty-state .icon{font-size:40px; margin-bottom:10px;}
+  .cart-empty-state p{font-size:13.5px; color:rgba(33,26,20,0.55); margin-bottom:16px;}
+
+  /* ---- Delivery progress bar ---- */
+  .delivery-progress{ margin-bottom:16px; padding:12px 14px; background:var(--paper-light); border:1.5px solid var(--ink); border-radius:10px; }
+  .delivery-progress-msg{ font-size:12.5px; font-weight:700; margin-bottom:8px; line-height:1.3; }
+  .delivery-progress-msg.unlocked{ color:var(--sage); }
+  .delivery-progress-track{ height:8px; background:rgba(33,26,20,0.12); border-radius:20px; overflow:hidden; }
+  .delivery-progress-fill{ height:100%; background:var(--rust); border-radius:20px; transition:width 0.35s ease; }
+  .delivery-progress-fill.unlocked{ background:var(--sage); }
+
+  /* ---------- Step 4c-2: Cart drawer footer — cost breakdown + coupon ---------- */
+  .coupon-row{display:flex; gap:8px; margin-bottom:12px;}
+  .coupon-row input{
+    flex:1; min-width:0; padding:9px 12px; border:1.5px solid var(--ink); border-radius:8px;
+    font-size:13.5px; background:var(--cream); color:var(--ink);
+  }
+  .coupon-row input:focus{outline:2px solid var(--sage); outline-offset:1px;}
+  .coupon-apply-btn{
+    background:var(--ink); color:var(--cream); border:none; padding:0 16px; border-radius:8px;
+    font-weight:700; font-size:13px; white-space:nowrap;
+  }
+  .coupon-apply-btn:hover:not(:disabled){filter:brightness(1.3);}
+  .coupon-apply-btn:disabled{opacity:0.5;}
+  .coupon-msg{font-size:11.5px; margin:-4px 0 12px;}
+  .coupon-msg.ok{color:var(--sage); font-weight:700;}
+  .coupon-msg.err{color:var(--rust);}
+  .coupon-applied-chip{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:rgba(31,122,92,0.1); border:1.5px solid var(--sage); color:var(--sage);
+    font-weight:700; font-size:12.5px; padding:7px 12px; border-radius:8px; margin-bottom:12px;
+  }
+  .coupon-applied-chip button{
+    background:none; border:none; color:var(--sage); font-weight:700; font-size:12px;
+    text-decoration:underline; cursor:pointer; padding:0;
+  }
+  .cart-summary-lines{display:flex; flex-direction:column; gap:7px; margin-bottom:14px;}
+  .cart-summary-row{display:flex; justify-content:space-between; align-items:center; font-size:13.5px;}
+  .cart-summary-row .csr-label{color:rgba(33,26,20,0.7);}
+  .cart-summary-row .csr-value{font-family:'Space Mono',monospace; font-weight:700;}
+  .cart-summary-row .csr-value.free{color:var(--sage); font-weight:800;}
+  .cart-summary-row.discount .csr-value{color:var(--sage);}
+  .cart-summary-row.grand-total{
+    border-top:2px dashed var(--line); margin-top:2px; padding-top:10px;
+  }
+  .cart-summary-row.grand-total .csr-label{color:var(--ink); font-weight:800; font-size:15px;}
+  .cart-summary-row.grand-total .csr-value{color:var(--sage); font-size:19px;}
+
+  /* ---- Frequently added together upsell strip ---- */
+  .upsell-strip{ margin-top:18px; padding-top:14px; border-top:1px dashed var(--line); }
+  .upsell-strip-title{ font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; color:rgba(33,26,20,0.6); margin-bottom:10px; }
+  .upsell-row{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; -webkit-overflow-scrolling:touch; }
+  .upsell-card{
+    flex:0 0 auto; width:132px; background:var(--paper-light); border:1.5px solid var(--ink); border-radius:10px;
+    padding:10px; display:flex; flex-direction:column; gap:6px;
+  }
+  .upsell-card img{ width:100%; height:70px; object-fit:cover; border-radius:6px; border:1px solid var(--line); }
+  .upsell-card .u-name{ font-size:12px; font-weight:700; line-height:1.2; }
+  .upsell-card .u-price{ font-size:11.5px; font-family:'Space Mono',monospace; color:rgba(33,26,20,0.65); }
+  .upsell-card .u-add-btn{
+    background:var(--rust); color:var(--cream); border:none; border-radius:8px; padding:6px; font-weight:700; font-size:12px;
+  }
+  .upsell-card .u-add-btn:hover{ filter:brightness(1.08); }
   .drawer-foot{border-top:3px solid var(--ink); padding:16px 20px 22px;}
   .subtotal-row{display:flex; justify-content:space-between; font-family:'Space Mono',monospace; font-size:17px; margin-bottom:14px; font-weight:700;}
 
@@ -450,6 +700,17 @@
   .admin-tab.active{color:var(--ink); border-color:var(--rust);}
   .admin-panel{display:none;}
   .admin-panel.active{display:block;}
+  .toggle-row{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;}
+  .toggle-row-label{font-weight:700; font-size:14.5px;}
+  .toggle-switch{position:relative; display:inline-block; width:46px; height:26px; flex-shrink:0;}
+  .toggle-switch input{opacity:0; width:0; height:0;}
+  .toggle-switch .slider{position:absolute; inset:0; background:rgba(33,26,20,0.22); border-radius:999px; cursor:pointer; transition:background 0.15s ease;}
+  .toggle-switch .slider::before{content:''; position:absolute; width:20px; height:20px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+  .toggle-switch input:checked + .slider{background:var(--sage);}
+  .toggle-switch input:checked + .slider::before{transform:translateX(20px);}
+  .status-pill{display:inline-block; font-size:11.5px; font-weight:700; padding:3px 9px; border-radius:999px; letter-spacing:0.02em;}
+  .status-pill.on{background:rgba(31,122,92,0.14); color:var(--sage);}
+  .status-pill.off{background:rgba(33,26,20,0.1); color:rgba(33,26,20,0.55);}
   .admin-layout{display:grid; grid-template-columns:340px 1fr; gap:30px; align-items:start;}
   .admin-layout > *{min-width:0;}
   .admin-form-card, .order-card, .product-row{
@@ -517,7 +778,6 @@
     .hero .lede{font-size:14.5px; max-width:100%;}
     .hero-eyebrow{font-size:11px; padding:5px 12px; white-space:normal;}
     .stockboard-wrap{padding:8px 16px 24px;}
-    .hero-ctas-wrap{padding:0 16px 30px;}
     .stockboard{padding:16px; transform:none; max-width:100%;}
     .stockboard .big{font-size:32px;}
     .stockboard .rows{font-size:12px;}
@@ -526,8 +786,6 @@
     .grid{grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:14px;}
     .qty-row{padding:0 12px; gap:6px; flex-wrap:wrap;}
     .qty-row input{width:56px;}
-    .hero-ctas{flex-direction:column; align-items:stretch;}
-    .hero-ctas .btn-primary, .hero-ctas .btn-ghost, .hero-ctas .btn-map{justify-content:center; text-align:center;}
     .btn-map{padding:13px 20px; font-size:14.5px;}
     .contact-card{padding:18px;}
     .contact-row{flex-wrap:wrap;}
@@ -646,8 +904,19 @@
 
   /* ---------- Floating action buttons ---------- */
   .floating-actions{
+    position:fixed; left:18px; bottom:22px; z-index:50;
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  .floating-cart{
     position:fixed; right:18px; bottom:22px; z-index:50;
     display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  .fab-cart{background:var(--rust); position:relative;}
+  .fab-cart-count{
+    position:absolute; top:-4px; right:-4px; min-width:20px; height:20px; padding:0 5px;
+    border-radius:50%; background:var(--yolk); color:var(--ink); font-family:'Space Mono',monospace;
+    font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--cream); box-shadow:0 2px 6px rgba(0,0,0,0.25);
   }
   .fab{
     width:58px; height:58px; border-radius:50%;
@@ -661,13 +930,16 @@
   .fab:active{transform:scale(0.94);}
   .fab-call{background:var(--sky);}
   .fab-whatsapp{background:#25D366;}
+  .btn-whatsapp{background:#25D366 !important; color:#fff !important;}
+  .btn-whatsapp:hover:not(:disabled){filter:brightness(1.06);}
   .floating-actions-label{
     font-family:'Space Mono', monospace; font-size:10.5px; letter-spacing:0.04em;
     color:var(--ink); background:var(--cream); padding:3px 9px; border-radius:20px;
     border:1.5px solid var(--ink); box-shadow:0 3px 8px rgba(0,0,0,0.18); white-space:nowrap;
   }
   @media (max-width:600px){
-    .floating-actions{right:14px; bottom:16px; gap:12px;}
+    .floating-actions{left:14px; bottom:16px; gap:12px;}
+    .floating-cart{right:14px; bottom:16px; gap:12px;}
     .fab{width:52px; height:52px; font-size:23px;}
     .floating-actions-label{font-size:9.5px; padding:2px 7px;}
   }
@@ -774,6 +1046,13 @@
   }, 8000);
 </script>
 
+<div class="promo-banner" id="promoBanner">
+  <span class="promo-banner-text" id="promoBannerText"></span>
+  <button class="promo-banner-code" id="promoBannerCode" type="button" title="Tap to copy"></button>
+  <span class="promo-banner-timer" id="promoBannerTimer"></span>
+  <button class="promo-banner-close" id="promoBannerClose" type="button" aria-label="Dismiss">✕</button>
+</div>
+
 <header class="site">
   <div class="download-app-row" id="downloadAppRow">
     <button class="download-app-btn" id="downloadAppBtn"><span class="dl-icon">⬇</span> Download App</button>
@@ -816,7 +1095,26 @@
       </div>
       <img class="hero-photo hero-anim" id="heroPhoto" src="" alt="" style="display:none;">
     </div>
-    <p class="lede hero-anim" id="heroLede"></p>
+
+    <div class="hero-slide active" id="heroSlideText">
+      <p class="lede hero-anim" id="heroLede"></p>
+    </div>
+
+    <div class="hero-slide" id="heroSlideCards">
+      <div class="hero-slide-card-single hero-anim-pop" id="heroSlideCardSingle">
+        <div class="hero-slide-card-icon" id="heroSlideCardIcon"></div>
+        <div class="hero-slide-card-title" id="heroSlideCardTitle"></div>
+        <div class="hero-slide-card-subtitle" id="heroSlideCardSubtitle"></div>
+      </div>
+    </div>
+
+    <div class="hero-slide" id="heroSlidePromo">
+      <div class="hero-slide-promo-box hero-anim-pop" id="heroSlidePromoBox">
+        <div class="hero-slide-promo-text" id="heroSlidePromoText"></div>
+        <button class="hero-slide-promo-code" id="heroSlidePromoCode" type="button" title="Tap to copy"></button>
+        <div class="hero-slide-promo-timer" id="heroSlidePromoTimer"></div>
+      </div>
+    </div>
   </div>
 
   <section class="flock">
@@ -837,13 +1135,13 @@
     </div>
   </div>
 
-  <div class="hero-ctas-wrap">
-    <div class="hero-ctas">
-      <button class="btn-primary hero-anim" id="heroPlaceOrderBtn"><span data-i18n="heroPlaceOrder">🛒 Place an Order</span></button>
-      <button class="btn-ghost hero-anim" id="navTrack2" data-i18n="heroTrackOrder">Track an Order</button>
-      <a id="heroMapLink" class="btn-map hero-anim" href="#" target="_blank" rel="noopener"><span data-i18n="heroFindUs">📍 Find Us</span></a>
+  <section class="combo-section" id="comboSection">
+    <div class="combo-section-head">
+      <div class="stamp">Bundle &amp; Save</div>
+      <h2>Featured Combos</h2>
     </div>
-  </div>
+    <div class="combo-grid" id="comboGrid"></div>
+  </section>
 
   <section class="shop" id="shop">
     <div class="shop-head">
@@ -851,6 +1149,18 @@
       <div class="stamp" id="shopStamp"></div>
     </div>
     <div class="grid" id="productGrid"></div>
+  </section>
+
+  <section class="reviews-section" id="reviewsSection">
+    <div class="reviews-head">
+      <div class="stamp">What Customers Say</div>
+      <h2>Customer Reviews</h2>
+    </div>
+    <div class="reviews-summary" id="reviewsSummary"></div>
+    <div class="reviews-grid" id="reviewsGrid"></div>
+    <div class="reviews-cta">
+      <button class="btn-ghost" id="openLeaveReviewBtn" type="button">✍️ Leave a Review</button>
+    </div>
   </section>
 
   <div class="section-divider">🐓 · 🥚 · 🍗</div>
@@ -878,12 +1188,20 @@
 <div class="overlay" id="overlay"></div>
 <div class="drawer" id="cartDrawer">
   <div class="drawer-head">
-    <h3 class="stamp" style="font-size:18px;" data-i18n="yourBasket">Your Basket</h3>
+    <div class="drawer-head-title">
+      <h3 class="stamp" style="font-size:18px;" data-i18n="yourBasket">Your Basket</h3>
+      <span class="drawer-badge" id="cartDrawerCount">0</span>
+    </div>
     <button class="drawer-close" id="closeCart">&times;</button>
   </div>
-  <div class="drawer-body" id="cartBody"></div>
+  <div class="drawer-body" id="cartBody">
+    <div id="cartProgressBar"></div>
+    <div id="cartItemsList"></div>
+    <div id="cartUpsellStrip"></div>
+  </div>
   <div class="drawer-foot" id="cartFoot">
-    <div class="subtotal-row"><span data-i18n="subtotal">Subtotal</span><span id="cartSubtotal">0 XAF</span></div>
+    <div id="cartCouponBlock"></div>
+    <div class="cart-summary-lines" id="cartSummaryLines"></div>
     <button class="btn-primary" style="width:100%;" id="checkoutBtn" data-i18n="continueCheckout">Continue to Checkout</button>
     <button class="btn-ghost" style="width:100%; margin-top:8px;" id="viewHistoryBtn" data-i18n="viewOrderHistory">📜 Order History</button>
   </div>
@@ -962,7 +1280,17 @@
       <h3 class="stamp" style="font-size:18px;" data-i18n="orderHistory">Order History</h3>
       <button class="drawer-close" id="closeHistory">&times;</button>
     </div>
-    <div class="drawer-body" id="historyBody"></div>
+    <div class="drawer-body">
+      <div style="background:rgba(33,26,20,0.04); border:1px solid var(--line); border-radius:10px; padding:12px 14px; margin-bottom:16px;">
+        <div style="font-size:13px; margin-bottom:8px;" data-i18n="historyRecoverHint">Don't see an order you placed? It may not show here if this browser was cleared or reopened from a downloaded file. Enter the phone number you used to find it.</div>
+        <div style="display:flex; gap:8px;">
+          <input id="historyRecoverPhone" type="tel" placeholder="e.g. 6XX XXX XXX" data-i18n-placeholder="phonePh" style="flex:1; min-width:0;">
+          <button class="icon-btn" id="historyRecoverBtn" data-i18n="findMyOrders" style="flex-shrink:0;">Find</button>
+        </div>
+        <div id="historyRecoverMsg" class="helper" style="margin-top:6px; display:none;"></div>
+      </div>
+      <div id="historyBody"></div>
+    </div>
   </div>
 </div>
 
@@ -1003,6 +1331,30 @@
   </div>
 </div>
 
+<!-- Leave a Review Modal -->
+<div class="overlay" id="reviewOverlay">
+  <div class="drawer open" style="right:0; max-width:440px;" id="reviewDrawer">
+    <div class="drawer-head">
+      <h3 class="stamp" style="font-size:18px;">Leave a Review</h3>
+      <button class="drawer-close" id="closeReviewModal">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div class="field"><label for="rvName">Your name</label><input id="rvName" type="text" placeholder="e.g. Achu Prisca"></div>
+      <div class="field"><label for="rvLocation">Location (optional)</label><input id="rvLocation" type="text" placeholder="e.g. Limbe"></div>
+      <div class="field">
+        <label>Your rating</label>
+        <div class="star-picker" id="rvStarPicker" role="radiogroup" aria-label="Star rating">
+          <span data-value="1">★</span><span data-value="2">★</span><span data-value="3">★</span><span data-value="4">★</span><span data-value="5">★</span>
+        </div>
+      </div>
+      <div class="field"><label for="rvComment">Your review</label><textarea id="rvComment" rows="4" placeholder="Tell us about your experience"></textarea></div>
+      <button class="btn-primary" id="submitReviewBtn" style="width:100%;">Submit Review</button>
+      <div class="helper" id="reviewFormError" style="color:var(--rust); margin-top:8px;"></div>
+      <div class="helper" style="margin-top:10px;">Your review will appear on the site once it's been approved by our team.</div>
+    </div>
+  </div>
+</div>
+
 <!-- Admin Section -->
 <section class="admin" id="adminSection">
   <div class="admin-gate" id="adminGate">
@@ -1022,6 +1374,7 @@
     <div class="admin-tabs">
       <button class="admin-tab active" data-tab="inventory">Inventory</button>
       <button class="admin-tab" data-tab="content">Site Content</button>
+      <button class="admin-tab" data-tab="marketing">Marketing<span class="tab-badge" id="pendingReviewsBadge"></span></button>
       <button class="admin-tab" data-tab="orders">Orders<span class="tab-badge" id="pendingOrdersBadge"></span></button>
       <button type="button" class="admin-tab-search-btn" id="orderSearchToggleBtn" aria-label="Search orders" title="Search orders">🔍</button>
     </div>
@@ -1111,7 +1464,12 @@
             <img id="cAppLogoPreview" src="" alt="App logo preview" style="display:none; width:72px; height:72px; object-fit:cover; border-radius:50%; border:1px solid rgba(33,26,20,0.18); background:#fff;">
             <button type="button" class="icon-btn" id="removeAppLogoBtn" style="display:none;">Remove Logo</button>
           </div>
+          <div style="display:flex; gap:10px; align-items:flex-start; background:rgba(30,157,194,0.1); border:1px solid rgba(30,157,194,0.35); border-radius:10px; padding:12px 14px; margin:4px 0 16px; font-size:13.5px; line-height:1.5;">
+            <span aria-hidden="true">ℹ️</span>
+            <span><strong>Note:</strong> Updating the name and logo here instantly updates the web app, browser tabs, and PWA installs. Native compiled Android APK icons are locked into the app package at build time and require compiling a fresh APK.</span>
+          </div>
           <button class="btn-primary" id="saveIdentityBtn" style="width:100%; margin-top:8px;">Save Identity Settings</button>
+          <button type="button" class="icon-btn" id="exportBuildManifestBtn" style="width:100%; margin-top:10px;">Export Build Manifest</button>
         </div>
         <div class="admin-form-card">
           <h3 style="font-size:17px; margin-bottom:14px;">Header &amp; Hero Text</h3>
@@ -1140,6 +1498,16 @@
             <button type="button" class="icon-btn" id="removeHeroImageBtn" style="display:none;">Remove Image</button>
           </div>
           <button class="btn-primary" id="saveHeroImageBtn" style="width:100%; margin-top:8px;">Save Hero Image</button>
+        </div>
+        <div class="admin-form-card" style="margin-bottom:20px;">
+          <h3 style="font-size:17px; margin-bottom:14px;">Hero Background</h3>
+          <div class="helper" style="margin-bottom:12px;">Optional — a full-width photo behind the hero text and the rotating cards/promo, like a banner. Leave empty for the plain background.</div>
+          <div class="field"><label for="cHeroBgImage">Background image</label><input id="cHeroBgImage" type="file" accept="image/*"></div>
+          <div style="display:flex; align-items:center; gap:14px; margin:12px 0;">
+            <img id="cHeroBgImagePreview" src="" alt="Hero background preview" style="display:none; width:140px; height:80px; object-fit:cover; border-radius:8px; border:1px solid rgba(33,26,20,0.18); background:#fff;">
+            <button type="button" class="icon-btn" id="removeHeroBgImageBtn" style="display:none;">Remove Image</button>
+          </div>
+          <button class="btn-primary" id="saveHeroBgImageBtn" style="width:100%; margin-top:8px;">Save Hero Background</button>
         </div>
         <div class="admin-form-card" style="margin-bottom:20px;">
           <h3 style="font-size:17px; margin-bottom:14px;">Site QR Code</h3>
@@ -1221,6 +1589,92 @@
       </div>
     </div>
 
+    <div class="admin-panel" id="tab-marketing">
+      <div class="admin-form-card" style="margin-bottom:20px;">
+        <div class="toggle-row">
+          <div>
+            <h3 style="font-size:17px; margin-bottom:2px;">Value Props / Trust Badges</h3>
+            <div class="helper">A 4-item strip of trust points shown near the top of the homepage.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mTrustActive"><span class="slider"></span></label>
+        </div>
+        <div id="mTrustList"></div>
+        <button type="button" class="icon-btn" id="addTrustBtn" style="width:100%; margin-bottom:14px;">+ Add Trust Badge</button>
+        <button class="btn-primary" id="saveTrustBtn" style="width:100%;">Save Trust Badges</button>
+      </div>
+
+      <div class="admin-form-card" style="margin-bottom:20px;">
+        <div class="toggle-row">
+          <div>
+            <h3 style="font-size:17px; margin-bottom:2px;">Promo Banner &amp; Deals</h3>
+            <div class="helper">A top notification banner announcing a discount or promo code.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mPromoActive"><span class="slider"></span></label>
+        </div>
+        <div class="field"><label for="mPromoText">Banner text</label><input id="mPromoText" type="text" placeholder="e.g. 10% off your first bulk broiler order"></div>
+        <div class="field"><label for="mPromoCode">Coupon code</label><input id="mPromoCode" type="text" placeholder="e.g. SOLHAMFRESH"></div>
+        <div class="field"><label for="mPromoDiscount">Discount (%)</label><input id="mPromoDiscount" type="number" min="0" max="100" placeholder="e.g. 10"></div>
+        <div class="field"><label for="mPromoExpiry">Expires at</label><input id="mPromoExpiry" type="datetime-local"></div>
+        <button class="btn-primary" id="savePromoBtn" style="width:100%; margin-top:8px;">Save Promo Banner</button>
+      </div>
+
+      <div class="admin-form-card" style="margin-bottom:20px;">
+        <div class="toggle-row">
+          <div>
+            <h3 style="font-size:17px; margin-bottom:2px;">Cart Drawer &amp; Delivery</h3>
+            <div class="helper">Free-delivery threshold, the flat delivery fee below it, and an optional coupon code customers can apply in the basket.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mCartDrawerActive"><span class="slider"></span></label>
+        </div>
+        <div class="field"><label for="mFreeDeliveryThreshold">Free delivery threshold (FCFA)</label><input id="mFreeDeliveryThreshold" type="number" min="0" placeholder="e.g. 15000"></div>
+        <div class="field"><label for="mDefaultDeliveryFee">Delivery fee below threshold (FCFA)</label><input id="mDefaultDeliveryFee" type="number" min="0" placeholder="e.g. 1500"></div>
+        <div class="toggle-row" style="margin-top:6px;">
+          <div>
+            <h3 style="font-size:14.5px; margin-bottom:2px;">Active Coupon</h3>
+            <div class="helper">When on, customers see a coupon field in the basket and can apply this code.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mCouponActive"><span class="slider"></span></label>
+        </div>
+        <div class="field"><label for="mCouponCode">Coupon code</label><input id="mCouponCode" type="text" placeholder="e.g. SOLHAM10"></div>
+        <div class="field"><label for="mCouponDiscount">Discount (%)</label><input id="mCouponDiscount" type="number" min="0" max="100" placeholder="e.g. 10"></div>
+        <button class="btn-primary" id="saveCartDrawerBtn" style="width:100%; margin-top:8px;">Save Cart Drawer Settings</button>
+      </div>
+
+      <div class="admin-form-card" style="margin-bottom:20px;">
+        <div class="toggle-row">
+          <div>
+            <h3 style="font-size:17px; margin-bottom:2px;">Combo / Bundle Boxes</h3>
+            <div class="helper">Featured bundle deals shown as a "Deal of the Week" card.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mComboActive"><span class="slider"></span></label>
+        </div>
+        <div id="mBundleList"></div>
+        <button type="button" class="icon-btn" id="addBundleBtn" style="width:100%; margin-bottom:14px;">+ Add Bundle</button>
+        <button class="btn-primary" id="saveBundlesBtn" style="width:100%;">Save Bundles</button>
+      </div>
+
+      <div class="admin-form-card" style="margin-bottom:20px;">
+        <div style="margin-bottom:2px;">
+          <h3 style="font-size:17px; margin-bottom:2px;">Pending Review Submissions</h3>
+          <div class="helper">Reviews customers submitted from the site, waiting for your approval.</div>
+        </div>
+        <div id="pendingReviewList" style="margin-top:12px;"></div>
+      </div>
+
+      <div class="admin-form-card">
+        <div class="toggle-row">
+          <div>
+            <h3 style="font-size:17px; margin-bottom:2px;">Customer Reviews</h3>
+            <div class="helper">Approve submitted reviews or add your own featured testimonials.</div>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" id="mReviewsActive"><span class="slider"></span></label>
+        </div>
+        <div id="mReviewList"></div>
+        <button type="button" class="icon-btn" id="addReviewBtn" style="width:100%; margin-bottom:14px;">+ Add Testimonial</button>
+        <button class="btn-primary" id="saveReviewsBtn" style="width:100%;">Save Reviews</button>
+      </div>
+    </div>
+
     <div class="admin-panel" id="tab-orders">
       <div id="pendingOrdersSummary" style="font-family:'Bitter',serif; font-weight:800; font-size:15px; margin-bottom:12px;"></div>
       <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
@@ -1255,6 +1709,12 @@
     </svg>
   </a>
   <span class="floating-actions-label" id="floatingActionsLabel" style="display:none;">Live support</span>
+</div>
+
+<div class="floating-cart" id="floatingCart">
+  <button class="fab fab-cart" id="fabCart" title="Open your basket" aria-label="Open your basket">
+    🛒<span class="fab-cart-count" id="floatingCartCount">0</span>
+  </button>
 </div>
 
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1303,6 +1763,10 @@
       heroPlaceOrder:'🛒 Place an Order', heroTrackOrder:'Track an Order', heroFindUs:'📍 Find Us',
       onTheBoard:'On the board', cutsAvailable:'cuts available right now',
       yourBasket:'Your Basket', subtotal:'Subtotal', continueCheckout:'Continue to Checkout',
+      deliveryLabel:'Delivery', freeLabel:'FREE', discountLabel:'Discount',
+      couponPh:'Coupon code', applyCoupon:'Apply', removeCoupon:'Remove',
+      couponEnterCode:'Enter a coupon code.', couponNoneActive:'No active coupon right now.',
+      couponInvalid:"That code isn't valid.", couponAppliedMsg:'{pct}% off applied!',
       checkout:'Checkout', fullName:'Full name', fullNamePh:'e.g. Achu Prisca',
       phoneNumber:'Phone number', phonePh:'e.g. 6XX XXX XXX',
       deliveryAddress:'Delivery address', addressPh:'Neighborhood, landmark, or pickup?',
@@ -1344,12 +1808,15 @@
       sendVerificationTitle:'Send Payment Verification', sendVerificationNote:'After sending the money, tap below to open WhatsApp with your order details filled in. Attach the receipt we just downloaded to your phone and send it to us to verify your payment.',
       sendVerificationBtn:'💬 Send Payment Verification', sendVerificationNoNumber:'Verification number not set up yet — please contact us directly.',
       waVerifyMsgIntro:"Hi! I've just paid for my order, sending this for payment verification.", waVerifyMsgOrder:'Order', waVerifyMsgItems:'Items', waVerifyMsgTotal:'Total', waVerifyMsgName:'Name', waVerifyMsgPhone:'Phone', waVerifyMsgAttach:"I'm attaching my receipt/payment screenshot below.",
+      waOrderHeader:'NEW ORDER', waItemsHeader:'Items', waSummaryHeader:'Summary', waDeliveryLocation:'Delivery Location',
       stepPaymentLabel:'1 · Payment', stepVerifyLabel:'2 · Verify',
       continueToVerification:'Continue to Verification →', backToPayment:'← Back to Payment',
       iveSentPayment:"✓ I've Sent My Payment", verificationSentNote:'Verification marked as sent — your receipt has been updated.',
       verificationAlreadySent:'Verification sent', sendAgain:'Send again?',
       verificationLabel:'Verification', verificationSentPrefix:'Sent',
-      orderHistory:'Order History', viewOrderHistory:'📜 Order History', noOrdersYet:"You haven't placed any orders yet."
+      orderHistory:'Order History', viewOrderHistory:'📜 Order History', noOrdersYet:"You haven't placed any orders yet.",
+      historyRecoverHint:"Don't see an order you placed? It may not show here if this browser was cleared or reopened from a downloaded file. Enter the phone number you used to find it.",
+      findMyOrders:'Find', historyRecoverNone:'No orders found for that phone number.', historyRecoverFound:'order(s) added to your history.'
     },
     fr: {
       callUs:'Appelez-nous', orderBasket:'Commandes',
@@ -1357,6 +1824,10 @@
       heroPlaceOrder:'🛒 Passer Commande', heroTrackOrder:'Suivre une Commande', heroFindUs:'📍 Nous Trouver',
       onTheBoard:'Au tableau', cutsAvailable:"morceaux disponibles maintenant",
       yourBasket:'Votre Panier', subtotal:'Sous-total', continueCheckout:'Passer à la Caisse',
+      deliveryLabel:'Livraison', freeLabel:'GRATUIT', discountLabel:'Réduction',
+      couponPh:'Code promo', applyCoupon:'Appliquer', removeCoupon:'Retirer',
+      couponEnterCode:'Entrez un code promo.', couponNoneActive:'Aucun code promo actif pour le moment.',
+      couponInvalid:"Ce code n'est pas valide.", couponAppliedMsg:'{pct}% de réduction appliquée !',
       checkout:'Paiement', fullName:'Nom complet', fullNamePh:'ex. Achu Prisca',
       phoneNumber:'Numéro de téléphone', phonePh:'ex. 6XX XXX XXX',
       deliveryAddress:'Adresse de livraison', addressPh:'Quartier, repère, ou retrait ?',
@@ -1398,12 +1869,15 @@
       sendVerificationTitle:'Envoyer la Vérification de Paiement', sendVerificationNote:"Après l'envoi de l'argent, touchez ci-dessous pour ouvrir WhatsApp avec les détails de votre commande déjà remplis. Joignez le reçu que nous venons de télécharger sur votre téléphone et envoyez-le nous pour vérifier votre paiement.",
       sendVerificationBtn:'💬 Envoyer la Vérification', sendVerificationNoNumber:'Numéro de vérification pas encore configuré — veuillez nous contacter directement.',
       waVerifyMsgIntro:"Bonjour ! Je viens de payer ma commande, voici les détails pour vérification.", waVerifyMsgOrder:'Commande', waVerifyMsgItems:'Articles', waVerifyMsgTotal:'Total', waVerifyMsgName:'Nom', waVerifyMsgPhone:'Téléphone', waVerifyMsgAttach:"Je joins mon reçu/ma capture de paiement ci-dessous.",
+      waOrderHeader:'NOUVELLE COMMANDE', waItemsHeader:'Articles', waSummaryHeader:'Résumé', waDeliveryLocation:'Lieu de Livraison',
       stepPaymentLabel:'1 · Paiement', stepVerifyLabel:'2 · Vérifier',
       continueToVerification:'Continuer vers la Vérification →', backToPayment:'← Retour au Paiement',
       iveSentPayment:"✓ J'ai Envoyé Mon Paiement", verificationSentNote:'Vérification marquée comme envoyée — votre reçu a été mis à jour.',
       verificationAlreadySent:'Vérification envoyée', sendAgain:'Renvoyer ?',
       verificationLabel:'Vérification', verificationSentPrefix:'Envoyée le',
-      orderHistory:'Historique des Commandes', viewOrderHistory:'📜 Historique des Commandes', noOrdersYet:"Vous n'avez pas encore passé de commande."
+      orderHistory:'Historique des Commandes', viewOrderHistory:'📜 Historique des Commandes', noOrdersYet:"Vous n'avez pas encore passé de commande.",
+      historyRecoverHint:"Vous ne voyez pas une commande que vous avez passée ? Elle peut ne pas apparaître si ce navigateur a été réinitialisé ou rouvert depuis un fichier téléchargé. Entrez le numéro de téléphone utilisé pour la retrouver.",
+      findMyOrders:'Rechercher', historyRecoverNone:'Aucune commande trouvée pour ce numéro.', historyRecoverFound:'commande(s) ajoutée(s) à votre historique.'
     }
   };
   let lang = localStorage.getItem('sohlam_lang') || 'en';
@@ -1499,6 +1973,7 @@
 
   let products = loadProducts();
   let orders = loadOrders();
+  let pendingReviews = []; // customer-submitted reviews awaiting admin approval, from Firestore pending_reviews
   let localProofs = loadLocalProofs();
   let content = loadContent();
   let adminPasscode = loadPasscode();
@@ -1590,6 +2065,34 @@
       if(c.omNumber) pm.push({id:newId('pm'), network:'orange', label:'Orange Money', name:c.omName||'', number:c.omNumber});
       c.paymentMethods = pm;
     }
+    if(!c.trustBadges || typeof c.trustBadges !== 'object'){
+      c.trustBadges = {active:true, items:[
+        {id:newId('tb'), icon:'🌽', title:'100% Organically Fed', subtitle:'No shortcuts, ever'},
+        {id:newId('tb'), icon:'🛵', title:'Same-Day Batoke-Limbe Pickup', subtitle:'Fresh off the farm'},
+        {id:newId('tb'), icon:'🔪', title:'Hygienically Slaughtered', subtitle:'Clean, careful handling'},
+        {id:newId('tb'), icon:'💰', title:'Fair Local Pricing', subtitle:'No middleman markup'}
+      ]};
+    }
+    if(!c.promoBanner || typeof c.promoBanner !== 'object'){
+      c.promoBanner = {active:false, text:'', code:'', discountPercent:0, expiresAt:''};
+    }
+    if(!c.comboDeals || typeof c.comboDeals !== 'object'){
+      c.comboDeals = {active:false, bundles:[]};
+    }
+    if(!c.reviews || typeof c.reviews !== 'object'){
+      c.reviews = {active:false, items:[]};
+    }
+    if(!c.cartDrawer || typeof c.cartDrawer !== 'object'){
+      c.cartDrawer = {active:true, freeDeliveryThreshold:15000, defaultDeliveryFee:1500, upsellProductIds:[], activeCoupon:{code:'', discountPercentage:0, isDiscountActive:false}};
+    } else {
+      // Step 4c-1: older saved docs won't have these fields yet — patch them
+      // in place so existing installs pick up delivery-fee + coupon support
+      // without losing whatever they already customized.
+      if(typeof c.cartDrawer.defaultDeliveryFee !== 'number') c.cartDrawer.defaultDeliveryFee = 1500;
+      if(!c.cartDrawer.activeCoupon || typeof c.cartDrawer.activeCoupon !== 'object'){
+        c.cartDrawer.activeCoupon = {code:'', discountPercentage:0, isDiscountActive:false};
+      }
+    }
     return c;
   }
   function loadContent(){
@@ -1631,7 +2134,17 @@
         {id:'f3', icon:'🦃', species:'Turkey', callName:'"Old Tom" pen', age:'5–6 months', color:'c3', description:'Slow-grown turkeys raised for special occasions and festive orders — reserve early.'},
         {id:'f4', icon:'🦆', species:'Duck', callName:'"Pond Crew"', age:'10–12 weeks', color:'c4', description:'Raised near water with room to swim, giving rich, well-marbled duck meat.'},
         {id:'f5', icon:'🦜', species:'Guinea Fowl', callName:'"Bush Fowl" group', age:'3–4 months', color:'c5', description:'Lean, gamey guinea fowl raised semi-free-range — a local favourite for stews.'}
-      ]
+      ],
+      trustBadges: {active:true, items:[
+        {id:'tb1', icon:'🌽', title:'100% Organically Fed', subtitle:'No shortcuts, ever'},
+        {id:'tb2', icon:'🛵', title:'Same-Day Batoke-Limbe Pickup', subtitle:'Fresh off the farm'},
+        {id:'tb3', icon:'🔪', title:'Hygienically Slaughtered', subtitle:'Clean, careful handling'},
+        {id:'tb4', icon:'💰', title:'Fair Local Pricing', subtitle:'No middleman markup'}
+      ]},
+      promoBanner: {active:false, text:'10% off your first bulk broiler order', code:'SOLHAMFRESH', discountPercent:10, expiresAt:''},
+      comboDeals: {active:false, bundles:[]},
+      reviews: {active:false, items:[]},
+      cartDrawer: {active:true, freeDeliveryThreshold:15000, defaultDeliveryFee:1500, upsellProductIds:[], activeCoupon:{code:'', discountPercentage:0, isDiscountActive:false}}
     };
     safeSetItem(CONTENT_KEY, JSON.stringify(seed));
     return seed;
@@ -1686,6 +2199,16 @@
         tx.set(counterRef, {next: nextId + 1});
         tx.set(db.collection('orders').doc(String(nextId)), order);
         return order;
+      }).then(order=>{
+        // Don't wait on the realtime listener to echo this back — merge it
+        // into the local orders array right away so Order History, the
+        // basket, and stock availability all reflect it immediately, even
+        // if the snapshot round-trip is slow or briefly interrupted.
+        if(!orders.some(o=> o.id===order.id)){
+          orders = [...orders, order];
+          safeSetItem(ORDERS_KEY, JSON.stringify(orders));
+        }
+        return order;
       });
     }
     const nextId = 1000 + orders.length + 1;
@@ -1698,6 +2221,8 @@
   // can never clobber an order someone else just placed a moment ago.
   function updateOrder(id, patch){
     if(CLOUD_ENABLED && db){
+      orders = orders.map(o=> o.id===id ? {...o, ...patch} : o);
+      safeSetItem(ORDERS_KEY, JSON.stringify(orders));
       return db.collection('orders').doc(String(id)).update(patch);
     }
     saveOrdersLocal(orders.map(o=> o.id===id ? {...o, ...patch} : o));
@@ -1729,6 +2254,8 @@
   // authenticated admins.
   function deleteOrder(id){
     if(CLOUD_ENABLED && db){
+      orders = orders.filter(o=> o.id !== id);
+      safeSetItem(ORDERS_KEY, JSON.stringify(orders));
       const ref = db.collection('orders').doc(String(id));
       // Read the doc first so we know whether it points at a Storage file —
       // covers a few possible field names since older orders / other flows
@@ -1812,6 +2339,7 @@
         orders = newOrders;
         safeSetItem(ORDERS_KEY, JSON.stringify(orders)); // offline cache
         renderCart();
+        renderGrid();
         refreshTrackResultIfOpen();
         updatePendingOrdersBadge();
         if(document.getElementById('adminDashboard').style.display === 'block') renderAdminOrders();
@@ -1838,6 +2366,13 @@
           db.collection('site').doc('content').set(content).catch(()=>{});
         }
       }, err=> console.error('Content sync error:', err));
+
+      db.collection('pending_reviews').onSnapshot(snap=>{
+        pendingReviews = snap.docs.map(d=> ({id: d.id, ...d.data()}))
+          .sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+        updatePendingReviewsBadge();
+        if(document.getElementById('adminDashboard').style.display === 'block') renderPendingReviews();
+      }, err=> console.error('Pending reviews sync error:', err));
 
       db.collection('site').doc('passcode').onSnapshot(doc=>{
         if(doc.exists){
@@ -1877,6 +2412,13 @@
 
 
   function fmtMoney(n){ return Math.round(n).toLocaleString('en-US') + ' XAF'; }
+  // Reviews are the one piece of content on this site written by anonymous
+  // members of the public rather than the shop's own admin, so — unlike the
+  // rest of the (admin-authored) site content — it gets HTML-escaped before
+  // ever being inserted into the page.
+  function escapeHtml(s){
+    return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
 
   // Builds the "Pay via Mobile Money" card from whichever methods the admin
   // has set a number for. Pass an order to show the amount/reference line;
@@ -1889,7 +2431,6 @@
     // and the customer picks "Send Money" and enters the number/amount from
     // this card themselves.
     const methods = (content.paymentMethods || []).filter(m=>m.number);
-    if(methods.length===0) return '';
     return `
       <div class="payment-block">
         <div class="payment-block-title">${t('payViaMobileMoney')}</div>
@@ -1906,7 +2447,7 @@
             </div>
           </div>
         `).join('')}
-        <div class="payment-note">${t('paymentInstructions')}${content.paymentNote ? ' ' + content.paymentNote : ''}</div>
+        ${methods.length ? `<div class="payment-note">${t('paymentInstructions')}${content.paymentNote ? ' ' + content.paymentNote : ''}</div>` : ''}
         ${order && !(opts && opts.numbersOnly) ? (opts && opts.verifyMode ? paymentVerifyBlock(order) : paymentProofBlock(order)) : ''}
       </div>`;
   }
@@ -1971,22 +2512,57 @@
         <div class="proof-error-msg" data-proof-error></div>
       </div>`;
   }
+  // ---------------- Step 4c-3: Rich itemized WhatsApp order message ----------------
+  // Builds the "🛒 NEW ORDER" block — items, subtotal/delivery/discount/total,
+  // and delivery location — reused inside the WhatsApp handoff message below.
+  function formatWhatsAppMessage(order){
+    const divider = '--------------------------------';
+    const itemLines = order.items.map(i=>
+      `• ${formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel)} ${i.name} — ${fmtMoney(i.subtotal)}`
+    );
+    // Older orders placed before Step 4c-1 won't have a subtotal/deliveryFee/
+    // discount breakdown saved — fall back to treating the whole total as
+    // the subtotal so the message still renders sensibly.
+    const hasBreakdown = typeof order.subtotal === 'number';
+    const subtotal = hasBreakdown ? order.subtotal : order.total;
+    const deliveryFee = hasBreakdown ? (order.deliveryFee || 0) : 0;
+    const discount = hasBreakdown ? (order.discount || 0) : 0;
+    const lines = [
+      `🛒 *${t('waOrderHeader')} — ${bizName()}*`,
+      divider,
+      `📦 *${t('waItemsHeader')}:*`,
+      ...itemLines,
+      '',
+      `💰 *${t('waSummaryHeader')}:*`,
+      `${t('subtotal')}: ${fmtMoney(subtotal)}`,
+      `${t('deliveryLabel')}: ${deliveryFee === 0 ? t('freeLabel') : fmtMoney(deliveryFee)}`
+    ];
+    if(discount > 0){
+      lines.push(`${t('discountLabel')}${order.couponCode ? ' (' + order.couponCode + ')' : ''}: -${fmtMoney(discount)}`);
+    }
+    lines.push(`*${t('total')}: ${fmtMoney(order.total)}*`);
+    lines.push(divider);
+    lines.push(`📍 *${t('waDeliveryLocation')}:* ${order.address || content.locationLabel || ''}`);
+    return lines.join('\n');
+  }
+
   // ---------------- Payment verification (WhatsApp handoff) ----------------
   // Used on the order-confirmation page in place of the in-app screenshot
   // uploader: instead of attaching the proof here, the customer taps a
   // button that opens a WhatsApp chat with the admin's registered number,
-  // pre-filled with THIS order's details, and is asked to manually attach
-  // the receipt PDF (already downloaded to their device) before sending.
+  // pre-filled with THIS order's full itemized details (Step 4c-3), and is
+  // asked to manually attach the receipt PDF (already downloaded to their
+  // device) before sending.
   // Built fresh from the `order` argument every time this is called — no
   // caching of the link/text — so it can never show a stale/previous order.
   function paymentVerifyBlock(order){
     const rawPhone = primaryWhatsapp().replace(/[^\d]/g, '');
-    const itemsText = order.items.map(i=>`${i.name} (${formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel)})`).join(', ');
     const msgLines = [
       t('waVerifyMsgIntro'),
       `${t('waVerifyMsgOrder')}: #${order.id}`,
-      `${t('waVerifyMsgItems')}: ${itemsText}`,
-      `${t('waVerifyMsgTotal')}: ${fmtMoney(order.total)}`,
+      '',
+      formatWhatsAppMessage(order),
+      '',
       `${t('waVerifyMsgName')}: ${order.customerName || ''}`,
       `${t('waVerifyMsgPhone')}: ${order.phone || ''}`,
       t('waVerifyMsgAttach')
@@ -1998,12 +2574,14 @@
         <div class="payment-block-title">${t('sendVerificationTitle')}</div>
         <div class="payment-note" style="margin-top:0;">${t('sendVerificationNote')}</div>
         ${rawPhone ? `
-          <a class="btn-primary" style="width:100%; display:block; text-align:center; text-decoration:none; box-sizing:border-box;" href="${waHref}" target="_blank" rel="noopener" data-verify-link="${order.id}">${t('sendVerificationBtn')}</a>
+          <a class="btn-primary btn-whatsapp" style="width:100%; display:block; text-align:center; text-decoration:none; box-sizing:border-box;" href="${waHref}" target="_blank" rel="noopener" data-verify-link="${order.id}">${t('sendVerificationBtn')}</a>
         ` : `
           <div class="proof-error-msg" style="display:block;">${t('sendVerificationNoNumber')}</div>
         `}
-      </div>`;
+      </div>
+      ${paymentProofBlock(order)}`;
   }
+
 
   // Builds a wa.me link to the CUSTOMER's own number (as entered on their
   // order), for the admin's "Verify Payment" follow-up — the reverse
@@ -2428,6 +3006,15 @@
     }
   }
 
+  // Updates the red count badge on the admin "Marketing" tab based on
+  // customer-submitted reviews still waiting for approval.
+  function updatePendingReviewsBadge(){
+    const badge = document.getElementById('pendingReviewsBadge');
+    if(!badge) return;
+    if(pendingReviews.length > 0){ badge.textContent = pendingReviews.length; badge.style.display = 'inline-block'; }
+    else { badge.style.display = 'none'; }
+  }
+
   // Compares the previous known order statuses against a fresh snapshot
   // and pops a notification card for two specific transitions:
   //  - a brand-new order appearing (shown to staff only, while the admin
@@ -2589,6 +3176,15 @@
     });
 
     let endY = doc.lastAutoTable.finalY + 20;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
+    if(typeof order.subtotal === 'number'){
+      doc.text('Subtotal: ' + fmtMoney(order.subtotal), 555, endY, {align:'right'}); endY += 15;
+      doc.text('Delivery: ' + ((order.deliveryFee||0) === 0 ? 'FREE' : fmtMoney(order.deliveryFee)), 555, endY, {align:'right'}); endY += 15;
+      if(order.discount > 0){
+        doc.text('Discount' + (order.couponCode ? ' (' + order.couponCode + ')' : '') + ': -' + fmtMoney(order.discount), 555, endY, {align:'right'}); endY += 15;
+      }
+      endY += 5;
+    }
     doc.setFont('helvetica','bold'); doc.setFontSize(13);
     doc.text('Total: ' + fmtMoney(order.total), 555, endY, {align:'right'});
     endY += 30;
@@ -2921,6 +3517,14 @@
       heroPhotoEl.src = '';
       heroPhotoEl.style.display = 'none';
     }
+    const heroEl = document.querySelector('.hero');
+    if(content.heroBgImage){
+      heroEl.style.backgroundImage = `url("${content.heroBgImage}")`;
+      heroEl.classList.add('has-hero-bg');
+    } else {
+      heroEl.style.backgroundImage = '';
+      heroEl.classList.remove('has-hero-bg');
+    }
     document.getElementById('shopHeading').textContent = content.shopHeading;
     document.getElementById('shopStamp').textContent = content.shopStamp;
     document.getElementById('flockHeading').textContent = content.flockHeading;
@@ -2931,15 +3535,330 @@
     footerLinksEl.innerHTML = allLocs.length
       ? allLocs.map(l=> `<a class="footer-map-btn" href="${l.mapUrl || '#'}" target="_blank" rel="noopener">${PIN_ICON} ${l.label || 'Find us on the map'}</a>`).join('')
       : `<a class="footer-map-btn" href="#" target="_blank" rel="noopener">${PIN_ICON} Find us on the map</a>`;
-    const heroLink = document.getElementById('heroMapLink');
-    heroLink.href = (primaryLoc && primaryLoc.mapUrl) || '#';
-    heroLink.innerHTML = PIN_ICON + ' Find Us in ' + (primaryLoc ? primaryLoc.label : 'Batoke-Limbe');
     renderContact();
     renderFlock();
+    renderPromoBanner();
+    renderTrustBadges();
+    renderHeroSlidePromo();
+    renderComboDeals();
+    renderReviews();
+    renderCart(); // also re-renders delivery progress + upsell strip
     // content.businessName above is the fallback identity; if a branding
     // doc has actually been set, it takes priority over it in the header.
     applyBrandingToHeader(branding);
   }
+  // ---------------- Promo banner (top notification bar) ----------------
+  let promoCountdownTimer = null;
+  function stopPromoCountdown(){
+    if(promoCountdownTimer){ clearInterval(promoCountdownTimer); promoCountdownTimer = null; }
+  }
+  function promoDismissKey(pb){
+    return 'sohlam_promo_dismissed::' + (pb.text||'') + '|' + (pb.code||'') + '|' + (pb.expiresAt||'');
+  }
+  function formatPromoCountdown(ms){
+    const totalMin = Math.max(0, Math.floor(ms / 60000));
+    const days = Math.floor(totalMin / 1440);
+    const hours = Math.floor((totalMin % 1440) / 60);
+    const mins = totalMin % 60;
+    const parts = [];
+    if(days) parts.push(days + 'd');
+    if(days || hours) parts.push(hours + 'h');
+    parts.push(mins + 'm');
+    return '⏳ Ends in ' + parts.join(' ');
+  }
+  function startPromoCountdown(expiresAt){
+    stopPromoCountdown();
+    const timerEl = document.getElementById('promoBannerTimer');
+    if(!expiresAt){ timerEl.textContent = ''; return; }
+    const expiry = new Date(expiresAt).getTime();
+    if(isNaN(expiry)){ timerEl.textContent = ''; return; }
+    function tick(){
+      const diff = expiry - Date.now();
+      if(diff <= 0){
+        document.getElementById('promoBanner').classList.remove('show');
+        stopPromoCountdown();
+        return;
+      }
+      timerEl.textContent = formatPromoCountdown(diff);
+    }
+    tick();
+    promoCountdownTimer = setInterval(tick, 30000);
+  }
+  function renderPromoBanner(){
+    const pb = content.promoBanner || {};
+    const bar = document.getElementById('promoBanner');
+    if(!pb.active || !pb.text){
+      bar.classList.remove('show');
+      stopPromoCountdown();
+      return;
+    }
+    if(pb.expiresAt){
+      const expiry = new Date(pb.expiresAt).getTime();
+      if(!isNaN(expiry) && expiry <= Date.now()){
+        bar.classList.remove('show');
+        stopPromoCountdown();
+        return;
+      }
+    }
+    const dismissKey = promoDismissKey(pb);
+    if(sessionStorage.getItem(dismissKey)){
+      bar.classList.remove('show');
+      return;
+    }
+    document.getElementById('promoBannerText').textContent = pb.text
+      + (pb.discountPercent ? ` (${pb.discountPercent}% off)` : '');
+    const codeBtn = document.getElementById('promoBannerCode');
+    if(pb.code){
+      codeBtn.style.display = 'inline-block';
+      codeBtn.textContent = pb.code;
+      codeBtn.onclick = ()=>{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(pb.code).then(()=> toast('Code copied: ' + pb.code)).catch(()=> toast('Code: ' + pb.code));
+        } else {
+          toast('Code: ' + pb.code);
+        }
+      };
+    } else {
+      codeBtn.style.display = 'none';
+      codeBtn.onclick = null;
+    }
+    document.getElementById('promoBannerClose').onclick = ()=>{
+      try{ sessionStorage.setItem(dismissKey, '1'); }catch(e){}
+      bar.classList.remove('show');
+      stopPromoCountdown();
+    };
+    startPromoCountdown(pb.expiresAt);
+    bar.classList.add('show');
+  }
+  // ---------------- Trust & value props cards (hero slide) ----------------
+  // Cards are shown one at a time by the hero timeline below (playHeroStep),
+  // so this just keeps content.trustBadges in sync — nothing to paint here.
+  function renderTrustBadges(){}
+  function showHeroCard(item){
+    const iconEl = document.getElementById('heroSlideCardIcon');
+    const titleEl = document.getElementById('heroSlideCardTitle');
+    const subEl = document.getElementById('heroSlideCardSubtitle');
+    if(!iconEl) return;
+    iconEl.textContent = (item && item.icon) || '✔️';
+    titleEl.textContent = (item && item.title) || '';
+    subEl.textContent = (item && item.subtitle) || '';
+    subEl.style.display = (item && item.subtitle) ? 'block' : 'none';
+  }
+  // Hero-slide promo content (separate from the top notification-bar promo,
+  // which keeps its own countdown/dismiss behavior via renderPromoBanner()).
+  function renderHeroSlidePromo(){
+    const pb = content.promoBanner || {};
+    const textEl = document.getElementById('heroSlidePromoText');
+    if(!textEl) return;
+    textEl.textContent = pb.text ? (pb.text + (pb.discountPercent ? ` — ${pb.discountPercent}% off` : '')) : '';
+    const codeBtn = document.getElementById('heroSlidePromoCode');
+    if(pb.code){
+      codeBtn.style.display = 'inline-block';
+      codeBtn.textContent = pb.code;
+      codeBtn.onclick = ()=>{
+        if(navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(pb.code).then(()=> toast('Code copied: ' + pb.code)).catch(()=> toast('Code: ' + pb.code));
+        } else {
+          toast('Code: ' + pb.code);
+        }
+      };
+    } else {
+      codeBtn.style.display = 'none';
+      codeBtn.onclick = null;
+    }
+    const timerEl = document.getElementById('heroSlidePromoTimer');
+    if(pb.expiresAt){
+      const expiry = new Date(pb.expiresAt).getTime();
+      timerEl.textContent = !isNaN(expiry) ? formatPromoCountdown(Math.max(0, expiry - Date.now())) : '';
+    } else {
+      timerEl.textContent = '';
+    }
+  }
+  // ---------------- Hero slide rotator ----------------
+  // Flat timeline of steps. First-ever open: intro text, then each trust
+  // card one at a time, then the promo deal (if any). Every open after
+  // that: skip straight to the cards/promo loop. Either way, once the
+  // timeline is exhausted it just starts over — forever.
+  const HERO_INTRO_SEEN_KEY = 'sohlam_hero_intro_seen';
+  let heroRotateTimer = null;
+  let heroRotatorStarted = false;
+  let heroTimeline = [];
+  const HERO_SLIDE_ELS = {text:'heroSlideText', cards:'heroSlideCards', promo:'heroSlidePromo'};
+  function buildHeroTimeline(includeText){
+    const timeline = [];
+    if(includeText) timeline.push({slide:'text'});
+    const tb = content.trustBadges || {};
+    if(tb.active !== false){
+      (tb.items || []).filter(i=> i && i.title).forEach(item=> timeline.push({slide:'cards', item}));
+    }
+    const pb = content.promoBanner || {};
+    if(pb.active && pb.text){
+      let expired = false;
+      if(pb.expiresAt){
+        const expiry = new Date(pb.expiresAt).getTime();
+        expired = !isNaN(expiry) && expiry <= Date.now();
+      }
+      if(!expired) timeline.push({slide:'promo'});
+    }
+    if(timeline.length === 0) timeline.push({slide:'text'}); // never leave the hero empty
+    return timeline;
+  }
+  function stepHoldMs(step){
+    if(step.slide === 'text') return 6200;
+    if(step.slide === 'cards') return 3200;
+    return 5200; // promo
+  }
+  function activateHeroOuterSlide(slideType){
+    Object.values(HERO_SLIDE_ELS).forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.classList.remove('active');
+    });
+    const el = document.getElementById(HERO_SLIDE_ELS[slideType]);
+    if(el) el.classList.add('active');
+  }
+  function replayHeroPop(el){
+    if(!el) return;
+    el.classList.remove('enter');
+    void el.offsetWidth; // force reflow so the animation replays every time
+    requestAnimationFrame(()=> el.classList.add('enter'));
+  }
+  function playHeroStep(idx){
+    clearTimeout(heroRotateTimer);
+    const step = heroTimeline[idx];
+    if(!step) return;
+    activateHeroOuterSlide(step.slide);
+    if(step.slide === 'cards'){
+      showHeroCard(step.item);
+      replayHeroPop(document.getElementById('heroSlideCardSingle'));
+    } else if(step.slide === 'promo'){
+      replayHeroPop(document.getElementById('heroSlidePromoBox'));
+    }
+    if(heroTimeline.length > 1){
+      heroRotateTimer = setTimeout(()=> playHeroStep((idx + 1) % heroTimeline.length), stepHoldMs(step));
+    }
+  }
+  function startHeroRotator(){
+    if(heroRotatorStarted) return;
+    heroRotatorStarted = true;
+    let seen = false;
+    try{ seen = !!localStorage.getItem(HERO_INTRO_SEEN_KEY); }catch(e){}
+    heroTimeline = buildHeroTimeline(!seen);
+    if(!seen){
+      try{ localStorage.setItem(HERO_INTRO_SEEN_KEY, '1'); }catch(e){}
+    }
+    if(heroTimeline[0].slide === 'text'){
+      // Intro text is already showing (and already animating via .is-live) —
+      // just schedule the handoff into the rest of the timeline.
+      if(heroTimeline.length > 1){
+        heroRotateTimer = setTimeout(()=> playHeroStep(1), stepHoldMs(heroTimeline[0]));
+      }
+    } else {
+      playHeroStep(0);
+    }
+  }
+
+  // ---------------- Combo / bundle deals (customer-facing) ----------------
+  // Bundles aren't real catalog products, so each one is turned into a
+  // lightweight synthetic "product" (id prefixed `bundle::`) purely so the
+  // existing cart/checkout/receipt machinery — all keyed by product id —
+  // can handle it without any special-casing.
+  function bundleAsProduct(b){
+    return {
+      id: 'bundle::' + b.id,
+      name: b.title,
+      pricePerKg: b.discountedPrice,
+      unitType: 'count',
+      unitLabel: 'bundle',
+      stockKg: 999999,
+      image: b.imageUrl,
+      isBundle: true
+    };
+  }
+  function activeBundleProducts(){
+    const cd = content.comboDeals || {};
+    if(!cd.active) return [];
+    return (cd.bundles || []).filter(b=> b.title && b.discountedPrice > 0).map(bundleAsProduct);
+  }
+  // Looks up a product by id across both the real catalog and the
+  // synthetic bundle products, so cart code can stay agnostic to the source.
+  function findSellable(id){
+    return products.find(x=>x.id===id) || activeBundleProducts().find(x=>x.id===id);
+  }
+  function renderComboDeals(){
+    const cd = content.comboDeals || {};
+    const section = document.getElementById('comboSection');
+    const grid = document.getElementById('comboGrid');
+    const bundles = (cd.bundles || []).filter(b=> b.title && b.discountedPrice > 0);
+    if(!cd.active || bundles.length === 0){
+      section.classList.remove('show');
+      return;
+    }
+    grid.innerHTML = bundles.map(b=>{
+      const savings = Math.max(0, (Number(b.originalPrice)||0) - (Number(b.discountedPrice)||0));
+      const imgHtml = b.imageUrl
+        ? `<img class="combo-card-img" src="${b.imageUrl}" alt="${b.title}">`
+        : `<div class="combo-card-img placeholder">🎁</div>`;
+      return `
+      <div class="combo-card">
+        ${imgHtml}
+        <div class="combo-card-body">
+          ${savings > 0 ? `<div class="combo-savings-badge">Save ${fmtMoney(savings)}</div>` : ''}
+          <div class="combo-card-title">${b.title}</div>
+          ${b.items ? `<div class="combo-card-items">${b.items}</div>` : ''}
+          <div class="combo-price-row">
+            ${b.originalPrice > b.discountedPrice ? `<span class="combo-price-original">${fmtMoney(b.originalPrice)}</span>` : ''}
+            <span class="combo-price-final">${fmtMoney(b.discountedPrice)}</span>
+          </div>
+          <button class="combo-add-btn" type="button" data-bundle-id="${b.id}">Add Bundle to Cart</button>
+        </div>
+      </div>`;
+    }).join('');
+    grid.querySelectorAll('[data-bundle-id]').forEach(btn=>{
+      btn.addEventListener('click', ()=> addToCart('bundle::' + btn.getAttribute('data-bundle-id'), 1));
+    });
+    section.classList.add('show');
+  }
+
+  // ---------------- Customer reviews (public) ----------------
+  function starGlyphs(rating){
+    const r = Math.max(0, Math.min(5, Math.round(Number(rating)||0)));
+    return '★'.repeat(r) + '☆'.repeat(5-r);
+  }
+  function renderReviews(){
+    const rv = content.reviews || {};
+    const section = document.getElementById('reviewsSection');
+    const summaryEl = document.getElementById('reviewsSummary');
+    const gridEl = document.getElementById('reviewsGrid');
+    if(!rv.active){
+      section.classList.remove('show');
+      return;
+    }
+    const items = (rv.items || []).filter(r=> r.approved !== false && r.name && r.text);
+    if(items.length === 0){
+      summaryEl.innerHTML = '';
+      gridEl.innerHTML = '<div class="reviews-empty">No reviews yet — be the first to share your experience.</div>';
+      section.classList.add('show');
+      return;
+    }
+    const avg = items.reduce((sum,r)=> sum + (Number(r.rating)||0), 0) / items.length;
+    summaryEl.innerHTML = `
+      <div class="reviews-summary-score">${avg.toFixed(1)} / 5</div>
+      <div class="reviews-summary-stars">${starGlyphs(avg)}</div>
+      <div class="reviews-summary-count">Based on ${items.length} review${items.length===1?'':'s'}</div>
+    `;
+    gridEl.innerHTML = items.map(r=> `
+      <div class="review-card">
+        <div class="review-card-stars">${starGlyphs(r.rating)}</div>
+        <div class="review-card-text">${escapeHtml(r.text)}</div>
+        <div class="review-card-foot">
+          <span class="review-card-name">${escapeHtml(r.name)}${r.verified ? ' <span class="review-card-verified">✓ Verified</span>' : ''}</span>
+          ${r.location ? `<span class="review-card-loc">${escapeHtml(r.location)}</span>` : ''}
+        </div>
+      </div>
+    `).join('');
+    section.classList.add('show');
+  }
+
   function primaryPhone(){ return (content.contactPhones && content.contactPhones[0] && content.contactPhones[0].number) || ''; }
   function primaryWhatsapp(){ return (content.contactWhatsapps && content.contactWhatsapps[0] && content.contactWhatsapps[0].number) || ''; }
   function renderContact(){
@@ -3169,6 +4088,7 @@
         <div class="ticket">
           <span class="badge ${s}">${statusLabel(s)}</span>
           <img class="ticket-img" src="${img}" alt="${p.name}">
+          ${s==='sold' ? `<div class="stock-overlay"><span>${t('soldOut')}</span></div>` : ''}
           ${p.video ? (youTubeEmbedUrl(p.video)
             ? `<iframe class="ticket-video" src="${youTubeEmbedUrl(p.video)}" style="width:100%; aspect-ratio:16/9; border:none; border-radius:6px; margin-top:8px; display:block;" allowfullscreen></iframe>`
             : `<video class="ticket-video" src="${p.video}" controls playsinline preload="metadata" style="width:100%; border-radius:6px; margin-top:8px; display:block;"></video>`
@@ -3180,9 +4100,15 @@
             ${p.notes ? `<div class="ticket-note">${p.notes}</div>` : ''}
           </div>
           <div class="qty-row">
-            <input type="number" min="0" max="${avail}" step="${step}" value="0" ${s==='sold'?'disabled':''} data-qty="${p.id}">
+            <div class="qty-stepper" style="${s==='sold' ? 'opacity:0.5; pointer-events:none;' : ''}">
+              <button type="button" class="qty-btn" data-pick-dec="${p.id}" aria-label="Decrease quantity">−</button>
+              <span class="qty-val" data-qty-display="${p.id}">0</span>
+              <button type="button" class="qty-btn" data-pick-inc="${p.id}" aria-label="Increase quantity" ${avail<=0?'disabled':''}>+</button>
+            </div>
+            <input type="hidden" data-qty="${p.id}" value="0">
             <span style="font-size:12px; color:rgba(33,26,20,0.6);">${unitNounOf(p)}</span>
           </div>
+          <div class="qty-limit-msg" data-qty-limit-msg="${p.id}" style="display:none;"></div>
           <button class="add-btn" data-add="${p.id}" ${s==='sold'?'disabled':''}>${s==='sold' ? t('soldOut') : t('addToBasket')}</button>
         </div>`;
       }).join('');
@@ -3190,14 +4116,11 @@
     document.querySelectorAll('.ticket-img').forEach(img=>{
       img.addEventListener('click', ()=> openProofLightbox(img.src));
     });
-    document.querySelectorAll('[data-qty]').forEach(inp=>{
-      // Tapping into the box clears the placeholder "0" so the customer
-      // just types the number they want, instead of having to backspace
-      // over it first.
-      inp.addEventListener('focus', ()=>{ if(inp.value === '0') inp.value = ''; });
-      // If they tap away without typing anything, put the "0" back so the
-      // Add to Basket check below still catches an empty box.
-      inp.addEventListener('blur', ()=>{ if(inp.value.trim() === '') inp.value = '0'; });
+    document.querySelectorAll('[data-pick-dec]').forEach(btn=>{
+      btn.addEventListener('click', ()=> adjustPickQty(btn.getAttribute('data-pick-dec'), -1));
+    });
+    document.querySelectorAll('[data-pick-inc]').forEach(btn=>{
+      btn.addEventListener('click', ()=> adjustPickQty(btn.getAttribute('data-pick-inc'), 1));
     });
     document.querySelectorAll('[data-add]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -3211,17 +4134,68 @@
         // quantity of 1.
         if(!qty || qty <= 0){
           toast(t('enterQtyPrompt'));
-          qtyInput.focus();
           return;
         }
         if(unitTypeOf(p) === 'count') qty = Math.max(1, Math.round(qty));
         else qty = Math.max(0.5, qty);
         addToCart(id, qty);
-        qtyInput.value = '0';
+        resetPickQty(id);
       });
     });
     renderTicker();
     renderStockboard();
+  }
+
+  // Adjusts the pending (pre-cart) quantity shown on a product card's +/−
+  // stepper. Mirrors updateCartQty's capping logic but operates on the
+  // card's own hidden qty input rather than a cart line, so a customer is
+  // stopped at the real available stock before they ever tap "Add to
+  // Basket" — not just after.
+  function adjustPickQty(id, direction){
+    const p = products.find(x=>x.id===id);
+    if(!p) return;
+    const step = qtyStepOf(p);
+    const avail = availableQtyOf(p);
+    const hiddenInput = document.querySelector(`[data-qty="${id}"]`);
+    const display = document.querySelector(`[data-qty-display="${id}"]`);
+    const msgEl = document.querySelector(`[data-qty-limit-msg="${id}"]`);
+    const plusBtn = document.querySelector(`[data-pick-inc="${id}"]`);
+    if(!hiddenInput) return;
+    let qty = parseFloat(hiddenInput.value) || 0;
+    let next = +(qty + direction*step).toFixed(2);
+    if(next < 0) next = 0;
+    let hitLimit = false;
+    if(next >= avail){
+      next = avail;
+      hitLimit = direction > 0;
+    }
+    hiddenInput.value = next;
+    if(display) display.textContent = formatProductQty(p, next);
+    if(plusBtn) plusBtn.disabled = next >= avail;
+    if(msgEl){
+      if(hitLimit && avail > 0){
+        msgEl.textContent = `${t('onlyLeftOf')} ${formatProductQty(p, avail)} ${t('ofLeft')}`;
+        msgEl.style.display = 'block';
+      } else {
+        msgEl.style.display = 'none';
+      }
+    }
+  }
+
+  // Resets a product card's picker back to 0 after its items land in the
+  // basket, so the next tap starts fresh instead of showing a stale qty.
+  function resetPickQty(id){
+    const hiddenInput = document.querySelector(`[data-qty="${id}"]`);
+    const display = document.querySelector(`[data-qty-display="${id}"]`);
+    const msgEl = document.querySelector(`[data-qty-limit-msg="${id}"]`);
+    const plusBtn = document.querySelector(`[data-pick-inc="${id}"]`);
+    if(hiddenInput) hiddenInput.value = '0';
+    if(display) display.textContent = '0';
+    if(msgEl) msgEl.style.display = 'none';
+    if(plusBtn){
+      const p = products.find(x=>x.id===id);
+      plusBtn.disabled = p ? availableQtyOf(p) <= 0 : false;
+    }
   }
 
   function renderTicker(){
@@ -3245,7 +4219,7 @@
 
   // ---------------- Cart ----------------
   function addToCart(productId, qty){
-    const p = products.find(x=>x.id===productId);
+    const p = findSellable(productId);
     if(!p) return;
     if(unitTypeOf(p) === 'count') qty = Math.round(qty);
     const avail = availableQtyOf(p);
@@ -3270,11 +4244,100 @@
     renderCart();
   }
 
+  // Adjusts an existing cart line by +1/-1 step (0.5kg for weight-based
+  // cuts, 1 unit for count-based ones — see qtyStepOf). Dropping to zero
+  // or below removes the line entirely rather than leaving a 0-qty row.
+  function updateCartQty(productId, direction){
+    const item = cart.find(c=>c.productId===productId);
+    const p = findSellable(productId);
+    if(!item || !p) return;
+    const step = qtyStepOf(p);
+    const avail = availableQtyOf(p);
+    let next = +(item.qtyKg + direction*step).toFixed(2);
+    if(next <= 0){ removeFromCart(productId); return; }
+    if(next > avail){
+      toast(`${t('onlyLeftOf')} ${formatProductQty(p, avail)} ${t('ofLeft')} ${p.name} ${t('leftWord')}`);
+      next = avail;
+    }
+    item.qtyKg = next;
+    renderCart();
+  }
+
   function cartTotal(){
     return cart.reduce((sum,c)=>{
-      const p = products.find(x=>x.id===c.productId);
+      const p = findSellable(c.productId);
       return sum + (p ? p.pricePerKg * c.qtyKg : 0);
     }, 0);
+  }
+
+  // ---------------- Step 4c-1: Drawer footer pricing (delivery fee, coupon, grand total) ----------------
+  // Config lives in content.cartDrawer, already kept live via the existing
+  // site/content Firestore listener (see db.collection('site').doc('content')
+  // .onSnapshot above) — no separate hook needed, we just read it here.
+  //   freeDeliveryThreshold  — subtotal (FCFA) at which delivery becomes free
+  //   defaultDeliveryFee     — flat fee (FCFA) charged below that threshold
+  //   activeCoupon           — {code, discountPercentage, isDiscountActive}
+  // appliedCoupon is customer-side state: the coupon they've actually typed
+  // and had accepted in this session (UI for that arrives in Step 4c-2).
+  let appliedCoupon = null; // {code, discountPercentage} once applied, else null
+
+  function cartDeliveryFee(subtotal){
+    const cd = content.cartDrawer || {};
+    const threshold = cd.freeDeliveryThreshold > 0 ? cd.freeDeliveryThreshold : 0;
+    const fee = cd.defaultDeliveryFee > 0 ? cd.defaultDeliveryFee : 0;
+    if(threshold > 0 && subtotal >= threshold) return 0;
+    return fee;
+  }
+
+  function cartDiscount(subtotal){
+    if(!appliedCoupon) return 0;
+    const ac = (content.cartDrawer || {}).activeCoupon || {};
+    // Re-check against the live admin-configured coupon every time, so a
+    // coupon that gets switched off or changed mid-session stops applying.
+    if(!ac.isDiscountActive || !ac.code || ac.code.toUpperCase() !== appliedCoupon.code.toUpperCase()){
+      return 0;
+    }
+    const pct = Math.max(0, Math.min(100, ac.discountPercentage || 0));
+    return Math.round(subtotal * (pct/100));
+  }
+
+  function cartGrandTotal(){
+    const s = getCartSummary();
+    return s.grandTotal;
+  }
+
+  // Single source of truth for the drawer footer (Step 4c-2 renders from this).
+  function getCartSummary(){
+    const subtotal = cartTotal();
+    const discount = cartDiscount(subtotal);
+    const deliveryFee = cartDeliveryFee(subtotal);
+    const grandTotal = Math.max(0, subtotal - discount) + deliveryFee;
+    return {
+      subtotal, discount, deliveryFee, grandTotal,
+      coupon: discount > 0 ? appliedCoupon : null
+    };
+  }
+
+  // Validates a customer-typed coupon code against content.cartDrawer.activeCoupon.
+  // Returns {ok, message} — Step 4c-2 wires this to the Apply button + input.
+  function applyCouponCode(rawCode){
+    const code = (rawCode || '').trim();
+    const ac = (content.cartDrawer || {}).activeCoupon || {};
+    if(!code) return {ok:false, message:'Enter a coupon code.'};
+    if(!ac.isDiscountActive || !ac.code){
+      appliedCoupon = null;
+      return {ok:false, message:'No active coupon right now.'};
+    }
+    if(ac.code.toUpperCase() !== code.toUpperCase()){
+      appliedCoupon = null;
+      return {ok:false, message:"That code isn't valid."};
+    }
+    appliedCoupon = {code: ac.code, discountPercentage: ac.discountPercentage || 0};
+    return {ok:true, message:`${ac.discountPercentage}% off applied!`};
+  }
+
+  function clearAppliedCoupon(){
+    appliedCoupon = null;
   }
 
   function myPlacedOrders(){
@@ -3290,32 +4353,106 @@
     return list;
   }
 
+  // Keeps only digits, and drops a leading country/trunk prefix so phone
+  // numbers entered slightly differently (with/without +237, spaces,
+  // dashes, a leading 0) still match. Compares the last 8 digits, which is
+  // enough to disambiguate local numbers without false-matching unrelated
+  // ones.
+  function normalizePhone(raw){
+    const digits = (raw || '').replace(/\D/g, '');
+    return digits.slice(-8);
+  }
+
+  // Recovery path for when myOrderIds (localStorage) has been lost — e.g.
+  // the browser/app storage was cleared, or the page was reopened from a
+  // fresh downloaded-file instance rather than the live site, which can
+  // get a new storage partition with nothing in it. Orders themselves are
+  // safe in the cloud store the whole time; this just re-links this
+  // device to any of them that match the phone number the customer used
+  // at checkout, so they reappear in Order History going forward too.
+  function recoverOrdersByPhone(rawPhone){
+    const target = normalizePhone(rawPhone);
+    const msgEl = document.getElementById('historyRecoverMsg');
+    msgEl.style.display = 'block';
+    if(target.length < 6){
+      msgEl.textContent = t('fillNamePhoneAddress') || 'Please enter a valid phone number.';
+      return;
+    }
+    const matches = orders.filter(o=> normalizePhone(o.phone) === target);
+    const newIds = matches.map(o=>o.id).filter(id=> !myOrderIds.includes(id));
+    if(newIds.length === 0){
+      msgEl.textContent = matches.length ? 'Already in your history.' : t('historyRecoverNone');
+      return;
+    }
+    newIds.forEach(id=> rememberMyOrder(id));
+    msgEl.textContent = `${newIds.length} ${t('historyRecoverFound')}`;
+    renderOrderHistory();
+  }
+
+  document.getElementById('historyRecoverBtn').addEventListener('click', ()=>{
+    recoverOrdersByPhone(document.getElementById('historyRecoverPhone').value);
+  });
+
   function renderCart(){
     document.getElementById('cartCount').textContent = cart.length;
+    const floatingBadge = document.getElementById('floatingCartCount');
+    if(floatingBadge) floatingBadge.textContent = cart.length;
+    const drawerBadge = document.getElementById('cartDrawerCount');
+    if(drawerBadge) drawerBadge.textContent = cart.length;
     const body = document.getElementById('cartBody');
     body.dataset.hasCart = cart.length>0 ? '1' : '0';
     let html = '';
     if(cart.length===0){
-      html += `<div class="empty-mini">Your basket is empty. Browse today's counter to add cuts.</div>`;
+      html += `<div class="cart-empty-state">
+        <div class="icon">🧺</div>
+        <p>Your basket is empty. Browse today's counter to add fresh cuts.</p>
+        <button class="btn-primary" id="cartEmptyBrowseBtn" type="button">Browse the Counter</button>
+      </div>`;
     } else {
       html += cart.map(c=>{
-        const p = products.find(x=>x.id===c.productId);
+        const p = findSellable(c.productId);
         if(!p) return '';
         const img = p.image || placeholderImg(p.name);
+        const unitPriceLabel = unitTypeOf(p) === 'count' ? `${fmtMoney(p.pricePerKg)} / ${unitNounOf(p)}` : `${fmtMoney(p.pricePerKg)} / kg`;
         return `<div class="cart-item">
           <img src="${img}" alt="${p.name}">
           <div class="ci-info">
-            <div class="name">${p.name}</div>
-            <div class="meta">${formatProductQty(p, c.qtyKg)} &times; ${fmtMoney(p.pricePerKg)}</div>
-            <button class="rm" data-rm="${p.id}">Remove</button>
+            <div class="ci-top-row">
+              <div class="name">${p.name}</div>
+              <button type="button" class="ci-delete" data-rm="${p.id}" aria-label="Remove ${p.name}">🗑️</button>
+            </div>
+            <div class="meta">${unitPriceLabel}</div>
+            <div class="ci-bottom-row">
+              <div class="qty-stepper">
+                <button type="button" class="qty-btn" data-qty-dec="${p.id}" aria-label="Decrease quantity">−</button>
+                <span class="qty-val">${formatProductQty(p, c.qtyKg)}</span>
+                <button type="button" class="qty-btn" data-qty-inc="${p.id}" aria-label="Increase quantity">+</button>
+              </div>
+              <div class="ci-line-total">${fmtMoney(p.pricePerKg * c.qtyKg)}</div>
+            </div>
           </div>
         </div>`;
       }).join('');
     }
-    body.innerHTML = html;
+    document.getElementById('cartItemsList').innerHTML = html;
+    renderDeliveryProgress();
+    renderUpsellStrip();
     document.querySelectorAll('[data-rm]').forEach(btn=>{
       btn.addEventListener('click', ()=> removeFromCart(btn.getAttribute('data-rm')));
     });
+    document.querySelectorAll('[data-qty-dec]').forEach(btn=>{
+      btn.addEventListener('click', ()=> updateCartQty(btn.getAttribute('data-qty-dec'), -1));
+    });
+    document.querySelectorAll('[data-qty-inc]').forEach(btn=>{
+      btn.addEventListener('click', ()=> updateCartQty(btn.getAttribute('data-qty-inc'), 1));
+    });
+    const browseBtn = document.getElementById('cartEmptyBrowseBtn');
+    if(browseBtn){
+      browseBtn.addEventListener('click', ()=>{
+        requestClose('cart');
+        document.getElementById('shop').scrollIntoView({behavior:'smooth'});
+      });
+    }
     wirePaymentCopyButtons(body);
     wirePaymentProofUpload(body, ()=> renderCart());
     document.querySelectorAll('[data-basket-receipt]').forEach(btn=>{
@@ -3340,8 +4477,174 @@
         });
       });
     });
-    document.getElementById('cartSubtotal').textContent = fmtMoney(cartTotal());
-    document.getElementById('checkoutTotal').textContent = fmtMoney(cartTotal());
+    renderCartFooterSummary();
+    document.getElementById('checkoutTotal').textContent = fmtMoney(cartGrandTotal());
+  }
+
+  // ---------------- Step 4c-2: Cart drawer footer — coupon + cost breakdown ----------------
+  function renderCartFooterSummary(){
+    const couponBlock = document.getElementById('cartCouponBlock');
+    const linesEl = document.getElementById('cartSummaryLines');
+    if(!couponBlock || !linesEl) return;
+
+    if(!cart.length){
+      couponBlock.innerHTML = '';
+      linesEl.innerHTML = '';
+      return;
+    }
+
+    const cd = content.cartDrawer || {};
+    const ac = cd.activeCoupon || {};
+    const hasActiveCoupon = !!(ac.isDiscountActive && ac.code);
+    const summary = getCartSummary();
+
+    // ---- Coupon: applied chip, input+apply row, or nothing if no coupon is live ----
+    if(appliedCoupon && summary.coupon){
+      couponBlock.innerHTML = `
+        <div class="coupon-applied-chip">
+          <span>🏷️ ${appliedCoupon.code} — ${appliedCoupon.discountPercentage}% off</span>
+          <button type="button" id="removeCouponBtn">${t('removeCoupon')}</button>
+        </div>`;
+      const rmBtn = document.getElementById('removeCouponBtn');
+      if(rmBtn) rmBtn.addEventListener('click', ()=>{ clearAppliedCoupon(); renderCartFooterSummary(); });
+    } else if(hasActiveCoupon){
+      couponBlock.innerHTML = `
+        <div class="coupon-row">
+          <input type="text" id="couponInput" placeholder="${t('couponPh')}" autocomplete="off">
+          <button type="button" class="coupon-apply-btn" id="couponApplyBtn">${t('applyCoupon')}</button>
+        </div>
+        <div class="coupon-msg" id="couponMsg"></div>`;
+      const input = document.getElementById('couponInput');
+      const btn = document.getElementById('couponApplyBtn');
+      const msgEl = document.getElementById('couponMsg');
+      const doApply = ()=>{
+        const result = applyCouponCode(input.value);
+        const key = result.ok ? 'couponAppliedMsg'
+          : (!input.value.trim() ? 'couponEnterCode'
+            : (!ac.isDiscountActive || !ac.code ? 'couponNoneActive' : 'couponInvalid'));
+        msgEl.textContent = result.ok ? tf(key, {pct: ac.discountPercentage}) : t(key);
+        msgEl.className = 'coupon-msg ' + (result.ok ? 'ok' : 'err');
+        if(result.ok) renderCartFooterSummary();
+      };
+      btn.addEventListener('click', doApply);
+      input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doApply(); } });
+    } else {
+      couponBlock.innerHTML = '';
+    }
+
+    // ---- Subtotal / Delivery / Discount / Total breakdown ----
+    const deliveryValueHtml = summary.deliveryFee === 0
+      ? `<span class="csr-value free">${t('freeLabel')}</span>`
+      : `<span class="csr-value">${fmtMoney(summary.deliveryFee)}</span>`;
+    let html = `
+      <div class="cart-summary-row">
+        <span class="csr-label">${t('subtotal')}</span>
+        <span class="csr-value">${fmtMoney(summary.subtotal)}</span>
+      </div>
+      <div class="cart-summary-row">
+        <span class="csr-label">${t('deliveryLabel')}</span>
+        ${deliveryValueHtml}
+      </div>`;
+    if(summary.discount > 0 && summary.coupon){
+      html += `
+      <div class="cart-summary-row discount">
+        <span class="csr-label">${t('discountLabel')} (${summary.coupon.code})</span>
+        <span class="csr-value">-${fmtMoney(summary.discount)}</span>
+      </div>`;
+    }
+    html += `
+      <div class="cart-summary-row grand-total">
+        <span class="csr-label">${t('total')}</span>
+        <span class="csr-value">${fmtMoney(summary.grandTotal)}</span>
+      </div>`;
+    linesEl.innerHTML = html;
+  }
+
+  // ---------------- Delivery progress bar ----------------
+  // Encourages larger baskets by showing how close the customer is to a
+  // free-delivery threshold. Threshold + on/off toggle live in
+  // content.cartDrawer so admin can control them (wired up in Step 4c).
+  function renderDeliveryProgress(){
+    const el = document.getElementById('cartProgressBar');
+    const cd = content.cartDrawer || {};
+    if(!cd.active || cart.length===0 || !(cd.freeDeliveryThreshold > 0)){
+      el.innerHTML = '';
+      return;
+    }
+    const threshold = cd.freeDeliveryThreshold;
+    const total = cartTotal();
+    const pct = Math.min(100, Math.round((total/threshold)*100));
+    const unlocked = total >= threshold;
+    const msg = unlocked
+      ? '🎉 You\'ve unlocked Free Batoke-Limbe Delivery!'
+      : `Add ${fmtMoney(threshold-total)} more to unlock Free Delivery!`;
+    el.innerHTML = `
+      <div class="delivery-progress">
+        <div class="delivery-progress-msg${unlocked?' unlocked':''}">${msg}</div>
+        <div class="delivery-progress-track"><div class="delivery-progress-fill${unlocked?' unlocked':''}" style="width:${pct}%;"></div></div>
+      </div>
+    `;
+  }
+
+  // ---------------- "Frequently Added Together" upsell strip ----------------
+  // Picks featured products from content.cartDrawer.upsellProductIds when
+  // admin has curated some (see Step 4c); otherwise falls back to the
+  // first couple of in-stock products not already in the basket, so the
+  // strip is never empty even before admin sets anything up.
+  function upsellCandidates(){
+    const cd = content.cartDrawer || {};
+    const inCartIds = new Set(cart.map(c=>c.productId));
+    const curatedIds = (cd.upsellProductIds || []).filter(id=> !inCartIds.has(id));
+    let picks = curatedIds.map(id=> findSellable(id)).filter(p=> p && availableQtyOf(p) > 0);
+    if(picks.length === 0){
+      picks = products.filter(p=> !inCartIds.has(p.id) && availableQtyOf(p) > 0).slice(0,2);
+    }
+    return picks.slice(0,2);
+  }
+  function renderUpsellStrip(){
+    const el = document.getElementById('cartUpsellStrip');
+    const cd = content.cartDrawer || {};
+    if(!cd.active || cart.length===0){
+      el.innerHTML = '';
+      return;
+    }
+    const picks = upsellCandidates();
+    if(picks.length===0){
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = `
+      <div class="upsell-strip">
+        <div class="upsell-strip-title">Frequently Added Together</div>
+        <div class="upsell-row">
+          ${picks.map(p=>{
+            const img = p.image || placeholderImg(p.name);
+            const priceLabel = unitTypeOf(p) === 'count' ? `+${fmtMoney(p.pricePerKg)} / ${unitNounOf(p)}` : `+${fmtMoney(p.pricePerKg)} / kg`;
+            return `
+            <div class="upsell-card">
+              <img src="${img}" alt="${p.name}">
+              <div class="u-name">${p.name}</div>
+              <div class="u-price">${priceLabel}</div>
+              <button type="button" class="u-add-btn" data-upsell-add="${p.id}">+ Add</button>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+    el.querySelectorAll('[data-upsell-add]').forEach(btn=>{
+      btn.addEventListener('click', ()=> quickAddUpsell(btn.getAttribute('data-upsell-add')));
+    });
+  }
+  // Adds one step's worth (0.5kg / 1 unit) of an upsell item straight into
+  // the active cart state, then redraws so the strip re-picks its next
+  // suggestion instead of continuing to recommend an item already added.
+  function quickAddUpsell(productId){
+    const p = findSellable(productId);
+    if(!p) return;
+    const step = qtyStepOf(p);
+    const existing = cart.find(c=>c.productId===productId);
+    const startQty = existing ? existing.qtyKg + step : step;
+    addToCart(productId, Math.min(startQty, availableQtyOf(p)));
   }
 
   // ---------------- Back-button navigation stack ----------------
@@ -3482,7 +4785,8 @@
     closeTrack: ['trackOverlay'],
     closeHistory: ['historyOverlay'],
     closeFlockPopup: ['flockOverlay'],
-    closeSignIn: ['signInOverlay']
+    closeSignIn: ['signInOverlay'],
+    closeReviewModal: ['reviewOverlay']
   };
   document.addEventListener('click', function(e){
     const btn = e.target.closest && e.target.closest('.drawer-close');
@@ -3495,8 +4799,11 @@
     });
   }, true);
 
+  document.getElementById('fabCart').addEventListener('click', ()=>{
+    openCartDrawer();
+  });
   document.getElementById('openCart').addEventListener('click', ()=>{
-    openHistory();
+    openCartDrawer();
   });
   document.getElementById('closeCart').addEventListener('click', ()=> requestClose('cart'));
   document.getElementById('overlay').addEventListener('click', ()=> requestClose('cart'));
@@ -3524,7 +4831,7 @@
     // Final safety check: make sure nothing in the basket now exceeds what's
     // genuinely available (in case stock changed since items were added).
     for(const c of cart){
-      const p = products.find(x=>x.id===c.productId);
+      const p = findSellable(c.productId);
       if(!p || c.qtyKg > availableQtyOf(p)){
         errEl.textContent = `${t('sorryPrefix')} ${p ? p.name : t('anItem')} ${t('noLongerAvailable')}`;
         return;
@@ -3534,14 +4841,23 @@
     // Build order — stock is reserved (shown as "ordered") but not deducted
     // from on-hand stock until the admin marks the order as Delivered.
     const items = cart.map(c=>{
-      const p = products.find(x=>x.id===c.productId);
+      const p = findSellable(c.productId);
       return {productId:c.productId, name:p.name, qtyKg:c.qtyKg, pricePerKg:p.pricePerKg, subtotal:p.pricePerKg*c.qtyKg, unitType: unitTypeOf(p), unitLabel: p.unitLabel || ''};
     });
 
+    // Step 4c-3: capture the full breakdown the customer actually saw in the
+    // drawer (delivery fee + coupon discount), not just the raw item subtotal —
+    // so the order record, receipt, and WhatsApp message all agree on price.
+    const summary = getCartSummary();
     const draft = {
       timestamp: new Date().toISOString(),
       customerName: name, phone, address, notes,
-      items, total: cartTotal(),
+      items,
+      subtotal: summary.subtotal,
+      deliveryFee: summary.deliveryFee,
+      discount: summary.discount,
+      couponCode: summary.coupon ? summary.coupon.code : '',
+      total: summary.grandTotal,
       status: 'new',
       paymentStatus: 'unpaid'
     };
@@ -3550,6 +4866,7 @@
     placeBtn.disabled = true;
     createOrder(draft).then(order=>{
       rememberMyOrder(order.id);
+      clearAppliedCoupon(); // coupon shouldn't silently carry over into the next basket
       showNotification(
         `✅ Order #${order.id} placed!`,
         `We've got it — you'll see it move through Preparing, Ready, then Delivered.`,
@@ -3611,6 +4928,7 @@
 
     const verifyBlock = document.getElementById('confirmVerifyBlock');
     verifyBlock.innerHTML = paymentVerifyBlock(order);
+    wirePaymentProofUpload(verifyBlock, ()=> renderConfirmFlow(orderId));
 
     const statusEl = document.getElementById('confirmVerifyStatus');
     const sentBtn = document.getElementById('confirmMarkSent');
@@ -3671,7 +4989,6 @@
     pushLayer('track', ()=> document.getElementById('trackOverlay').classList.remove('open'));
   }
   document.getElementById('navTrack').addEventListener('click', openTrack);
-  document.getElementById('navTrack2').addEventListener('click', openTrack);
   document.getElementById('closeTrack').addEventListener('click', ()=> requestClose('track'));
   function trackStatusLabel(status){
     if(status === 'ready') return t('readyForPickup');
@@ -3792,6 +5109,7 @@
         cancelOrder(id).then(()=>{
           toast(`Order #${id} cancelled.`);
           renderOrderHistory();
+          renderGrid();
         }).catch(e=>{
           console.error('Cancel failed:', e);
           toast(e && e.message === 'This order can no longer be cancelled.' ? e.message : 'Could not cancel order — check your connection.');
@@ -3823,6 +5141,62 @@
   document.getElementById('footerAdminLink').addEventListener('click', openSignIn);
   document.getElementById('closeSignIn').addEventListener('click', ()=> requestClose('signin'));
 
+  // ---------------- Leave a Review ----------------
+  let selectedReviewRating = 5;
+  function paintStarPicker(){
+    document.querySelectorAll('#rvStarPicker span').forEach(s=>{
+      s.classList.toggle('filled', Number(s.getAttribute('data-value')) <= selectedReviewRating);
+    });
+  }
+  document.querySelectorAll('#rvStarPicker span').forEach(s=>{
+    s.addEventListener('click', ()=>{
+      selectedReviewRating = Number(s.getAttribute('data-value'));
+      paintStarPicker();
+    });
+  });
+  function closeReviewModalDom(){ document.getElementById('reviewOverlay').classList.remove('open'); }
+  function openReviewModal(){
+    document.getElementById('rvName').value = '';
+    document.getElementById('rvLocation').value = '';
+    document.getElementById('rvComment').value = '';
+    document.getElementById('reviewFormError').textContent = '';
+    selectedReviewRating = 5;
+    paintStarPicker();
+    document.getElementById('reviewOverlay').classList.add('open');
+    pushLayer('review', closeReviewModalDom);
+  }
+  document.getElementById('openLeaveReviewBtn').addEventListener('click', openReviewModal);
+  document.getElementById('closeReviewModal').addEventListener('click', ()=> requestClose('review'));
+  document.getElementById('reviewOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'reviewOverlay') requestClose('review');
+  });
+  document.getElementById('submitReviewBtn').addEventListener('click', ()=>{
+    const errEl = document.getElementById('reviewFormError');
+    errEl.textContent = '';
+    const name = document.getElementById('rvName').value.trim();
+    const location = document.getElementById('rvLocation').value.trim();
+    const text = document.getElementById('rvComment').value.trim();
+    if(!name || !text){ errEl.textContent = 'Please add your name and a short review.'; return; }
+    if(!CLOUD_ENABLED || !db){ errEl.textContent = 'Reviews need an internet connection to submit right now — please try again once connected.'; return; }
+    const review = {
+      name, location, rating: selectedReviewRating, text,
+      approved: false,
+      createdAt: Date.now()
+    };
+    const btn = document.getElementById('submitReviewBtn');
+    btn.disabled = true;
+    db.collection('pending_reviews').add(review)
+      .then(()=>{
+        toast('Thanks! Your review will appear once approved.');
+        requestClose('review');
+      })
+      .catch(e=>{
+        console.error('Review submission failed:', e);
+        errEl.textContent = 'Could not submit your review — check your connection and try again.';
+      })
+      .finally(()=>{ btn.disabled = false; });
+  });
+
   // ---------------- Mobile nav toggle ----------------
   document.getElementById('navToggle').addEventListener('click', ()=>{
     const nav = document.getElementById('siteNav');
@@ -3852,10 +5226,6 @@
     toast('Browsing as a customer.');
   }
   document.getElementById('roleCustomer').addEventListener('click', enterCustomerMode);
-  document.getElementById('heroPlaceOrderBtn').addEventListener('click', ()=>{
-    enterCustomerMode();
-    document.getElementById('shop').scrollIntoView({behavior:'smooth'});
-  });
   document.getElementById('roleAdmin').addEventListener('click', ()=>{
     closeSignInDom();
     showAdminDom();
@@ -3872,6 +5242,7 @@
       renderAdminOrders();
       populateContentForm();
       renderAdminFlock();
+      renderPendingReviews();
     } else {
       document.getElementById('adminError').textContent = 'Incorrect passcode. Try again.';
     }
@@ -4223,8 +5594,12 @@
   let editWhatsapps = [];
   let editPayments = [];
   let editLocations = [];
+  let editTrustBadges = [];
+  let editBundles = [];
+  let editReviews = [];
   let pendingSiteQrDataUrl = null;
   let pendingHeroImageDataUrl = null;
+  let pendingHeroBgImageDataUrl = null;
   let pendingBrandingLogoDataUrl = null;
   let orderSearchQuery = '';
 
@@ -4332,6 +5707,270 @@
     });
   }
 
+  function renderTrustBadgeRows(){
+    const el = document.getElementById('mTrustList');
+    el.innerHTML = '';
+    if(editTrustBadges.length === 0){ el.innerHTML = '<div class="helper" style="margin-bottom:10px;">No trust badges yet.</div>'; }
+    editTrustBadges.forEach((b,i)=>{
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;';
+      const iconInp = makeRowInput('🌽', b.icon, 0.5);
+      iconInp.maxLength = 4;
+      iconInp.addEventListener('input', ()=> editTrustBadges[i].icon = iconInp.value);
+      const titleInp = makeRowInput('e.g. 100% Organically Fed', b.title, 1.5);
+      titleInp.addEventListener('input', ()=> editTrustBadges[i].title = titleInp.value);
+      const subInp = makeRowInput('e.g. No shortcuts, ever', b.subtitle, 1.5);
+      subInp.addEventListener('input', ()=> editTrustBadges[i].subtitle = subInp.value);
+      row.append(iconInp, titleInp, subInp, makeRemoveBtn(()=>{ editTrustBadges.splice(i,1); renderTrustBadgeRows(); }));
+      el.appendChild(row);
+    });
+  }
+
+  function renderBundleRows(){
+    const el = document.getElementById('mBundleList');
+    el.innerHTML = '';
+    if(editBundles.length === 0){ el.innerHTML = '<div class="helper" style="margin-bottom:10px;">No bundles yet.</div>'; }
+    editBundles.forEach((b,i)=>{
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'border:1.5px solid var(--line); border-radius:10px; padding:10px; margin-bottom:10px;';
+
+      const topRow = document.createElement('div');
+      topRow.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+      const titleInp = makeRowInput('Bundle title, e.g. Family Pack', b.title, 1);
+      titleInp.style.width = '100%'; titleInp.style.boxSizing = 'border-box';
+      titleInp.addEventListener('input', ()=> editBundles[i].title = titleInp.value);
+      topRow.append(titleInp, makeRemoveBtn(()=>{ editBundles.splice(i,1); renderBundleRows(); }));
+      wrap.appendChild(topRow);
+
+      const itemsInp = document.createElement('textarea');
+      itemsInp.rows = 2;
+      itemsInp.placeholder = 'Items included, e.g. 2 Broilers + 1 Tray of Pantalon Eggs';
+      itemsInp.value = b.items || '';
+      itemsInp.style.cssText = 'width:100%; box-sizing:border-box; padding:9px; border:1.5px solid var(--ink); border-radius:8px; font:inherit; margin-bottom:8px;';
+      itemsInp.addEventListener('input', ()=> editBundles[i].items = itemsInp.value);
+      wrap.appendChild(itemsInp);
+
+      const priceRow = document.createElement('div');
+      priceRow.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+      const origInp = makeRowInput('Original price (XAF)', b.originalPrice, 1, 'number');
+      origInp.addEventListener('input', ()=> editBundles[i].originalPrice = Number(origInp.value)||0);
+      const discInp = makeRowInput('Bundle price (XAF)', b.discountedPrice, 1, 'number');
+      discInp.addEventListener('input', ()=> editBundles[i].discountedPrice = Number(discInp.value)||0);
+      priceRow.append(origInp, discInp);
+      wrap.appendChild(priceRow);
+
+      const imageInp = makeRowInput('Image URL (optional)', b.imageUrl, 1);
+      imageInp.style.width = '100%'; imageInp.style.boxSizing = 'border-box';
+      imageInp.addEventListener('input', ()=> editBundles[i].imageUrl = imageInp.value);
+      wrap.appendChild(imageInp);
+
+      el.appendChild(wrap);
+    });
+  }
+
+  // Customer-submitted reviews waiting in the pending_reviews Firestore
+  // collection. Approve copies the review into content.reviews.items
+  // (published, approved:true) and removes it from the pending queue;
+  // Reject just removes it from the pending queue.
+  function renderPendingReviews(){
+    const el = document.getElementById('pendingReviewList');
+    if(!el) return;
+    if(pendingReviews.length === 0){
+      el.innerHTML = '<div class="helper">No pending submissions right now.</div>';
+      return;
+    }
+    el.innerHTML = '';
+    pendingReviews.forEach(r=>{
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; margin-bottom:10px;';
+      const stars = '★'.repeat(Math.max(0,Math.min(5,Number(r.rating)||0)));
+      wrap.innerHTML = `
+        <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:4px;">
+          <strong style="font-family:'Bitter',serif;">${escapeHtml(r.name||'')}</strong>
+          <span style="color:var(--yolk-deep); font-size:13px;">${stars}</span>
+        </div>
+        ${r.location ? `<div class="helper" style="margin-bottom:6px;">${escapeHtml(r.location)}</div>` : ''}
+        <div style="font-size:13.5px; line-height:1.45; margin-bottom:10px;">${escapeHtml(r.text||'')}</div>
+      `;
+      const btnRow = document.createElement('div');
+      btnRow.style.cssText = 'display:flex; gap:8px;';
+      const approveBtn = document.createElement('button');
+      approveBtn.type = 'button'; approveBtn.className = 'btn-primary'; approveBtn.textContent = '✓ Approve';
+      approveBtn.style.cssText = 'flex:1; padding:8px;';
+      approveBtn.addEventListener('click', ()=> approvePendingReview(r));
+      const rejectBtn = document.createElement('button');
+      rejectBtn.type = 'button'; rejectBtn.className = 'icon-btn'; rejectBtn.textContent = '✕ Reject';
+      rejectBtn.style.cssText = 'flex:1; padding:8px;';
+      rejectBtn.addEventListener('click', ()=> rejectPendingReview(r));
+      btnRow.append(approveBtn, rejectBtn);
+      wrap.appendChild(btnRow);
+      el.appendChild(wrap);
+    });
+  }
+  function approvePendingReview(r){
+    const published = {
+      id: newId('rv'),
+      name: (r.name||'').trim(),
+      location: (r.location||'').trim(),
+      rating: Number(r.rating)||5,
+      text: (r.text||'').trim(),
+      verified: false,
+      approved: true
+    };
+    const current = content.reviews || {active:false, items:[]};
+    const updated = {...content, reviews: {active: current.active, items: [...(current.items||[]), published]}};
+    saveContent(updated);
+    editReviews = updated.reviews.items;
+    renderReviewRows();
+    renderSiteContent();
+    if(CLOUD_ENABLED && db){
+      db.collection('pending_reviews').doc(r.id).delete().catch(e=>{ console.error('Failed to clear pending review:', e); toast('Approved, but could not clear the pending item — check your connection.'); });
+    }
+    toast('Review approved and published.');
+  }
+  function rejectPendingReview(r){
+    if(CLOUD_ENABLED && db){
+      db.collection('pending_reviews').doc(r.id).delete()
+        .then(()=> toast('Review rejected.'))
+        .catch(e=>{ console.error('Failed to reject pending review:', e); toast('Could not reject — check your connection.'); });
+    }
+  }
+
+  function renderReviewRows(){
+    const el = document.getElementById('mReviewList');
+    el.innerHTML = '';
+    if(editReviews.length === 0){ el.innerHTML = '<div class="helper" style="margin-bottom:10px;">No reviews yet.</div>'; }
+    editReviews.forEach((r,i)=>{
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'border:1.5px solid var(--line); border-radius:10px; padding:10px; margin-bottom:10px;';
+
+      const topRow = document.createElement('div');
+      topRow.style.cssText = 'display:flex; gap:8px; margin-bottom:8px;';
+      const nameInp = makeRowInput('Customer name', r.name, 1.4);
+      nameInp.addEventListener('input', ()=> editReviews[i].name = nameInp.value);
+      const ratingSel = document.createElement('select');
+      ratingSel.style.cssText = 'flex:0.7 1 70px; padding:9px; border:1.5px solid var(--ink); border-radius:8px; font:inherit;';
+      [5,4,3,2,1].forEach(n=>{
+        const opt = document.createElement('option'); opt.value = n; opt.textContent = '★'.repeat(n);
+        if((r.rating||5) === n) opt.selected = true;
+        ratingSel.appendChild(opt);
+      });
+      ratingSel.addEventListener('change', ()=> editReviews[i].rating = Number(ratingSel.value));
+      topRow.append(nameInp, ratingSel, makeRemoveBtn(()=>{ editReviews.splice(i,1); renderReviewRows(); }));
+      wrap.appendChild(topRow);
+
+      const locInp = makeRowInput('Location, e.g. Limbe', r.location, 1);
+      locInp.style.width = '100%'; locInp.style.boxSizing = 'border-box'; locInp.style.marginBottom = '8px';
+      locInp.addEventListener('input', ()=> editReviews[i].location = locInp.value);
+      wrap.appendChild(locInp);
+
+      const quoteInp = document.createElement('textarea');
+      quoteInp.rows = 2;
+      quoteInp.placeholder = 'Review text';
+      quoteInp.value = r.text || '';
+      quoteInp.style.cssText = 'width:100%; box-sizing:border-box; padding:9px; border:1.5px solid var(--ink); border-radius:8px; font:inherit; margin-bottom:8px;';
+      quoteInp.addEventListener('input', ()=> editReviews[i].text = quoteInp.value);
+      wrap.appendChild(quoteInp);
+
+      const bottomRow = document.createElement('div');
+      bottomRow.style.cssText = 'display:flex; gap:14px; align-items:center; flex-wrap:wrap;';
+      const verifiedLbl = document.createElement('label');
+      verifiedLbl.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:13px;';
+      const verifiedChk = document.createElement('input'); verifiedChk.type = 'checkbox'; verifiedChk.checked = !!r.verified;
+      verifiedChk.addEventListener('change', ()=> editReviews[i].verified = verifiedChk.checked);
+      verifiedLbl.append(verifiedChk, document.createTextNode('Verified buyer'));
+      const approvedLbl = document.createElement('label');
+      approvedLbl.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:13px;';
+      const approvedChk = document.createElement('input'); approvedChk.type = 'checkbox'; approvedChk.checked = r.approved !== false;
+      approvedChk.addEventListener('change', ()=> editReviews[i].approved = approvedChk.checked);
+      approvedLbl.append(approvedChk, document.createTextNode('Approved (visible to customers)'));
+      bottomRow.append(verifiedLbl, approvedLbl);
+      wrap.appendChild(bottomRow);
+
+      el.appendChild(wrap);
+    });
+  }
+
+  document.getElementById('addTrustBtn').addEventListener('click', ()=>{ editTrustBadges.push({id:newId('tb'), icon:'✔️', title:'', subtitle:''}); renderTrustBadgeRows(); });
+  document.getElementById('addBundleBtn').addEventListener('click', ()=>{ editBundles.push({id:newId('bd'), title:'', items:'', originalPrice:0, discountedPrice:0, imageUrl:''}); renderBundleRows(); });
+  document.getElementById('addReviewBtn').addEventListener('click', ()=>{ editReviews.push({id:newId('rv'), name:'', location:'', rating:5, text:'', verified:false, approved:true}); renderReviewRows(); });
+
+  document.getElementById('saveTrustBtn').addEventListener('click', ()=>{
+    const cleaned = editTrustBadges.map(b=>({id:b.id||newId('tb'), icon:(b.icon||'').trim(), title:(b.title||'').trim(), subtitle:(b.subtitle||'').trim()})).filter(b=>b.title);
+    const updated = {...content, trustBadges: {active: document.getElementById('mTrustActive').checked, items: cleaned}};
+    saveContent(updated);
+    editTrustBadges = cleaned;
+    renderTrustBadgeRows();
+    renderSiteContent();
+    toast('Trust badges saved.');
+  });
+
+  document.getElementById('savePromoBtn').addEventListener('click', ()=>{
+    const updated = {...content, promoBanner: {
+      active: document.getElementById('mPromoActive').checked,
+      text: document.getElementById('mPromoText').value.trim(),
+      code: document.getElementById('mPromoCode').value.trim(),
+      discountPercent: Number(document.getElementById('mPromoDiscount').value)||0,
+      expiresAt: document.getElementById('mPromoExpiry').value || ''
+    }};
+    saveContent(updated);
+    renderSiteContent();
+    toast('Promo banner saved.');
+  });
+
+  document.getElementById('saveCartDrawerBtn').addEventListener('click', ()=>{
+    const existing = content.cartDrawer || {};
+    const updated = {...content, cartDrawer: {
+      ...existing,
+      active: document.getElementById('mCartDrawerActive').checked,
+      freeDeliveryThreshold: Number(document.getElementById('mFreeDeliveryThreshold').value)||0,
+      defaultDeliveryFee: Number(document.getElementById('mDefaultDeliveryFee').value)||0,
+      activeCoupon: {
+        code: document.getElementById('mCouponCode').value.trim(),
+        discountPercentage: Number(document.getElementById('mCouponDiscount').value)||0,
+        isDiscountActive: document.getElementById('mCouponActive').checked
+      }
+    }};
+    saveContent(updated);
+    renderSiteContent();
+    toast('Cart drawer settings saved.');
+  });
+
+  document.getElementById('saveBundlesBtn').addEventListener('click', ()=>{
+    const cleaned = editBundles.map(b=>({
+      id: b.id||newId('bd'),
+      title: (b.title||'').trim(),
+      items: (b.items||'').trim(),
+      originalPrice: Number(b.originalPrice)||0,
+      discountedPrice: Number(b.discountedPrice)||0,
+      imageUrl: (b.imageUrl||'').trim()
+    })).filter(b=>b.title);
+    const updated = {...content, comboDeals: {active: document.getElementById('mComboActive').checked, bundles: cleaned}};
+    saveContent(updated);
+    editBundles = cleaned;
+    renderBundleRows();
+    renderSiteContent();
+    toast('Bundle deals saved.');
+  });
+
+  document.getElementById('saveReviewsBtn').addEventListener('click', ()=>{
+    const cleaned = editReviews.map(r=>({
+      id: r.id||newId('rv'),
+      name: (r.name||'').trim(),
+      location: (r.location||'').trim(),
+      rating: Number(r.rating)||5,
+      text: (r.text||'').trim(),
+      verified: !!r.verified,
+      approved: r.approved !== false
+    })).filter(r=>r.name && r.text);
+    const updated = {...content, reviews: {active: document.getElementById('mReviewsActive').checked, items: cleaned}};
+    saveContent(updated);
+    editReviews = cleaned;
+    renderReviewRows();
+    renderSiteContent();
+    toast('Reviews saved.');
+  });
+
   document.getElementById('addPhoneBtn').addEventListener('click', ()=>{ editPhones.push({id:newId('ph'), label:'', number:''}); renderPhoneRows(); });
   document.getElementById('addWhatsappBtn').addEventListener('click', ()=>{ editWhatsapps.push({id:newId('wa'), label:'', number:''}); renderWhatsappRows(); });
   document.getElementById('addLocationBtn').addEventListener('click', ()=>{ editLocations.push({id:newId('loc'), label:'', mapUrl:''}); renderLocationRows(); });
@@ -4382,6 +6021,20 @@
       heroPreview.style.display = 'none';
       removeHeroBtn.style.display = 'none';
     }
+
+    pendingHeroBgImageDataUrl = null;
+    document.getElementById('cHeroBgImage').value = '';
+    const heroBgPreview = document.getElementById('cHeroBgImagePreview');
+    const removeHeroBgBtn = document.getElementById('removeHeroBgImageBtn');
+    if(content.heroBgImage){
+      heroBgPreview.src = content.heroBgImage;
+      heroBgPreview.style.display = 'inline-block';
+      removeHeroBgBtn.style.display = 'inline-flex';
+    } else {
+      heroBgPreview.src = '';
+      heroBgPreview.style.display = 'none';
+      removeHeroBgBtn.style.display = 'none';
+    }
     document.getElementById('cContactHours').value = content.contactHours || '';
     document.getElementById('cPaymentNote').value = content.paymentNote || '';
 
@@ -4407,6 +6060,38 @@
     renderWhatsappRows();
     renderLocationRows();
     renderPaymentRows();
+
+    const trustBadges = content.trustBadges || {active:true, items:[]};
+    document.getElementById('mTrustActive').checked = trustBadges.active !== false;
+    editTrustBadges = JSON.parse(JSON.stringify(trustBadges.items || []));
+    renderTrustBadgeRows();
+
+    const promoBanner = content.promoBanner || {};
+    document.getElementById('mPromoActive').checked = !!promoBanner.active;
+    document.getElementById('mPromoText').value = promoBanner.text || '';
+    document.getElementById('mPromoCode').value = promoBanner.code || '';
+    document.getElementById('mPromoDiscount').value = promoBanner.discountPercent || '';
+    document.getElementById('mPromoExpiry').value = promoBanner.expiresAt || '';
+
+    const cartDrawerCfg = content.cartDrawer || {};
+    const activeCoupon = cartDrawerCfg.activeCoupon || {};
+    document.getElementById('mCartDrawerActive').checked = cartDrawerCfg.active !== false;
+    document.getElementById('mFreeDeliveryThreshold').value = cartDrawerCfg.freeDeliveryThreshold || '';
+    document.getElementById('mDefaultDeliveryFee').value = cartDrawerCfg.defaultDeliveryFee || '';
+    document.getElementById('mCouponActive').checked = !!activeCoupon.isDiscountActive;
+    document.getElementById('mCouponCode').value = activeCoupon.code || '';
+    document.getElementById('mCouponDiscount').value = activeCoupon.discountPercentage || '';
+
+
+    const comboDeals = content.comboDeals || {active:false, bundles:[]};
+    document.getElementById('mComboActive').checked = !!comboDeals.active;
+    editBundles = JSON.parse(JSON.stringify(comboDeals.bundles || []));
+    renderBundleRows();
+
+    const reviews = content.reviews || {active:false, items:[]};
+    document.getElementById('mReviewsActive').checked = !!reviews.active;
+    editReviews = JSON.parse(JSON.stringify(reviews.items || []));
+    renderReviewRows();
   }
 
   document.getElementById('saveBusinessNameBtn').addEventListener('click', ()=>{
@@ -4456,6 +6141,33 @@
     document.getElementById('cAppLogo').value = '';
     document.getElementById('cAppLogoStatus').style.display = 'none';
     toast('Identity settings saved.');
+  });
+
+  // Exports the current branding config (name/tagline/logo + a couple of
+  // derived fields useful for native builds) as a standalone JSON file, so
+  // whoever compiles the Android APK has everything needed to update its
+  // package-level icon/name without digging through the admin panel.
+  document.getElementById('exportBuildManifestBtn').addEventListener('click', ()=>{
+    const appName = document.getElementById('cAppName').value.trim() || branding.appName || 'SOHLAM';
+    const tagline = document.getElementById('cAppTagline').value.trim() || branding.tagline || '';
+    const logoUrl = (pendingBrandingLogoDataUrl !== null) ? pendingBrandingLogoDataUrl : (branding.logoUrl || '');
+    const buildManifest = {
+      appName: appName,
+      shortName: appName.slice(0, 12),
+      tagline: tagline,
+      logoUrl: logoUrl,
+      exportedAt: new Date().toISOString(),
+      note: 'For native Android APK rebuilds — web/PWA branding already syncs live and does not need this file.'
+    };
+    const blobUrl = URL.createObjectURL(new Blob([JSON.stringify(buildManifest, null, 2)], {type: 'application/json'}));
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = 'sohlam-build-manifest.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(blobUrl);
+    toast('Build manifest downloaded.');
   });
 
   document.getElementById('saveContentBtn').addEventListener('click', ()=>{
@@ -4510,6 +6222,46 @@
     const updated = {...content, heroImage: ''};
     saveContent(updated);
     toast('Hero image removed.');
+  });
+
+  document.getElementById('cHeroBgImage').addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      pendingHeroBgImageDataUrl = reader.result;
+      const preview = document.getElementById('cHeroBgImagePreview');
+      preview.src = pendingHeroBgImageDataUrl;
+      preview.style.display = 'inline-block';
+      document.getElementById('removeHeroBgImageBtn').style.display = 'inline-flex';
+    };
+    reader.onerror = ()=> toast('Could not read that image — try another file.');
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById('saveHeroBgImageBtn').addEventListener('click', ()=>{
+    if(!pendingHeroBgImageDataUrl && !content.heroBgImage){
+      toast('Choose an image first.');
+      return;
+    }
+    const updated = {...content, heroBgImage: pendingHeroBgImageDataUrl || content.heroBgImage};
+    saveContent(updated);
+    pendingHeroBgImageDataUrl = null;
+    document.getElementById('cHeroBgImage').value = '';
+    renderSiteContent();
+    toast('Hero background saved.');
+  });
+
+  document.getElementById('removeHeroBgImageBtn').addEventListener('click', ()=>{
+    pendingHeroBgImageDataUrl = null;
+    document.getElementById('cHeroBgImage').value = '';
+    document.getElementById('cHeroBgImagePreview').src = '';
+    document.getElementById('cHeroBgImagePreview').style.display = 'none';
+    document.getElementById('removeHeroBgImageBtn').style.display = 'none';
+    const updated = {...content, heroBgImage: ''};
+    saveContent(updated);
+    renderSiteContent();
+    toast('Hero background removed.');
   });
 
   document.getElementById('cSiteQr').addEventListener('change', (e)=>{
@@ -4965,7 +6717,7 @@
   if(initialLoaderEl) initialLoaderEl.style.display = 'none';
   requestAnimationFrame(()=>{
     document.querySelector('.hero').classList.add('is-live');
-    document.querySelector('.hero-ctas-wrap').classList.add('is-live');
+    startHeroRotator();
   });
   setCloudStatus(CLOUD_ENABLED ? 'connecting' : 'off');
   const cloudPillEl = document.getElementById('cloudStatusPill');
