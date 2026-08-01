@@ -145,13 +145,22 @@
   .download-app-row{display:block; padding:12px 24px 0;}
   .download-app-row.hide{display:none;}
   .download-app-btn{
-    display:inline-flex; align-items:center; gap:8px;
+    display:inline-flex; align-items:center; gap:8px; position:relative;
     background:var(--yolk); color:var(--ink); border:none;
     padding:8px 18px; border-radius:999px; font-weight:700; font-size:13px;
     font-family:'Work Sans', sans-serif; white-space:nowrap; cursor:pointer;
   }
   .download-app-btn:hover{filter:brightness(1.08);}
   .download-app-btn .dl-icon{font-size:14px; line-height:1;}
+  /* Small persistent red dot shown on the Download/Update App button
+     whenever the branding (name/logo) has changed since this device last
+     installed the app — unlike the pop-up notification card, this stays
+     visible across reloads until the button is tapped, so it can't be
+     missed just because the toast auto-dismissed. */
+  .download-app-btn .notif-dot{
+    position:absolute; top:-3px; right:-3px; width:11px; height:11px;
+    border-radius:50%; background:#E0432B; border:2px solid var(--cream);
+  }
 
   /* ---------- Top promo banner ---------- */
   .promo-banner{
@@ -2751,9 +2760,18 @@
     // Optimistic local-first save: localStorage write + UI/manifest repaint
     // happen synchronously below, before the Firestore write is even issued.
     // The admin sees the new branding instantly, with zero network latency.
-    branding = Object.assign({}, DEFAULT_BRANDING, b);
+    const prev = branding;
+    const next = Object.assign({}, DEFAULT_BRANDING, b);
+    // The live Firestore listener only announces a reinstall prompt to OTHER
+    // devices (it compares against a `branding` that's already been updated
+    // locally here, so it never sees a diff on this device). Without this,
+    // the admin who just changed the logo/name never gets told their own
+    // home-screen icon needs a reinstall too — check for a real change here
+    // and announce it locally as well.
+    const changed = JSON.stringify(prev) !== JSON.stringify(next);
+    branding = next;
     safeSetItem(BRANDING_KEY, JSON.stringify(branding));
-    applyBranding(branding, {regenManifest: true});
+    applyBranding(branding, {regenManifest: true, announceChange: changed});
     // Fire-and-forget cloud sync — intentionally not awaited, so a slow or
     // failed network request never blocks or delays the local UI update above.
     if(CLOUD_ENABLED && db){
@@ -2897,15 +2915,27 @@
   // Delivered orders already deducted real stock, and cancelled orders never
   // happened, so both are excluded here — only orders still actively in
   // flight (new/preparing/ready) hold a reservation.
-  function reservedQtyOf(productId){
+  //
+  // Orders placed BEFORE the product's most recent stock update are excluded
+  // too. Whenever the admin edits a cut's stock number (see saveProductBtn
+  // handler), we stamp p.stockUpdatedAt with the current time. That's the
+  // admin saying "here's what's on hand right now" — any older open orders
+  // are treated as already folded into that fresh count, so they stop
+  // counting toward "ordered" and the new stock figure reads as fully
+  // available. This only changes what's displayed/counted; the orders
+  // themselves are never modified or cancelled.
+  function reservedQtyOf(p){
+    const productId = typeof p === 'string' ? p : p.id;
+    const since = (p && typeof p === 'object' && p.stockUpdatedAt) || 0;
     return orders.reduce((sum, o)=>{
       if(o.status === 'delivered' || o.status === 'cancelled') return sum;
+      if(since && o.timestamp && o.timestamp < since) return sum;
       const item = o.items.find(i=>i.productId === productId);
       return sum + (item ? item.qtyKg : 0);
     }, 0);
   }
   function availableQtyOf(p){
-    return Math.max(0, +(p.stockKg - reservedQtyOf(p.id)).toFixed(2));
+    return Math.max(0, +(p.stockKg - reservedQtyOf(p)).toFixed(2));
   }
   function statusOf(p){
     const avail = availableQtyOf(p);
@@ -3547,6 +3577,11 @@
         'To see the new logo on your home screen, please re-add the app to your home screen (so it replaces the old one).',
         'branding'
       );
+      // The install-flow logic (Download/Update App button + persistent
+      // notification dot) lives in its own script block further down, so it
+      // can't see this function's variables directly — a custom event is
+      // the simplest bridge between the two.
+      window.dispatchEvent(new CustomEvent('sohlam:brandingChanged'));
     }
   }
   // Instant local load: paints the cached branding (if any) the moment this
@@ -4150,7 +4185,7 @@
         const img = p.image || placeholderImg(p.name);
         const step = qtyStepOf(p);
         const avail = availableQtyOf(p);
-        const reserved = reservedQtyOf(p.id);
+        const reserved = reservedQtyOf(p);
         const qtyText = reserved > 0
           ? `${formatProductQty(p, reserved)} ordered &middot; ${formatProductQty(p, avail)} left`
           : `${formatProductQty(p, avail)} left`;
@@ -4951,10 +4986,10 @@
   }, true);
 
   document.getElementById('fabCart').addEventListener('click', ()=>{
-    openCartDrawer();
+    openHistory();
   });
   document.getElementById('openCart').addEventListener('click', ()=>{
-    openCartDrawer();
+    openHistory();
   });
   document.getElementById('closeCart').addEventListener('click', ()=> requestClose('cart'));
   document.getElementById('overlay').addEventListener('click', ()=> requestClose('cart'));
@@ -5694,14 +5729,21 @@
     if(editId){
       const updated = products.map(p=>{
         if(p.id !== editId) return p;
-        return {...p, name, cut, unitType, unitLabel, pricePerKg:price, stockKg:stock, notes, image: pendingImage || p.image, video: videoRemoved ? '' : (pendingVideo || p.video || '')};
+        // Restocking (the stock number actually changed) resets what counts
+        // as "ordered": open orders placed before this moment are treated as
+        // already folded into the new stock figure and stop being subtracted
+        // from it on display. Editing other fields (price, photo, name...)
+        // leaves stockUpdatedAt untouched.
+        const stockUpdatedAt = (stock !== p.stockKg) ? new Date().toISOString() : p.stockUpdatedAt;
+        return {...p, name, cut, unitType, unitLabel, pricePerKg:price, stockKg:stock, notes, image: pendingImage || p.image, video: videoRemoved ? '' : (pendingVideo || p.video || ''), stockUpdatedAt};
       });
       saveProducts(updated);
       toast('Cut updated.');
     } else {
       const newProduct = {
         id: 'p' + Date.now(),
-        name, cut, unitType, unitLabel, pricePerKg:price, stockKg:stock, notes, image: pendingImage, video: pendingVideo
+        name, cut, unitType, unitLabel, pricePerKg:price, stockKg:stock, notes, image: pendingImage, video: pendingVideo,
+        stockUpdatedAt: new Date().toISOString()
       };
       saveProducts([...products, newProduct]);
       toast('Cut posted to the shop.');
@@ -5726,7 +5768,7 @@
       // would — previously this showed raw stockKg, which never moved
       // when an order was placed, cancelled, delivered, or deleted.
       const avail = availableQtyOf(p);
-      const reserved = reservedQtyOf(p.id);
+      const reserved = reservedQtyOf(p);
       const qtyText = reserved > 0
         ? `${formatProductQty(p, reserved)} ordered &middot; ${formatProductQty(p, avail)} left`
         : `${formatProductQty(p, avail)} left`;
@@ -6954,6 +6996,7 @@
 <script>
 (function(){
   const DISMISS_KEY = 'sohlam_pwa_install_dismissed';
+  const REINSTALL_KEY = 'sohlam_reinstall_needed';
   let deferredPrompt = null;
 
   const overlay   = document.getElementById('pwaInstallOverlay');
@@ -6967,9 +7010,11 @@
   // Runs the install flow itself (shared by the startup prompt and the
   // always-visible header button).
   async function runInstallFlow(){
+    // Acting on the button — whichever path below — counts as having seen
+    // the prompt, so the persistent dot can clear right away.
+    clearReinstallNeeded();
     if(deferredPrompt){
       downloadBtn.disabled = true;
-      const originalLabel = downloadBtn.innerHTML;
       downloadBtn.textContent = 'Opening install dialog…';
       try{
         deferredPrompt.prompt();
@@ -6987,7 +7032,7 @@
       } finally {
         deferredPrompt = null;
         downloadBtn.disabled = false;
-        downloadBtn.innerHTML = originalLabel;
+        updateDownloadBar();
       }
       return;
     }
@@ -7013,8 +7058,36 @@
     try{ return localStorage.getItem(INSTALLED_KEY) === '1'; }catch(e){ return false; }
   }
 
+  // Set whenever the admin changes the app name/logo (see the
+  // 'sohlam:brandingChanged' listener below). A device that already
+  // installed the app would otherwise never see the Download App button
+  // again — this flag brings it back (relabelled "Update App") with a
+  // small red dot until the person acts on it, so a branding change
+  // doesn't silently go unnoticed on home screens already installed.
+  function markReinstallNeeded(){
+    try{ localStorage.setItem(REINSTALL_KEY, '1'); }catch(e){}
+    updateDownloadBar();
+  }
+  function clearReinstallNeeded(){
+    try{ localStorage.removeItem(REINSTALL_KEY); }catch(e){}
+    updateDownloadBar();
+  }
+  function isReinstallNeeded(){
+    try{ return localStorage.getItem(REINSTALL_KEY) === '1'; }catch(e){ return false; }
+  }
+  window.addEventListener('sohlam:brandingChanged', markReinstallNeeded);
+
   function updateDownloadBar(){
-    downloadRow?.classList.toggle('hide', isInstalledConfirmed());
+    const needsReinstall = isReinstallNeeded();
+    const installed = isInstalledConfirmed();
+    // Normally hidden once installed — but a pending branding update keeps
+    // it visible (relabelled) so there's still a way to prompt reinstall.
+    downloadRow?.classList.toggle('hide', installed && !needsReinstall);
+    if(downloadBtn){
+      const label = (needsReinstall && installed) ? 'Update App' : 'Download App';
+      downloadBtn.innerHTML = `<span class="dl-icon">⬇</span> ${label}` +
+        (needsReinstall ? '<span class="notif-dot" aria-hidden="true"></span>' : '');
+    }
   }
 
   function alreadyInstalled(){
@@ -7095,7 +7168,7 @@
     iosBanner?.classList.remove('show');
     deferredPrompt = null;
     markInstalledConfirmed();
-    updateDownloadBar();
+    clearReinstallNeeded();
     toast('SOHLAM installed! Check your home screen or app list.');
   });
 
