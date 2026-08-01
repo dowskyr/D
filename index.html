@@ -309,10 +309,19 @@
     width:112px; height:112px; border-radius:50%; object-fit:cover; object-position:center;
     flex-shrink:0; box-shadow:var(--shadow); background:var(--paper-light); margin-top:4px;
   }
+  .hero-photo-frame{
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:4px;
+    padding:7px; border-radius:50%; border:1.5px dashed var(--line);
+    background:
+      repeating-conic-gradient(rgba(33,26,20,0.06) 0% 25%, transparent 0% 50%) 50% / 14px 14px,
+      var(--paper-light);
+  }
+  .hero-photo-frame .hero-photo{margin-top:0; box-shadow:none;}
   @media (max-width:600px){ .hero-photo{width:76px; height:76px;} }
   @media (min-width:1100px){
     .hero-top{align-items:center;}
     .hero-photo{width:150px; height:150px; margin-top:0;}
+    .hero-photo-frame{margin-top:0;}
   }
   .hero-eyebrow{
     display:inline-flex; align-items:center; gap:8px; background:var(--yolk); color:var(--ink);
@@ -331,7 +340,7 @@
     animation:heroRise 1.75s cubic-bezier(.19,.75,.24,1) both;
   }
   .hero.is-live .hero-eyebrow{animation-delay:0s;}
-  .hero.is-live .hero-photo{animation-delay:0.1125s;}
+  .hero.is-live .hero-photo-frame{animation-delay:0.1125s;}
   .hero.is-live #heroLine1{animation:heroReveal 0.4s cubic-bezier(.22,.61,.36,1) both; animation-delay:0.2s;}
   .hero.is-live #heroLine2{animation:heroReveal 0.4s cubic-bezier(.22,.61,.36,1) both; animation-delay:0.375s;}
   /* Lede paragraph: reveals word-by-word with the same wipe used on the headline
@@ -1251,7 +1260,9 @@
         <div class="hero-eyebrow hero-anim" id="heroEyebrow"></div>
         <h1><span class="hero-anim" id="heroLine1"></span><br><em class="hero-anim" id="heroLine2"></em></h1>
       </div>
-      <img class="hero-photo hero-anim" id="heroPhoto" src="" alt="" style="display:none;">
+      <div class="hero-photo-frame hero-anim" id="heroPhotoFrame" style="display:none;">
+        <img class="hero-photo" id="heroPhoto" src="" alt="">
+      </div>
     </div>
 
     <div class="hero-slide active" id="heroSlideText">
@@ -3913,13 +3924,14 @@
       }).join(' ');
     })();
     const heroPhotoEl = document.getElementById('heroPhoto');
+    const heroPhotoFrameEl = document.getElementById('heroPhotoFrame');
     if(content.heroImage){
       heroPhotoEl.src = content.heroImage;
       heroPhotoEl.alt = name;
-      heroPhotoEl.style.display = 'block';
+      heroPhotoFrameEl.style.display = 'flex';
     } else {
       heroPhotoEl.src = '';
-      heroPhotoEl.style.display = 'none';
+      heroPhotoFrameEl.style.display = 'none';
     }
     const heroEl = document.querySelector('.hero');
     if(content.heroBgImage){
@@ -4459,7 +4471,7 @@
       bgLayer.style.backgroundPosition = 'center';
       bgLayer.style.backgroundRepeat = 'no-repeat';
     } else {
-      bgLayer.style.backgroundImage = 'none';
+      bgLayer.style.backgroundImage = '';
       bgLayer.style.backgroundSize = '';
       bgLayer.style.backgroundPosition = '';
       bgLayer.style.backgroundRepeat = '';
