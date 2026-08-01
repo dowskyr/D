@@ -577,8 +577,11 @@
   }
   .qty-stepper .qty-btn:hover{background:var(--yolk);}
   .qty-stepper .qty-val{
-    min-width:52px; text-align:center; font-family:'Space Mono',monospace; font-size:12.5px; font-weight:700; padding:0 4px;
+    width:52px; min-width:52px; text-align:center; font-family:'Space Mono',monospace; font-size:12.5px; font-weight:700; padding:0 4px;
+    border:none; background:transparent; color:var(--ink); -webkit-appearance:none; appearance:none;
   }
+  .qty-stepper .qty-val:focus{outline:none; background:rgba(224,64,42,0.08);}
+  .qty-stepper .qty-val:disabled{opacity:0.6;}
   .cart-item .ci-line-total{font-family:'Space Mono',monospace; font-weight:700; font-size:13.5px;}
   .cart-empty-state{text-align:center; padding:36px 10px;}
   .cart-empty-state .icon{font-size:40px; margin-bottom:10px;}
@@ -848,6 +851,7 @@
   .notify-card.notify-preparing{ border-color:var(--sky); }
   .notify-card.notify-ready{ border-color:var(--rust); }
   .notify-card.notify-branding{ border-color:var(--yolk); }
+  .notify-card.notify-cleanup{ border-color:rgba(33,26,20,0.25); opacity:0.92; }
   .notify-text{ flex:1; min-width:0; }
   .notify-title{ font-family:'Bitter',serif; font-weight:800; font-size:14px; margin-bottom:2px; }
   .notify-body{ font-size:12.5px; color:rgba(33,26,20,0.75); line-height:1.35; }
@@ -1680,6 +1684,7 @@
       <div style="display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap;">
         <button class="icon-btn" id="exportOrdersPdfBtn">⬇ Export PDF</button>
         <button class="icon-btn" id="exportOrdersExcelBtn">⬇ Export Excel</button>
+        <button class="icon-btn" id="purgeExpiredOrdersBtn">🧹 Purge Expired Orders (&gt;30 Days)</button>
       </div>
       <div id="adminOrderList"></div>
     </div>
@@ -1948,6 +1953,11 @@
   const BRANDING_KEY = 'sohlam_branding_v1';
   const DEFAULT_BRANDING = {appName:'SOHLAM', tagline:'Sow Little, Harvest More', logoUrl:''};
   const MY_ORDERS_KEY = 'ftf_my_orders_v1';
+  // Last phone number used at checkout, kept separately from myOrderIds so
+  // Order History can auto-recover on this same device if myOrderIds itself
+  // is ever lost (storage cleared, or reopened from a downloaded file into
+  // a fresh storage partition) — see maybeAutoRecoverHistory() below.
+  const LAST_PHONE_KEY = 'ftf_last_phone_v1';
   // Payment-proof photos are kept in a dedicated local store, separate from
   // the cloud-synced order record. This is what lets the upload → thumbnail
   // → receipt loop work instantly and offline (like a local-only app, no
@@ -2285,6 +2295,45 @@
     saveOrdersLocal(orders.filter(o=> o.id !== id));
     return Promise.resolve();
   }
+  // 30-day expired unvalidated order auto-purge. "Unvalidated" here means
+  // status:'new' — an order the customer placed that the admin never acted
+  // on (never moved to preparing/ready/delivered) and never cancelled.
+  // Orders don't carry a numeric createdAt; they carry `timestamp` as an
+  // ISO-8601 string (see createOrder()), and ISO-8601 UTC strings sort
+  // lexicographically the same as chronologically, so string comparison
+  // against a cutoff ISO string works fine as a Firestore query bound.
+  // Deletes are batched (Firestore caps a batch at 500 writes) and committed
+  // atomically per chunk. Resolves to the number of orders purged.
+  function purgeExpiredOrders(){
+    if(!(CLOUD_ENABLED && db)) return Promise.resolve(0);
+    const cutoff = new Date(Date.now() - 30*24*60*60*1000).toISOString();
+    return db.collection('orders')
+      .where('status', '==', 'new')
+      .where('timestamp', '<=', cutoff)
+      .get()
+      .then(snap=>{
+        if(snap.empty) return 0;
+        const docs = snap.docs;
+        const chunks = [];
+        for(let i=0; i<docs.length; i+=450){ chunks.push(docs.slice(i, i+450)); }
+        return chunks.reduce((chain, chunk)=>{
+          return chain.then(async ()=>{
+            const batch = db.batch();
+            chunk.forEach(doc=> batch.delete(doc.ref));
+            await batch.commit();
+          });
+        }, Promise.resolve()).then(()=>{
+          const purgedIds = new Set(docs.map(d=> String(d.id)));
+          orders = orders.filter(o=> !purgedIds.has(String(o.id)));
+          safeSetItem(ORDERS_KEY, JSON.stringify(orders));
+          return docs.length;
+        });
+      })
+      .catch(err=>{
+        console.error('purgeExpiredOrders failed:', err);
+        throw err;
+      });
+  }
   function loadMyOrderIds(){
     try{
       const raw = localStorage.getItem(MY_ORDERS_KEY);
@@ -2293,7 +2342,7 @@
     return [];
   }
   function saveMyOrderIds(ids){ myOrderIds = ids; safeSetItem(MY_ORDERS_KEY, JSON.stringify(ids)); }
-  function rememberMyOrder(id){ saveMyOrderIds([...myOrderIds, id]); }
+  function rememberMyOrder(id){ if(myOrderIds.includes(id)) return; saveMyOrderIds([...myOrderIds, id]); }
   function saveContent(c){
     content = c;
     safeSetItem(CONTENT_KEY, JSON.stringify(c));
@@ -2335,14 +2384,31 @@
         cloudConnected = true;
         setCloudStatus('on');
         const newOrders = snap.docs.map(d=>d.data()).sort((a,b)=> a.id - b.id);
-        checkOrderNotifications(newOrders);
-        orders = newOrders;
+        // Guard against a snapshot that hasn't caught up yet with an order
+        // this device just placed (e.g. the listener's read lands a beat
+        // before the just-committed transaction is reflected) silently
+        // erasing it from Order History the moment this handler runs. Any
+        // order this device is actively tracking (myOrderIds) that the new
+        // snapshot is momentarily missing gets kept; the next snapshot
+        // event reconciles normally once it catches up.
+        const newIds = new Set(newOrders.map(o=>o.id));
+        const stillMissing = orders.filter(o=> myOrderIds.includes(o.id) && !newIds.has(o.id));
+        const mergedOrders = stillMissing.length ? [...newOrders, ...stillMissing].sort((a,b)=> a.id-b.id) : newOrders;
+        checkOrderNotifications(mergedOrders);
+        orders = mergedOrders;
         safeSetItem(ORDERS_KEY, JSON.stringify(orders)); // offline cache
         renderCart();
         renderGrid();
         refreshTrackResultIfOpen();
+        refreshOrderHistoryIfOpen();
         updatePendingOrdersBadge();
-        if(document.getElementById('adminDashboard').style.display === 'block') renderAdminOrders();
+        if(document.getElementById('adminDashboard').style.display === 'block'){
+          renderAdminOrders();
+          // Orders placed, cancelled, delivered, or deleted all change how
+          // much stock is "reserved" vs genuinely "left" — keep the admin
+          // inventory list in sync the same way the storefront already is.
+          renderAdminProducts();
+        }
       }, err=>{ console.error('Orders sync error:', err); setCloudStatus('error'); });
 
       db.collection('catalog').doc('products').onSnapshot(doc=>{
@@ -3058,20 +3124,24 @@
 
       if(was && was !== 'ready' && o.status === 'ready'){
         const isMine = myOrderIds.includes(o.id);
-        showNotification(
-          isMine ? `📦 Your order #${o.id} is ready!` : `📦 Order #${o.id} is ready`,
-          isMine ? `Come grab it whenever you're set — see you soon!` : `${o.customerName || 'A customer'}'s order is ready for pickup.`,
-          'ready'
-        );
+        if(isMine || isAdminView){
+          showNotification(
+            isMine ? `📦 Your order #${o.id} is ready!` : `📦 Order #${o.id} is ready`,
+            isMine ? `Come grab it whenever you're set — see you soon!` : `${o.customerName || 'A customer'}'s order is ready for pickup.`,
+            'ready'
+          );
+        }
       }
 
       if(was && was !== 'delivered' && o.status === 'delivered'){
         const isMine = myOrderIds.includes(o.id);
-        showNotification(
-          isMine ? `✅ Your order #${o.id} has been delivered!` : `📦 Order #${o.id} delivered`,
-          isMine ? `Thanks for shopping with ${bizName()} — enjoy!` : `${o.customerName || 'A customer'}'s order just went out.`,
-          'delivered'
-        );
+        if(isMine || isAdminView){
+          showNotification(
+            isMine ? `✅ Your order #${o.id} has been delivered!` : `📦 Order #${o.id} delivered`,
+            isMine ? `Thanks for shopping with ${bizName()} — enjoy!` : `${o.customerName || 'A customer'}'s order just went out.`,
+            'delivered'
+          );
+        }
       }
     });
 
@@ -4102,10 +4172,9 @@
           <div class="qty-row">
             <div class="qty-stepper" style="${s==='sold' ? 'opacity:0.5; pointer-events:none;' : ''}">
               <button type="button" class="qty-btn" data-pick-dec="${p.id}" aria-label="Decrease quantity">−</button>
-              <span class="qty-val" data-qty-display="${p.id}">0</span>
+              <input type="text" inputmode="decimal" class="qty-val" data-qty="${p.id}" value="0" aria-label="Quantity" ${avail<=0?'disabled':''}>
               <button type="button" class="qty-btn" data-pick-inc="${p.id}" aria-label="Increase quantity" ${avail<=0?'disabled':''}>+</button>
             </div>
-            <input type="hidden" data-qty="${p.id}" value="0">
             <span style="font-size:12px; color:rgba(33,26,20,0.6);">${unitNounOf(p)}</span>
           </div>
           <div class="qty-limit-msg" data-qty-limit-msg="${p.id}" style="display:none;"></div>
@@ -4121,6 +4190,15 @@
     });
     document.querySelectorAll('[data-pick-inc]').forEach(btn=>{
       btn.addEventListener('click', ()=> adjustPickQty(btn.getAttribute('data-pick-inc'), 1));
+    });
+    // Typed-in quantity: sanitize on every keystroke and clamp to available
+    // stock immediately, so a value above what's left never has a chance to
+    // reach "Add to Basket" — it's blocked right here on the product card.
+    document.querySelectorAll('[data-qty]').forEach(input=>{
+      const id = input.getAttribute('data-qty');
+      input.addEventListener('input', ()=> handleQtyInputChange(id));
+      input.addEventListener('blur', ()=> handleQtyInputBlur(id));
+      input.addEventListener('focus', ()=> input.select());
     });
     document.querySelectorAll('[data-add]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -4148,7 +4226,7 @@
 
   // Adjusts the pending (pre-cart) quantity shown on a product card's +/−
   // stepper. Mirrors updateCartQty's capping logic but operates on the
-  // card's own hidden qty input rather than a cart line, so a customer is
+  // card's own qty input rather than a cart line, so a customer is
   // stopped at the real available stock before they ever tap "Add to
   // Basket" — not just after.
   function adjustPickQty(id, direction){
@@ -4156,12 +4234,11 @@
     if(!p) return;
     const step = qtyStepOf(p);
     const avail = availableQtyOf(p);
-    const hiddenInput = document.querySelector(`[data-qty="${id}"]`);
-    const display = document.querySelector(`[data-qty-display="${id}"]`);
+    const input = document.querySelector(`[data-qty="${id}"]`);
     const msgEl = document.querySelector(`[data-qty-limit-msg="${id}"]`);
     const plusBtn = document.querySelector(`[data-pick-inc="${id}"]`);
-    if(!hiddenInput) return;
-    let qty = parseFloat(hiddenInput.value) || 0;
+    if(!input) return;
+    let qty = parseFloat(input.value) || 0;
     let next = +(qty + direction*step).toFixed(2);
     if(next < 0) next = 0;
     let hitLimit = false;
@@ -4169,8 +4246,7 @@
       next = avail;
       hitLimit = direction > 0;
     }
-    hiddenInput.value = next;
-    if(display) display.textContent = formatProductQty(p, next);
+    input.value = unitTypeOf(p) === 'count' ? Math.round(next) : next;
     if(plusBtn) plusBtn.disabled = next >= avail;
     if(msgEl){
       if(hitLimit && avail > 0){
@@ -4182,15 +4258,73 @@
     }
   }
 
+  // Fires on every keystroke in a product card's qty input. Strips anything
+  // that isn't a valid number for that product's unit type (whole numbers
+  // only for count-based items, one decimal point allowed for weight-based
+  // ones), then clamps the value to available stock right away — a typed
+  // amount above what's left is capped the instant it's typed, it never
+  // gets to sit in the field unclamped.
+  function handleQtyInputChange(id){
+    const p = products.find(x=>x.id===id);
+    if(!p) return;
+    const avail = availableQtyOf(p);
+    const input = document.querySelector(`[data-qty="${id}"]`);
+    const msgEl = document.querySelector(`[data-qty-limit-msg="${id}"]`);
+    const plusBtn = document.querySelector(`[data-pick-inc="${id}"]`);
+    if(!input) return;
+    const allowDecimal = unitTypeOf(p) !== 'count';
+    let raw = allowDecimal ? input.value.replace(/[^0-9.]/g, '') : input.value.replace(/[^0-9]/g, '');
+    if(allowDecimal){
+      const firstDot = raw.indexOf('.');
+      if(firstDot !== -1) raw = raw.slice(0, firstDot+1) + raw.slice(firstDot+1).replace(/\./g, '');
+    }
+    let qty = raw === '' || raw === '.' ? 0 : parseFloat(raw);
+    if(isNaN(qty) || qty < 0) qty = 0;
+    let hitLimit = false;
+    // Only clamp the value we write back once it's unambiguously over —
+    // a raw string like "1." while typing "1.5" shouldn't get rewritten
+    // mid-keystroke, but the numeric value itself is still capped.
+    if(qty > avail){
+      qty = avail;
+      hitLimit = true;
+      raw = unitTypeOf(p) === 'count' ? String(Math.round(qty)) : String(qty);
+    }
+    input.value = raw;
+    if(plusBtn) plusBtn.disabled = qty >= avail;
+    if(msgEl){
+      if(hitLimit && avail > 0){
+        msgEl.textContent = `${t('onlyLeftOf')} ${formatProductQty(p, avail)} ${t('ofLeft')}`;
+        msgEl.style.display = 'block';
+      } else {
+        msgEl.style.display = 'none';
+      }
+    }
+  }
+
+  // Fires on blur: tidies up the typed value (rounds count-based items to
+  // whole numbers, trims a trailing decimal point, re-clamps as a final
+  // safety net) so the field never shows a half-typed or invalid number
+  // once the customer moves on.
+  function handleQtyInputBlur(id){
+    const p = products.find(x=>x.id===id);
+    if(!p) return;
+    const avail = availableQtyOf(p);
+    const input = document.querySelector(`[data-qty="${id}"]`);
+    if(!input) return;
+    let qty = parseFloat(input.value) || 0;
+    if(qty < 0) qty = 0;
+    if(qty > avail) qty = avail;
+    qty = unitTypeOf(p) === 'count' ? Math.round(qty) : +qty.toFixed(2);
+    input.value = qty;
+  }
+
   // Resets a product card's picker back to 0 after its items land in the
   // basket, so the next tap starts fresh instead of showing a stale qty.
   function resetPickQty(id){
-    const hiddenInput = document.querySelector(`[data-qty="${id}"]`);
-    const display = document.querySelector(`[data-qty-display="${id}"]`);
+    const input = document.querySelector(`[data-qty="${id}"]`);
     const msgEl = document.querySelector(`[data-qty-limit-msg="${id}"]`);
     const plusBtn = document.querySelector(`[data-pick-inc="${id}"]`);
-    if(hiddenInput) hiddenInput.value = '0';
-    if(display) display.textContent = '0';
+    if(input) input.value = '0';
     if(msgEl) msgEl.style.display = 'none';
     if(plusBtn){
       const p = products.find(x=>x.id===id);
@@ -4385,6 +4519,7 @@
       return;
     }
     newIds.forEach(id=> rememberMyOrder(id));
+    safeSetItem(LAST_PHONE_KEY, rawPhone);
     msgEl.textContent = `${newIds.length} ${t('historyRecoverFound')}`;
     renderOrderHistory();
   }
@@ -4392,6 +4527,22 @@
   document.getElementById('historyRecoverBtn').addEventListener('click', ()=>{
     recoverOrdersByPhone(document.getElementById('historyRecoverPhone').value);
   });
+
+  // Self-heals Order History when this device's local link to its own
+  // orders (myOrderIds) has been lost — same idea as recoverOrdersByPhone
+  // above, but silent and automatic. Runs right before the panel renders:
+  // if there's nothing in myPlacedOrders() but we still have the phone
+  // number from a previous successful checkout on this device, quietly
+  // re-link any matching orders so the customer sees their history without
+  // having to find and use the manual "Find" box themselves.
+  function maybeAutoRecoverHistory(){
+    if(myPlacedOrders().length > 0) return;
+    let lastPhone = '';
+    try{ lastPhone = localStorage.getItem(LAST_PHONE_KEY) || ''; }catch(e){}
+    const target = normalizePhone(lastPhone);
+    if(target.length < 6) return;
+    orders.filter(o=> normalizePhone(o.phone) === target).forEach(o=> rememberMyOrder(o.id));
+  }
 
   function renderCart(){
     document.getElementById('cartCount').textContent = cart.length;
@@ -4866,6 +5017,7 @@
     placeBtn.disabled = true;
     createOrder(draft).then(order=>{
       rememberMyOrder(order.id);
+      safeSetItem(LAST_PHONE_KEY, phone);
       clearAppliedCoupon(); // coupon shouldn't silently carry over into the next basket
       showNotification(
         `✅ Order #${order.id} placed!`,
@@ -5024,6 +5176,7 @@
         toast(`Order #${order.id} cancelled.`);
         refreshTrackResultIfOpen();
         renderCart();
+        renderGrid();
       }).catch(e=>{
         console.error('Cancel failed:', e);
         toast(e && e.message === 'This order can no longer be cancelled.' ? e.message : 'Could not cancel order — check your connection.');
@@ -5040,6 +5193,15 @@
     if(!document.getElementById('trackOverlay').classList.contains('open')) return;
     const order = orders.find(o=>o.id===lastTrackedOrderId);
     if(order) renderTrackResult(order);
+  }
+  // Re-renders Order History if the panel is currently open, so a status
+  // change, payment update, or cancellation from another device (or the
+  // admin dashboard) shows up immediately instead of only on the next time
+  // the customer closes and reopens the panel.
+  function refreshOrderHistoryIfOpen(){
+    if(!document.getElementById('historyOverlay').classList.contains('open')) return;
+    maybeAutoRecoverHistory();
+    renderOrderHistory();
   }
   document.getElementById('trackBtn').addEventListener('click', ()=>{
     const idRaw = document.getElementById('trackId').value.trim().replace('#','');
@@ -5060,6 +5222,7 @@
   // demand from the basket, not shown automatically inside it, so a fresh
   // "Add to Basket" for a new order never has an old order sitting in view.
   function openHistory(){
+    maybeAutoRecoverHistory();
     renderOrderHistory();
     document.getElementById('historyOverlay').classList.add('open');
     pushLayer('history', ()=> document.getElementById('historyOverlay').classList.remove('open'));
@@ -5243,6 +5406,19 @@
       populateContentForm();
       renderAdminFlock();
       renderPendingReviews();
+      // Auto-cleanup: purge orders left unvalidated (status:'new') for over
+      // 30 days, once per admin session load. Silent when there's nothing
+      // to purge; only surfaces a toast when it actually removed something,
+      // then refreshes the Orders tab so the list/badge reflect it.
+      purgeExpiredOrders().then(purgedCount=>{
+        if(purgedCount > 0){
+          showNotification('🧹 Auto-cleanup', `Auto-cleaned ${purgedCount} unvalidated order${purgedCount===1?'':'s'} older than 30 days.`, 'cleanup');
+          renderAdminOrders();
+          updatePendingOrdersBadge();
+        }
+      }).catch(err=>{
+        console.warn('Auto-purge of expired orders failed (non-fatal):', err);
+      });
     } else {
       document.getElementById('adminError').textContent = 'Incorrect passcode. Try again.';
     }
@@ -5288,6 +5464,35 @@
   document.getElementById('orderSearchInput').addEventListener('input', (e)=>{
     orderSearchQuery = e.target.value;
     renderAdminOrders();
+  });
+
+  document.getElementById('purgeExpiredOrdersBtn').addEventListener('click', function(){
+    const btn = this;
+    if(!(CLOUD_ENABLED && db)){
+      toast('Purge needs an internet connection — please try again once connected.');
+      return;
+    }
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Purging…';
+    purgeExpiredOrders()
+      .then(purgedCount=>{
+        if(purgedCount > 0){
+          toast(`🧹 Purged ${purgedCount} unvalidated order${purgedCount===1?'':'s'} older than 30 days.`);
+          renderAdminOrders();
+          updatePendingOrdersBadge();
+        } else {
+          toast('No expired unvalidated orders to purge.');
+        }
+      })
+      .catch(err=>{
+        console.error('Manual purge of expired orders failed:', err);
+        toast('Could not purge expired orders — check your connection.');
+      })
+      .finally(()=>{
+        btn.disabled = false;
+        btn.textContent = original;
+      });
   });
 
   // ---------------- Admin: Inventory ----------------
@@ -5516,11 +5721,20 @@
     }
     list.innerHTML = products.map(p=>{
       const img = p.image || placeholderImg(p.name);
+      // Mirror the storefront's own math (reservedQtyOf/availableQtyOf) so
+      // admin sees the exact same "ordered / left" figures a customer
+      // would — previously this showed raw stockKg, which never moved
+      // when an order was placed, cancelled, delivered, or deleted.
+      const avail = availableQtyOf(p);
+      const reserved = reservedQtyOf(p.id);
+      const qtyText = reserved > 0
+        ? `${formatProductQty(p, reserved)} ordered &middot; ${formatProductQty(p, avail)} left`
+        : `${formatProductQty(p, avail)} left`;
       return `<div class="product-row">
         <img src="${img}" alt="${p.name}">
         <div class="pr-info">
           <div class="name">${p.name}${p.video ? ' 🎥' : ''}</div>
-          <div class="meta">${p.cut} &middot; ${fmtMoney(p.pricePerKg)}/${unitNounOf(p)} &middot; ${formatProductQty(p, p.stockKg)} left</div>
+          <div class="meta">${p.cut} &middot; ${fmtMoney(p.pricePerKg)}/${unitNounOf(p)} &middot; ${qtyText}</div>
         </div>
         <div class="pr-actions">
           <button class="icon-btn" data-edit="${p.id}">Edit</button>
@@ -6575,6 +6789,7 @@
           });
           saveProducts(updatedProducts);
           renderGrid();
+          renderAdminProducts();
         }
         btn.disabled = true;
         updateOrder(id, {status: nextStatus}).then(renderAdminOrders).catch(e=>{
@@ -6638,6 +6853,11 @@
         btn.disabled = true;
         updateOrder(id, {status:'cancelled'}).then(()=>{
           renderAdminOrders();
+          // Cancelling frees up whatever this order had reserved — reflect
+          // that immediately in both the storefront grid and the admin
+          // inventory list, rather than waiting on the next cloud sync.
+          renderGrid();
+          renderAdminProducts();
           toast(`Order #${id} cancelled.`);
         }).catch(e=>{
           console.error('Cancel failed:', e);
@@ -6653,6 +6873,11 @@
         btn.disabled = true;
         deleteOrder(id).then(()=>{
           renderAdminOrders();
+          // A deleted order's reservation disappears with it — same
+          // immediate refresh as cancel, so admin inventory and the
+          // storefront grid both show the freed-up stock right away.
+          renderGrid();
+          renderAdminProducts();
           toast(`Order #${id} deleted.`);
         }).catch(e=>{
           console.error('Delete failed:', e);

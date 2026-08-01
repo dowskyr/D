@@ -13,7 +13,7 @@
 //    caches are deleted automatically on activate, and the new worker
 //    takes over immediately (no waiting for tabs to close).
 
-const CACHE_VERSION = 'sohlam-v1';
+const CACHE_VERSION = 'sohlam-v2';
 const OFFLINE_URL = 'index.html';
 
 self.addEventListener('install', (event) => {
