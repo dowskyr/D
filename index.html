@@ -309,19 +309,10 @@
     width:112px; height:112px; border-radius:50%; object-fit:cover; object-position:center;
     flex-shrink:0; box-shadow:var(--shadow); background:var(--paper-light); margin-top:4px;
   }
-  .hero-photo-frame{
-    display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:4px;
-    padding:7px; border-radius:50%; border:1.5px dashed var(--line);
-    background:
-      repeating-conic-gradient(rgba(33,26,20,0.06) 0% 25%, transparent 0% 50%) 50% / 14px 14px,
-      var(--paper-light);
-  }
-  .hero-photo-frame .hero-photo{margin-top:0; box-shadow:none;}
   @media (max-width:600px){ .hero-photo{width:76px; height:76px;} }
   @media (min-width:1100px){
     .hero-top{align-items:center;}
     .hero-photo{width:150px; height:150px; margin-top:0;}
-    .hero-photo-frame{margin-top:0;}
   }
   .hero-eyebrow{
     display:inline-flex; align-items:center; gap:8px; background:var(--yolk); color:var(--ink);
@@ -340,7 +331,7 @@
     animation:heroRise 1.75s cubic-bezier(.19,.75,.24,1) both;
   }
   .hero.is-live .hero-eyebrow{animation-delay:0s;}
-  .hero.is-live .hero-photo-frame{animation-delay:0.1125s;}
+  .hero.is-live .hero-photo{animation-delay:0.1125s;}
   .hero.is-live #heroLine1{animation:heroReveal 0.4s cubic-bezier(.22,.61,.36,1) both; animation-delay:0.2s;}
   .hero.is-live #heroLine2{animation:heroReveal 0.4s cubic-bezier(.22,.61,.36,1) both; animation-delay:0.375s;}
   /* Lede paragraph: reveals word-by-word with the same wipe used on the headline
@@ -1036,6 +1027,12 @@
   }
   .sound-toggle-btn:hover{filter:brightness(1.1);}
 
+  /* ---------- Customer Service message on an order card ---------- */
+  .cs-message-block{margin-top:10px; padding:11px 13px; border-left:3px solid var(--rust); border-radius:6px; background:rgba(224,64,42,0.07); text-align:left;}
+  .cs-message-label{font-family:'Bitter',serif; font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.04em; color:var(--rust); margin-bottom:5px;}
+  .cs-message-text{font-size:13.5px; line-height:1.45; white-space:pre-wrap;}
+  .cs-message-time{font-size:11px; color:rgba(33,26,20,0.55); margin-top:6px;}
+
   /* ---------- Payment (Mobile Money) ---------- */
   .payment-block{margin-top:14px; padding:14px 16px; border:2px dashed var(--ink); border-radius:6px; background:var(--paper-light); text-align:left;}
   .payment-block-title{font-family:'Bitter',serif; font-weight:800; font-size:12.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--rust); margin-bottom:8px;}
@@ -1260,9 +1257,7 @@
         <div class="hero-eyebrow hero-anim" id="heroEyebrow"></div>
         <h1><span class="hero-anim" id="heroLine1"></span><br><em class="hero-anim" id="heroLine2"></em></h1>
       </div>
-      <div class="hero-photo-frame hero-anim" id="heroPhotoFrame" style="display:none;">
-        <img class="hero-photo" id="heroPhoto" src="" alt="">
-      </div>
+      <img class="hero-photo hero-anim" id="heroPhoto" src="" alt="" style="display:none;">
     </div>
 
     <div class="hero-slide active" id="heroSlideText">
@@ -2862,6 +2857,19 @@
   // Stored as a compressed base64 JPEG on the order record itself (same
   // approach as product photos) so it works with or without cloud sync.
   const MAX_PROOF_SOURCE_BYTES = 15 * 1024 * 1024; // reject absurdly large source files outright
+  // A short note the admin can attach to an order — shows on the customer's
+  // own copy of that order card (Track Order and Order History) labelled as
+  // coming from Customer Service. Purely a display helper; storage/edit
+  // logic lives in the admin order actions below.
+  function csMessageBlock(o){
+    if(!o.csMessage || !o.csMessage.text) return '';
+    return `
+      <div class="cs-message-block">
+        <div class="cs-message-label">💬 Message from Customer Service</div>
+        <div class="cs-message-text">${escapeHtml(o.csMessage.text)}</div>
+        <div class="cs-message-time">${fmtDateTime(o.csMessage.at)}</div>
+      </div>`;
+  }
   function paymentProofBlock(order){
     const proofImg = proofImageFor(order);
     const has = !!proofImg;
@@ -3924,14 +3932,13 @@
       }).join(' ');
     })();
     const heroPhotoEl = document.getElementById('heroPhoto');
-    const heroPhotoFrameEl = document.getElementById('heroPhotoFrame');
     if(content.heroImage){
       heroPhotoEl.src = content.heroImage;
       heroPhotoEl.alt = name;
-      heroPhotoFrameEl.style.display = 'flex';
+      heroPhotoEl.style.display = 'block';
     } else {
       heroPhotoEl.src = '';
-      heroPhotoFrameEl.style.display = 'none';
+      heroPhotoEl.style.display = 'none';
     }
     const heroEl = document.querySelector('.hero');
     if(content.heroBgImage){
@@ -5828,6 +5835,7 @@
     result.innerHTML = `
       <div class="order-card">
         <div class="order-head"><span class="oid">#${order.id}</span><span class="status-pill status-${order.status}">${trackStatusLabel(order.status)}</span></div>
+        ${csMessageBlock(order)}
         <div class="order-items">${order.items.map(i=>`${i.name} (${formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel)})`).join(', ')}</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
           <span class="mono" style="font-weight:700;">${fmtMoney(order.total)}</span>
@@ -5918,6 +5926,7 @@
       return `<div class="order-card" style="margin-bottom:12px;">
         <div class="order-head"><span class="oid">#${o.id}</span><span class="status-pill status-${o.status}">${trackStatusLabel(o.status)}</span></div>
         <div style="font-size:12px; color:rgba(33,26,20,0.6); margin-bottom:4px;">${t('placedOn')} ${fmtDateTime(o.timestamp)}</div>
+        ${csMessageBlock(o)}
         <div class="order-items">${o.items.map(i=>`${i.name} (${formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel)})`).join(', ')}</div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
           <span class="mono" style="font-weight:700;">${fmtMoney(o.total)}</span>
@@ -7443,6 +7452,7 @@
         <div class="mono" style="font-weight:700;">${fmtMoney(o.total)}</div>
         ${o.transactionId ? `<div style="font-size:12px; color:rgba(33,26,20,0.6); margin-top:4px;">Txn ID: <span class="mono">${o.transactionId}</span></div>` : ''}
         ${pendingVerification ? `<div style="font-size:12px; color:var(--yolk-deep); font-weight:700; margin-top:4px;">⏳ Verification sent ${fmtDateTime(o.verificationSentAt)} — not yet confirmed</div>` : ''}
+        ${csMessageBlock(o)}
         ${proofImageFor(o)
           ? `<div class="admin-proof-row"><img src="${proofImageFor(o)}" class="admin-proof-thumb" data-proof-view alt="Payment proof from customer"><span style="font-size:12px; color:var(--sage); font-weight:700;">📎 Payment screenshot — tap to verify</span></div>`
           : `<div class="admin-proof-missing">No payment screenshot uploaded yet.</div>`}
@@ -7451,6 +7461,7 @@
           ${next ? `<button class="icon-btn" data-advance="${o.id}">Mark ${statusMap[next]}</button>` : ''}
           <button class="icon-btn" data-toggle-paid="${o.id}">${paid ? 'Mark Unpaid' : 'Mark Paid'}</button>
           <button class="icon-btn" data-edit-txn="${o.id}">${o.transactionId ? 'Edit Txn ID' : 'Add Txn ID'}</button>
+          <button class="icon-btn" data-message-customer="${o.id}">${o.csMessage && o.csMessage.text ? '✉️ Edit Message' : '✉️ Message Customer'}</button>
           ${pendingVerification ? `<a class="icon-btn" style="background:#25D366; color:#fff; text-decoration:none;" href="${clientWhatsAppHref(o)}" target="_blank" rel="noopener">💬 Verify Payment</a>` : ''}
           <button class="icon-btn" data-receipt="${o.id}">⬇ Receipt</button>
           ${cancellable ? `<button class="icon-btn danger" data-cancel-order="${o.id}">Cancel Order</button>` : ''}
@@ -7518,6 +7529,24 @@
         }).catch(e=>{
           console.error('Transaction ID update failed:', e);
           toast('Could not update transaction ID — check your connection.');
+          btn.disabled = false;
+        });
+      });
+    });
+    list.querySelectorAll('[data-message-customer]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = parseInt(btn.getAttribute('data-message-customer'),10);
+        const target = orders.find(o=>o.id===id);
+        const entered = prompt(`Message for the customer on order #${id} (shown on their order card as "Message from Customer Service"). Leave blank to remove it:`, (target.csMessage && target.csMessage.text) || '');
+        if(entered === null) return; // admin cancelled the prompt
+        const patch = { csMessage: entered.trim() ? { text: entered.trim(), at: new Date().toISOString() } : null };
+        btn.disabled = true;
+        updateOrder(id, patch).then(()=>{
+          renderAdminOrders();
+          toast(entered.trim() ? `Message sent to customer for order #${id}.` : `Message removed from order #${id}.`);
+        }).catch(e=>{
+          console.error('Customer message update failed:', e);
+          toast('Could not send the message — check your connection.');
           btn.disabled = false;
         });
       });
