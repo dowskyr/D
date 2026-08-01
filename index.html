@@ -875,6 +875,151 @@
     display:none; background:var(--rust); color:var(--cream); font-size:11px; font-weight:800;
     border-radius:20px; padding:1px 7px; margin-left:6px; vertical-align:middle;
   }
+
+  /* ---------- Advert / Flyer Builder ---------- */
+  .advert-grid{display:grid; grid-template-columns:340px 1fr; gap:28px; align-items:start;}
+  .advert-section-title{font-family:'Bitter',serif; font-weight:800; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--rust); margin:18px 0 8px;}
+  .advert-section-title:first-child{margin-top:0;}
+  .theme-swatch-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:6px;}
+  .theme-swatch{
+    position:relative; height:52px; border-radius:9px; border:2px solid rgba(33,26,20,0.15);
+    cursor:pointer; overflow:hidden; padding:0;
+  }
+  .theme-swatch.active{border-color:var(--ink); box-shadow:0 0 0 2px var(--yolk);}
+  .theme-swatch span{
+    position:absolute; left:0; right:0; bottom:0; font-size:9px; font-weight:700; text-align:center;
+    background:rgba(0,0,0,0.35); color:#fff; padding:2px 0;
+  }
+  .swatch-sunrise{background:linear-gradient(135deg,#FFB300,#E0402A 70%);}
+  .swatch-farmfresh{background:linear-gradient(135deg,#2E9C6E,#0F4C36 75%);}
+  .swatch-midnight{background:linear-gradient(135deg,#1C1108,#3A2712 55%,#CC6A00);}
+  .swatch-sky{background:linear-gradient(135deg,#1E9DC2,#7FD4EC);}
+  .swatch-paper{background:linear-gradient(135deg,#F7E8CB,#E0402A 140%);}
+  .swatch-bold{background:linear-gradient(90deg,#E0402A 50%,#FFB300 50%);}
+  .advert-toggle-row{display:flex; align-items:center; gap:8px; margin-bottom:10px; font-size:13px; font-weight:600;}
+  .advert-toggle-row input[type="checkbox"]{width:16px; height:16px; accent-color:var(--rust);}
+  .advert-download-btn{width:100%; margin-top:6px;}
+  .advert-bg-upload{margin-top:4px; margin-bottom:12px; padding:12px; border:1.5px dashed var(--line); border-radius:10px; background:var(--paper-light);}
+  .advert-bg-upload-row{display:flex; align-items:center; gap:10px;}
+  .advert-bg-thumb{width:52px; height:52px; border-radius:8px; object-fit:cover; border:1.5px solid var(--ink); display:none; flex-shrink:0;}
+  .advert-bg-thumb.show{display:block;}
+  .advert-bg-actions{display:flex; flex-direction:column; gap:6px; flex:1; min-width:0;}
+  .advert-textmode-row{display:none; gap:6px; margin-top:8px;}
+  .advert-textmode-row.show{display:flex;}
+  .advert-textmode-btn{
+    flex:1; padding:6px 8px; font-size:11.5px; font-weight:700; border:1.5px solid var(--ink);
+    border-radius:8px; background:var(--cream); color:var(--ink);
+  }
+  .advert-textmode-btn.active{background:var(--ink); color:var(--cream);}
+  .flyer-stage{
+    display:flex; justify-content:center; padding:26px; border-radius:14px;
+    background:
+      repeating-conic-gradient(rgba(33,26,20,0.05) 0% 25%, transparent 0% 50%) 50% / 22px 22px,
+      var(--paper-light);
+    border:1.5px dashed var(--line);
+  }
+  .flyer-canvas{
+    position:relative; width:min(100%, 420px); overflow:hidden; border-radius:4px;
+    box-shadow:var(--shadow); background:#fff; font-family:'Work Sans', sans-serif;
+    container-type: size; container-name: flyer;
+  }
+  .flyer-bg{position:absolute; inset:0; background-size:cover; background-position:center;}
+  .flyer-scrim{position:absolute; inset:0; opacity:0; background:linear-gradient(190deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.12) 35%, rgba(0,0,0,0.55) 100%);}
+  .flyer-canvas.has-custom-bg .flyer-scrim{opacity:1;}
+  .flyer-canvas.has-custom-bg.custom-dark .flyer-scrim{background:linear-gradient(190deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.15) 35%, rgba(255,255,255,0.6) 100%);}
+  .flyer-content{
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    padding:clamp(10px,5cqmin,30px) clamp(12px,6cqmin,34px); color:var(--flyer-ink, #1C1108);
+  }
+  .flyer-canvas.has-custom-bg .flyer-content{--flyer-ink:#FFF6E4; --flyer-badge-bg:#1C1108; --flyer-badge-ink:#FFD466; --flyer-promo-bg:rgba(28,17,8,0.75); --flyer-promo-ink:#FFF6E4;}
+  .flyer-canvas.has-custom-bg.custom-dark .flyer-content{--flyer-ink:#1C1108; --flyer-badge-bg:#FFF6E4; --flyer-badge-ink:#1C1108; --flyer-promo-bg:rgba(255,246,228,0.85); --flyer-promo-ink:#1C1108;}
+  .flyer-top{display:flex; align-items:center; gap:8px; margin-bottom:auto; flex-shrink:0;}
+  .flyer-logo{width:14cqmin; max-width:56px; min-width:24px; aspect-ratio:1; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.85); background:#fff; display:none; flex-shrink:0;}
+  .flyer-logo.show{display:block;}
+  .flyer-brand{font-family:'Bitter',serif; font-weight:800; font-size:clamp(10px,4.2cqmin,20px); letter-spacing:0.03em; text-transform:uppercase;}
+  .flyer-badge{
+    display:inline-block; align-self:flex-start; font-family:'Space Mono',monospace; font-weight:700;
+    font-size:clamp(8px,3cqmin,15px); padding:clamp(3px,1cqmin,6px) clamp(8px,2.6cqmin,14px); border-radius:20px;
+    margin-bottom:clamp(6px,2.4cqmin,14px); flex-shrink:0;
+    background:var(--flyer-badge-bg, rgba(255,255,255,0.9)); color:var(--flyer-badge-ink, #1C1108);
+  }
+  .flyer-headline{
+    font-family:'Fraunces',serif; font-weight:800; font-size:clamp(16px,8.5cqmin,44px); line-height:1.04;
+    margin-bottom:clamp(4px,1.6cqmin,12px); word-break:break-word; white-space:pre-line; flex-shrink:0;
+    overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4;
+  }
+  .flyer-sub{
+    font-size:clamp(9px,3.2cqmin,15px); line-height:1.35; margin-bottom:auto; max-width:94%; opacity:0.92;
+    overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:4;
+  }
+  .flyer-promo{
+    margin-top:clamp(6px,2.6cqmin,16px); padding:clamp(6px,2.2cqmin,12px) clamp(8px,2.8cqmin,16px);
+    border-radius:10px; background:var(--flyer-promo-bg, rgba(0,0,0,0.55)); flex-shrink:0;
+    color:var(--flyer-promo-ink, #fff); display:none; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;
+  }
+  .flyer-promo.show{display:flex;}
+  .flyer-promo-text{font-weight:700; font-size:clamp(9px,3.2cqmin,15px);}
+  .flyer-promo-code{
+    font-family:'Space Mono',monospace; font-weight:800; font-size:clamp(8px,2.6cqmin,13px);
+    border:1.5px dashed currentColor; padding:2px 8px; border-radius:6px; display:none; white-space:nowrap;
+  }
+  .flyer-promo-code.show{display:inline-block;}
+  .flyer-footer{display:flex; align-items:flex-end; justify-content:space-between; gap:8px; margin-top:clamp(6px,2.6cqmin,16px); flex-shrink:0;}
+  .flyer-contact{font-size:clamp(7px,2.5cqmin,12px); line-height:1.5; opacity:0.92; max-width:66%; min-width:0;}
+  .flyer-contact div{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .flyer-qr-wrap{display:none; flex-direction:column; align-items:center; gap:3px; flex-shrink:0;}
+  .flyer-qr-wrap.show{display:flex;}
+  .flyer-qr{width:20cqmin; max-width:100px; min-width:40px; aspect-ratio:1; background:#fff; border-radius:6px; padding:4px; box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+  .flyer-qr-label{font-size:clamp(6px,2cqmin,9.5px); font-weight:700; text-transform:uppercase; letter-spacing:0.05em; white-space:nowrap;}
+
+  /* Theme skins (vars live on the canvas root so they cascade into .flyer-content;
+     backgrounds paint the separate .flyer-bg layer so a custom photo can sit in the
+     same spot without fighting the gradient) */
+  .theme-sunrise{--flyer-ink:#2A0E05; --flyer-badge-bg:#1C1108; --flyer-badge-ink:#FFD466; --flyer-promo-bg:rgba(28,17,8,0.75); --flyer-promo-ink:#FFF6E4;}
+  .theme-sunrise .flyer-bg{
+    background:
+      radial-gradient(circle at 88% 8%, rgba(255,255,255,0.35), transparent 40%),
+      radial-gradient(circle at 100% 0%, #FFD466, transparent 55%),
+      linear-gradient(155deg,#FFB300 0%,#E0402A 65%,#B22E1C 100%);
+  }
+  .theme-farmfresh{--flyer-ink:#FFF6E4; --flyer-badge-bg:#FFB300; --flyer-badge-ink:#1C1108; --flyer-promo-bg:rgba(255,255,255,0.16); --flyer-promo-ink:#FFF6E4;}
+  .theme-farmfresh .flyer-bg{
+    background:
+      radial-gradient(circle at 10% 90%, rgba(255,255,255,0.18), transparent 45%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 26px),
+      linear-gradient(160deg,#2E9C6E 0%,#1F7A5C 55%,#0F4C36 100%);
+  }
+  .theme-midnight{--flyer-ink:#FFF6E4; --flyer-badge-bg:#CC6A00; --flyer-badge-ink:#1C1108; --flyer-promo-bg:rgba(255,179,0,0.14); --flyer-promo-ink:#FFD466;}
+  .theme-midnight .flyer-bg{
+    background:
+      radial-gradient(circle at 85% 15%, rgba(204,106,0,0.5), transparent 45%),
+      linear-gradient(165deg,#1C1108 0%,#2A1A0C 60%,#3A2712 100%);
+  }
+  .theme-sky{--flyer-ink:#0B2E3A; --flyer-badge-bg:#1C1108; --flyer-badge-ink:#FFD466; --flyer-promo-bg:rgba(11,46,58,0.72); --flyer-promo-ink:#FFF6E4;}
+  .theme-sky .flyer-bg{
+    background:
+      radial-gradient(circle at 15% 15%, rgba(255,255,255,0.55), transparent 30%),
+      radial-gradient(circle at 80% 75%, rgba(255,255,255,0.4), transparent 35%),
+      linear-gradient(160deg,#1E9DC2 0%,#3FB6D8 55%,#7FD4EC 100%);
+  }
+  .theme-paper{--flyer-ink:#1C1108; --flyer-badge-bg:#E0402A; --flyer-badge-ink:#FFF6E4; --flyer-promo-bg:#1C1108; --flyer-promo-ink:#FFF6E4;}
+  .theme-paper .flyer-bg{
+    background:
+      radial-gradient(rgba(33,26,20,0.05) 1px, transparent 1px) 0 0/12px 12px,
+      linear-gradient(180deg,#FFF6E4 0%,#F7E8CB 100%);
+  }
+  .theme-paper .flyer-headline{color:#B22E1C;}
+  .theme-bold{--flyer-ink:#1C1108; --flyer-badge-bg:#1C1108; --flyer-badge-ink:#FFB300; --flyer-promo-bg:#1C1108; --flyer-promo-ink:#FFF6E4;}
+  .theme-bold .flyer-bg{background:linear-gradient(115deg,#E0402A 0 52%, #FFB300 52% 100%);}
+  /* When a custom photo background is active it paints .flyer-bg directly via
+     inline style (see JS), so the theme's own .flyer-bg gradient is suppressed. */
+  .flyer-canvas.has-custom-bg .flyer-bg{background-image:none;}
+  .flyer-canvas.has-custom-bg.theme-paper .flyer-headline{color:inherit;}
+
+  @media (max-width:820px){
+    .advert-grid{grid-template-columns:1fr;}
+    .flyer-stage{padding:16px;}
+  }
   .sound-toggle-btn{
     background:var(--sage); color:var(--cream); border:2px solid var(--cream);
     width:38px; height:38px; border-radius:50%; font-size:16px; display:inline-flex;
@@ -1389,6 +1534,7 @@
       <button class="admin-tab" data-tab="content">Site Content</button>
       <button class="admin-tab" data-tab="marketing">Marketing<span class="tab-badge" id="pendingReviewsBadge"></span></button>
       <button class="admin-tab" data-tab="orders">Orders<span class="tab-badge" id="pendingOrdersBadge"></span></button>
+      <button class="admin-tab" data-tab="advert">Advert</button>
       <button type="button" class="admin-tab-search-btn" id="orderSearchToggleBtn" aria-label="Search orders" title="Search orders">🔍</button>
     </div>
     <div class="order-search-bar" id="orderSearchBar" style="display:none;">
@@ -1697,6 +1843,105 @@
       </div>
       <div id="adminOrderList"></div>
     </div>
+
+    <div class="admin-panel" id="tab-advert">
+      <div class="advert-grid">
+        <div class="admin-form-card advert-controls">
+          <h3 style="font-size:17px; margin-bottom:2px;">Flyer Builder</h3>
+          <div class="helper" style="margin-bottom:8px;">Design an eye-catching flyer and download it as a print-ready PDF.</div>
+
+          <div class="advert-section-title">Background theme</div>
+          <div class="theme-swatch-grid" id="advThemeSwatches">
+            <button type="button" class="theme-swatch swatch-sunrise active" data-theme="sunrise"><span>Sunrise</span></button>
+            <button type="button" class="theme-swatch swatch-farmfresh" data-theme="farmfresh"><span>Farm Fresh</span></button>
+            <button type="button" class="theme-swatch swatch-midnight" data-theme="midnight"><span>Midnight Gold</span></button>
+            <button type="button" class="theme-swatch swatch-sky" data-theme="sky"><span>Sky</span></button>
+            <button type="button" class="theme-swatch swatch-paper" data-theme="paper"><span>Paper</span></button>
+            <button type="button" class="theme-swatch swatch-bold" data-theme="bold"><span>Bold Split</span></button>
+          </div>
+          <div class="advert-bg-upload">
+            <div class="advert-bg-upload-row">
+              <img id="advBgThumb" class="advert-bg-thumb" alt="">
+              <div class="advert-bg-actions">
+                <label for="advBgUpload" class="icon-btn" style="text-align:center; width:100%;">📷 Upload background photo</label>
+                <input type="file" id="advBgUpload" accept="image/*" style="display:none;">
+                <button type="button" class="icon-btn" id="advBgRemoveBtn" style="display:none;">✕ Remove photo</button>
+              </div>
+            </div>
+            <div class="helper">A photo replaces the theme's gradient. A soft dark overlay is added automatically so your text stays readable.</div>
+            <div class="advert-textmode-row" id="advTextModeRow">
+              <button type="button" class="advert-textmode-btn active" data-mode="light" id="advTextModeLight">Light text</button>
+              <button type="button" class="advert-textmode-btn" data-mode="dark" id="advTextModeDark">Dark text</button>
+            </div>
+          </div>
+
+          <div class="advert-section-title">Paper size</div>
+          <div class="field" style="margin-bottom:6px;">
+            <select id="advPaperSize">
+              <option value="a4p">A4 Portrait (210 × 297mm)</option>
+              <option value="a4l">A4 Landscape (297 × 210mm)</option>
+              <option value="a5p">A5 Portrait (148 × 210mm)</option>
+              <option value="letter">US Letter (8.5 × 11in)</option>
+              <option value="ig-square">Instagram Post (1080 × 1080px)</option>
+              <option value="ig-story">Instagram / WhatsApp Story (1080 × 1920px)</option>
+            </select>
+          </div>
+
+          <div class="advert-section-title">Flyer content</div>
+          <div class="field"><label for="advEyebrow">Small tag</label><input id="advEyebrow" type="text" placeholder="e.g. 🐓 Fresh This Week"></div>
+          <div class="field"><label for="advHeadline">Headline</label><textarea id="advHeadline" rows="2" placeholder="e.g. Farm-Fresh Chicken, Delivered Today"></textarea></div>
+          <div class="field"><label for="advSubheadline">Subheading</label><textarea id="advSubheadline" rows="2" placeholder="e.g. Broilers, local fowl, turkeys &amp; more — posted fresh every morning in Batoke-Limbe."></textarea></div>
+
+          <div class="advert-section-title">Promo</div>
+          <div class="advert-toggle-row"><input type="checkbox" id="advPromoActive"><label for="advPromoActive" style="margin:0;">Show promo banner</label></div>
+          <div class="field"><label for="advPromoText">Promo text</label><input id="advPromoText" type="text" placeholder="e.g. 10% OFF all Broilers this week"></div>
+          <div class="field"><label for="advPromoCode">Promo code (optional)</label><input id="advPromoCode" type="text" placeholder="e.g. SOHLAMFRESH"></div>
+
+          <div class="advert-section-title">Company QR code</div>
+          <div class="advert-toggle-row"><input type="checkbox" id="advQrActive" checked><label for="advQrActive" style="margin:0;">Show QR code</label></div>
+          <div class="field"><label for="advQrData">QR links to</label><input id="advQrData" type="text" placeholder="Phone, WhatsApp link, or website"></div>
+          <div class="advert-toggle-row"><input type="checkbox" id="advQrUseUploaded"><label for="advQrUseUploaded" style="margin:0;">Use uploaded site QR image instead</label></div>
+
+          <div class="advert-section-title">Branding &amp; contact</div>
+          <div class="advert-toggle-row"><input type="checkbox" id="advLogoActive" checked><label for="advLogoActive" style="margin:0;">Show logo</label></div>
+          <div class="advert-toggle-row"><input type="checkbox" id="advContactActive" checked><label for="advContactActive" style="margin:0;">Show contact details</label></div>
+
+          <button class="btn-primary advert-download-btn" id="advertDownloadBtn">⬇ Download as PDF</button>
+          <button type="button" class="icon-btn advert-download-btn" style="margin-top:8px;" id="advertDownloadImgBtn">⬇ Download as Image (PNG)</button>
+          <button type="button" class="icon-btn" style="width:100%; margin-top:8px;" id="advertResetBtn">Reset to Defaults</button>
+        </div>
+
+        <div>
+          <div class="flyer-stage">
+            <div class="flyer-canvas theme-sunrise" id="flyerCanvas">
+              <div class="flyer-bg" id="flyerBgLayer"></div>
+              <div class="flyer-scrim"></div>
+              <div class="flyer-content">
+                <div class="flyer-top">
+                  <img id="advLogoImg" class="flyer-logo" alt="">
+                  <div class="flyer-brand" id="advBrandName"></div>
+                </div>
+                <div class="flyer-badge" id="advEyebrowOut"></div>
+                <h1 class="flyer-headline" id="advHeadlineOut"></h1>
+                <p class="flyer-sub" id="advSubOut"></p>
+                <div class="flyer-promo" id="advPromoBox">
+                  <div class="flyer-promo-text" id="advPromoTextOut"></div>
+                  <div class="flyer-promo-code" id="advPromoCodeOut"></div>
+                </div>
+                <div class="flyer-footer">
+                  <div class="flyer-contact" id="advContactOut"></div>
+                  <div class="flyer-qr-wrap" id="advQrWrapOut">
+                    <img id="advQrImgOut" class="flyer-qr" crossorigin="anonymous" alt="QR code">
+                    <div class="flyer-qr-label">Scan to order</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="helper" style="text-align:center; margin-top:10px;">Preview shown at screen size — the downloaded PDF renders at full print resolution.</div>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1733,6 +1978,7 @@
 
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 (function(){
@@ -4019,6 +4265,336 @@
 
   function primaryPhone(){ return (content.contactPhones && content.contactPhones[0] && content.contactPhones[0].number) || ''; }
   function primaryWhatsapp(){ return (content.contactWhatsapps && content.contactWhatsapps[0] && content.contactWhatsapps[0].number) || ''; }
+
+  // ===================== Advert / Flyer Builder =====================
+  const ADVERT_KEY = 'sohlam_advert_v1';
+  const ADVERT_PAPER_SIZES = {
+    'a4p':     {label:'A4 Portrait',  unit:'mm', w:210,  h:297,  pxW:1654, pxH:2339},
+    'a4l':     {label:'A4 Landscape', unit:'mm', w:297,  h:210,  pxW:2339, pxH:1654},
+    'a5p':     {label:'A5 Portrait',  unit:'mm', w:148,  h:210,  pxW:1169, pxH:1654},
+    'letter':  {label:'US Letter',    unit:'mm', w:215.9,h:279.4,pxW:1700, pxH:2200},
+    'ig-square':{label:'Instagram Post', unit:'px', w:1080, h:1080, pxW:1080, pxH:1080},
+    'ig-story': {label:'Instagram / WhatsApp Story', unit:'px', w:1080, h:1920, pxW:1080, pxH:1920}
+  };
+  let advertState = null;
+  let advertInited = false;
+
+  function advertDefaults(){
+    return {
+      theme: 'sunrise',
+      paperSize: 'a4p',
+      eyebrow: '🐓 Fresh This Week',
+      headline: `Farm-Fresh Poultry,\nDelivered Today`,
+      subheadline: content.heroLede ? content.heroLede.slice(0,140) : 'Broilers, local fowl, turkeys, ducks & guinea fowl — posted fresh every morning.',
+      promoActive: false,
+      promoText: '10% OFF your first order',
+      promoCode: '',
+      qrActive: true,
+      qrData: '',
+      qrUseUploaded: false,
+      logoActive: true,
+      contactActive: true,
+      customBg: '',
+      customBgTextMode: 'light'
+    };
+  }
+  function loadAdvertState(){
+    try{
+      const raw = localStorage.getItem(ADVERT_KEY);
+      if(raw) return Object.assign(advertDefaults(), JSON.parse(raw));
+    }catch(e){}
+    return advertDefaults();
+  }
+  function saveAdvertState(){
+    try{
+      const ok = safeSetItem(ADVERT_KEY, JSON.stringify(advertState));
+      if(ok === false && advertState.customBg){
+        console.warn('Flyer Builder: could not persist the custom background photo (storage full) — it will still show for this session.');
+      }
+    }catch(e){
+      console.warn('Flyer Builder: saveAdvertState failed', e);
+    }
+  }
+  function advertQrTarget(){
+    if(advertState.qrData && advertState.qrData.trim()) return advertState.qrData.trim();
+    const wa = primaryWhatsapp() || primaryPhone();
+    if(wa) return 'https://wa.me/' + wa.replace(/[^\d]/g,'');
+    if(content.mapUrl) return content.mapUrl;
+    return bizName();
+  }
+  function advertQrImageUrl(){
+    return 'https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=10&data=' + encodeURIComponent(advertQrTarget());
+  }
+  function initAdvertUI(){
+    if(advertInited) return;
+    advertInited = true;
+    advertState = loadAdvertState();
+
+    document.getElementById('advThemeSwatches').addEventListener('click', e=>{
+      const btn = e.target.closest('.theme-swatch');
+      if(!btn) return;
+      advertState.theme = btn.getAttribute('data-theme');
+      document.querySelectorAll('#advThemeSwatches .theme-swatch').forEach(s=>s.classList.remove('active'));
+      btn.classList.add('active');
+      saveAdvertState();
+      renderAdvertPreview();
+    });
+
+    const bindText = (id, key)=>{
+      document.getElementById(id).addEventListener('input', e=>{
+        advertState[key] = e.target.value;
+        saveAdvertState();
+        renderAdvertPreview();
+      });
+    };
+    bindText('advPaperSize','paperSize');
+    bindText('advEyebrow','eyebrow');
+    bindText('advHeadline','headline');
+    bindText('advSubheadline','subheadline');
+    bindText('advPromoText','promoText');
+    bindText('advPromoCode','promoCode');
+    bindText('advQrData','qrData');
+
+    const bindCheck = (id, key)=>{
+      document.getElementById(id).addEventListener('change', e=>{
+        advertState[key] = e.target.checked;
+        saveAdvertState();
+        renderAdvertPreview();
+      });
+    };
+    bindCheck('advPromoActive','promoActive');
+    bindCheck('advQrActive','qrActive');
+    bindCheck('advQrUseUploaded','qrUseUploaded');
+    bindCheck('advLogoActive','logoActive');
+    bindCheck('advContactActive','contactActive');
+
+    document.getElementById('advBgUpload').addEventListener('change', async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if(!file) return;
+      if(!file.type.startsWith('image/')){ toast('Please choose an image file.'); return; }
+      try{
+        const dataUrl = await compressImageFile(file, 1400, 0.82);
+        advertState.customBg = dataUrl;
+        saveAdvertState();
+        populateAdvertForm();
+        renderAdvertPreview();
+      }catch(err){
+        console.error('Flyer background upload failed:', err);
+        toast('Could not process that photo — try a different image.');
+      }
+    });
+    document.getElementById('advBgRemoveBtn').addEventListener('click', ()=>{
+      advertState.customBg = '';
+      saveAdvertState();
+      populateAdvertForm();
+      renderAdvertPreview();
+    });
+    document.getElementById('advTextModeRow').addEventListener('click', e=>{
+      const btn = e.target.closest('.advert-textmode-btn');
+      if(!btn) return;
+      advertState.customBgTextMode = btn.getAttribute('data-mode');
+      saveAdvertState();
+      populateAdvertForm();
+      renderAdvertPreview();
+    });
+
+    document.getElementById('advertResetBtn').addEventListener('click', ()=>{
+      advertState = advertDefaults();
+      saveAdvertState();
+      populateAdvertForm();
+      renderAdvertPreview();
+    });
+
+    document.getElementById('advertDownloadBtn').addEventListener('click', downloadAdvertPDF);
+    document.getElementById('advertDownloadImgBtn').addEventListener('click', downloadAdvertImage);
+
+    populateAdvertForm();
+    renderAdvertPreview();
+  }
+  function populateAdvertForm(){
+    document.getElementById('advPaperSize').value = advertState.paperSize;
+    document.getElementById('advEyebrow').value = advertState.eyebrow;
+    document.getElementById('advHeadline').value = advertState.headline;
+    document.getElementById('advSubheadline').value = advertState.subheadline;
+    document.getElementById('advPromoActive').checked = advertState.promoActive;
+    document.getElementById('advPromoText').value = advertState.promoText;
+    document.getElementById('advPromoCode').value = advertState.promoCode;
+    document.getElementById('advQrActive').checked = advertState.qrActive;
+    document.getElementById('advQrData').value = advertState.qrData;
+    document.getElementById('advQrUseUploaded').checked = advertState.qrUseUploaded;
+    document.getElementById('advLogoActive').checked = advertState.logoActive;
+    document.getElementById('advContactActive').checked = advertState.contactActive;
+    document.querySelectorAll('#advThemeSwatches .theme-swatch').forEach(s=>{
+      s.classList.toggle('active', s.getAttribute('data-theme') === advertState.theme);
+    });
+    const thumb = document.getElementById('advBgThumb');
+    const removeBtn = document.getElementById('advBgRemoveBtn');
+    const textModeRow = document.getElementById('advTextModeRow');
+    if(advertState.customBg){
+      thumb.src = advertState.customBg;
+      thumb.classList.add('show');
+      removeBtn.style.display = 'block';
+      textModeRow.classList.add('show');
+    } else {
+      thumb.classList.remove('show');
+      removeBtn.style.display = 'none';
+      textModeRow.classList.remove('show');
+    }
+    document.querySelectorAll('.advert-textmode-btn').forEach(b=>{
+      b.classList.toggle('active', b.getAttribute('data-mode') === advertState.customBgTextMode);
+    });
+  }
+  function renderAdvertPreview(){
+    if(!advertState) return;
+    const canvasEl = document.getElementById('flyerCanvas');
+    let cls = 'flyer-canvas theme-' + advertState.theme;
+    if(advertState.customBg) cls += ' has-custom-bg custom-' + advertState.customBgTextMode;
+    canvasEl.className = cls;
+
+    const bgLayer = document.getElementById('flyerBgLayer');
+    if(advertState.customBg){
+      bgLayer.style.backgroundImage = `url("${advertState.customBg}")`;
+      bgLayer.style.backgroundSize = 'cover';
+      bgLayer.style.backgroundPosition = 'center';
+      bgLayer.style.backgroundRepeat = 'no-repeat';
+    } else {
+      bgLayer.style.backgroundImage = 'none';
+      bgLayer.style.backgroundSize = '';
+      bgLayer.style.backgroundPosition = '';
+      bgLayer.style.backgroundRepeat = '';
+    }
+
+    const size = ADVERT_PAPER_SIZES[advertState.paperSize] || ADVERT_PAPER_SIZES.a4p;
+    canvasEl.style.aspectRatio = size.pxW + ' / ' + size.pxH;
+
+    document.getElementById('advBrandName').textContent = bizName();
+    document.getElementById('advEyebrowOut').textContent = advertState.eyebrow || '';
+    document.getElementById('advEyebrowOut').style.display = advertState.eyebrow ? 'inline-block' : 'none';
+    document.getElementById('advHeadlineOut').textContent = advertState.headline || '';
+    document.getElementById('advSubOut').textContent = advertState.subheadline || '';
+
+    const promoBox = document.getElementById('advPromoBox');
+    promoBox.classList.toggle('show', !!advertState.promoActive);
+    document.getElementById('advPromoTextOut').textContent = advertState.promoText || '';
+    const codeEl = document.getElementById('advPromoCodeOut');
+    if(advertState.promoCode){
+      codeEl.textContent = advertState.promoCode;
+      codeEl.classList.add('show');
+    } else {
+      codeEl.classList.remove('show');
+    }
+
+    const logoImg = document.getElementById('advLogoImg');
+    if(advertState.logoActive && branding.logoUrl){
+      logoImg.src = branding.logoUrl;
+      logoImg.classList.add('show');
+    } else {
+      logoImg.classList.remove('show');
+    }
+
+    const contactOut = document.getElementById('advContactOut');
+    if(advertState.contactActive){
+      const phone = primaryPhone();
+      const lines = [];
+      if(phone) lines.push('📞 ' + phone);
+      if(content.contactAddress) lines.push('📍 ' + content.contactAddress);
+      if(content.contactHours) lines.push('🕒 ' + content.contactHours);
+      contactOut.innerHTML = lines.map(l=>`<div>${escapeHtml(l)}</div>`).join('');
+      contactOut.style.display = lines.length ? 'block' : 'none';
+    } else {
+      contactOut.style.display = 'none';
+    }
+
+    const qrWrap = document.getElementById('advQrWrapOut');
+    const qrImg = document.getElementById('advQrImgOut');
+    if(advertState.qrActive && (advertState.qrUseUploaded ? content.siteQr : true)){
+      qrImg.src = advertState.qrUseUploaded && content.siteQr ? content.siteQr : advertQrImageUrl();
+      qrWrap.classList.add('show');
+    } else {
+      qrWrap.classList.remove('show');
+    }
+  }
+  // Shared high-resolution capture used by both the PDF and PNG export paths,
+  // so the two downloads always match the on-screen preview pixel-for-pixel
+  // (same scale factor, same canvas). Rendering the live DOM node (rather than
+  // re-drawing the background separately) is what guarantees the exported
+  // file shows the exact uploaded photo the user sees in the preview, at full
+  // print resolution rather than a stretched/cropped stand-in.
+  async function shotAdvertCanvas(){
+    const canvasEl = document.getElementById('flyerCanvas');
+    const size = ADVERT_PAPER_SIZES[advertState.paperSize] || ADVERT_PAPER_SIZES.a4p;
+    const renderedWidth = canvasEl.getBoundingClientRect().width || 1;
+    const scale = Math.max(2, size.pxW / renderedWidth);
+    const shot = await html2canvas(canvasEl, {
+      scale,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#ffffff'
+    });
+    return { shot, size };
+  }
+  async function downloadAdvertPDF(){
+    if(!window.html2canvas || !window.jspdf){
+      toast('PDF tool failed to load — check your connection.');
+      return;
+    }
+    const btn = document.getElementById('advertDownloadBtn');
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Preparing PDF…';
+    try{
+      const { shot, size } = await shotAdvertCanvas();
+      const imgData = shot.toDataURL('image/jpeg', 0.93);
+
+      const { jsPDF } = window.jspdf;
+      let doc;
+      if(size.unit === 'mm'){
+        doc = new jsPDF({ unit:'mm', format:[size.w, size.h] });
+        doc.addImage(imgData, 'JPEG', 0, 0, size.w, size.h);
+      } else {
+        doc = new jsPDF({ unit:'px', format:[size.pxW, size.pxH] });
+        doc.addImage(imgData, 'JPEG', 0, 0, size.pxW, size.pxH);
+      }
+      const safeName = bizName().replace(/[^a-z0-9]+/gi, '_');
+      doc.save(`${safeName}_Flyer_${advertState.paperSize}.pdf`);
+      toast('Flyer PDF downloaded!');
+    }catch(e){
+      console.error('Advert PDF export failed:', e);
+      toast('Could not build the PDF. Try again, or switch off the QR code if it keeps failing.');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  }
+  async function downloadAdvertImage(){
+    if(!window.html2canvas){
+      toast('Image tool failed to load — check your connection.');
+      return;
+    }
+    const btn = document.getElementById('advertDownloadImgBtn');
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Preparing image…';
+    try{
+      const { shot } = await shotAdvertCanvas();
+      const imgData = shot.toDataURL('image/png');
+      const safeName = bizName().replace(/[^a-z0-9]+/gi, '_');
+      const link = document.createElement('a');
+      link.href = imgData;
+      link.download = `${safeName}_Flyer_${advertState.paperSize}.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast('Flyer image downloaded!');
+    }catch(e){
+      console.error('Advert image export failed:', e);
+      toast('Could not build the image. Try again, or switch off the QR code if it keeps failing.');
+    }finally{
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
+  }
   function renderContact(){
     document.getElementById('contactHeading').textContent = content.contactHeading || 'Get in Touch';
     document.getElementById('contactStamp').textContent = content.contactStamp || '';
@@ -5524,6 +6100,7 @@
       document.querySelectorAll('.admin-panel').forEach(p=>p.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tab-' + tab.getAttribute('data-tab')).classList.add('active');
+      if(tab.getAttribute('data-tab') === 'advert') initAdvertUI();
     });
   });
 
