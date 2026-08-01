@@ -2176,6 +2176,34 @@
     safeSetItem(PASSCODE_KEY, DEFAULT_PASSCODE);
     return DEFAULT_PASSCODE;
   }
+  // Hashes are how the passcode is stored/compared from here on — so a
+  // casual look at localStorage or the Firestore doc doesn't hand over the
+  // actual current passcode in plain text. Note this only protects against
+  // reading the stored value; it doesn't change the fact that the pass/fail
+  // check itself still runs in the visitor's own browser (see the security
+  // conversation above — that part needs real Firestore rules, not just
+  // hashing, to actually stop someone from bypassing the check entirely).
+  async function sha256Hex(str){
+    const bytes = new TextEncoder().encode(str);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return Array.from(new Uint8Array(digest)).map(b=> b.toString(16).padStart(2,'0')).join('');
+  }
+  // Accepts either a value that already matches the stored hash, OR (for
+  // any device that still has an old plain-text passcode from before this
+  // change) a value that matches the stored plain text directly — and in
+  // that second case, transparently re-saves it as a hash so the migration
+  // happens on its own the next time someone successfully logs in, with no
+  // manual step required.
+  async function checkPasscode(entered){
+    try{
+      if((await sha256Hex(entered)) === adminPasscode) return true;
+    }catch(e){ console.warn('Passcode hash check failed:', e); }
+    if(entered === adminPasscode){
+      savePasscode(entered);
+      return true;
+    }
+    return false;
+  }
   // Reads cached branding instantly from localStorage so the header, tab
   // title and favicon can be painted correctly before the cloud listener
   // below has had a chance to connect. Falls back to the built-in defaults
@@ -2187,11 +2215,12 @@
     }catch(e){}
     return Object.assign({}, DEFAULT_BRANDING);
   }
-  function savePasscode(pass){
-    adminPasscode = pass;
-    safeSetItem(PASSCODE_KEY, pass);
+  async function savePasscode(pass){
+    const hashed = await sha256Hex(pass);
+    adminPasscode = hashed;
+    safeSetItem(PASSCODE_KEY, hashed);
     if(CLOUD_ENABLED && db){
-      db.collection('site').doc('passcode').set({value: pass}).catch(e=>{ console.error('Passcode sync failed:', e); toast('Could not sync passcode — check your connection.'); });
+      db.collection('site').doc('passcode').set({value: hashed}).catch(e=>{ console.error('Passcode sync failed:', e); toast('Could not sync passcode — check your connection.'); });
     }
   }
   function saveProducts(p){
@@ -2389,9 +2418,17 @@
       db = firebase.firestore();
       try{ storage = firebase.storage(); }catch(e){ console.warn('Firebase Storage unavailable — video uploads will be disabled:', e); storage = null; }
 
-      db.collection('orders').onSnapshot(snap=>{
-        cloudConnected = true;
-        setCloudStatus('on');
+      db.collection('orders').onSnapshot({includeMetadataChanges: true}, snap=>{
+        // Firestore serves cached/local data to this callback immediately,
+        // even with zero network access (that's what lets the app work
+        // offline at all) — snap.metadata.fromCache tells them apart. Only
+        // a server-confirmed snapshot means we're genuinely back online;
+        // treating a cached snapshot as "online" is exactly why refreshing
+        // while offline used to show "Back online" immediately.
+        if(!snap.metadata.fromCache){
+          cloudConnected = true;
+          setCloudStatus('on');
+        }
         const newOrders = snap.docs.map(d=>d.data()).sort((a,b)=> a.id - b.id);
         // Guard against a snapshot that hasn't caught up yet with an order
         // this device just placed (e.g. the listener's read lands a beat
@@ -2450,6 +2487,8 @@
       }, err=> console.error('Pending reviews sync error:', err));
 
       db.collection('site').doc('passcode').onSnapshot(doc=>{
+        // Whatever's stored here is always a SHA-256 hash now (see
+        // savePasscode/checkPasscode above) — never the plain passcode.
         if(doc.exists){
           adminPasscode = doc.data().value;
           safeSetItem(PASSCODE_KEY, adminPasscode);
@@ -2493,6 +2532,16 @@
   // ever being inserted into the page.
   function escapeHtml(s){
     return String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+  // Excel/Sheets treats a cell starting with =, +, -, or @ as a formula.
+  // Customer-entered fields (name, phone, address, notes) go straight into
+  // the admin's Excel export with no other sanitization, so someone could
+  // otherwise get a live formula to run the moment the admin opens the
+  // file. A leading apostrophe forces Excel to treat the cell as plain
+  // text instead — it doesn't show up in the displayed cell value.
+  function csvSafe(s){
+    const str = String(s == null ? '' : s);
+    return /^[=+\-@]/.test(str) ? "'" + str : str;
   }
 
   // Builds the "Pay via Mobile Money" card from whichever methods the admin
@@ -3083,6 +3132,10 @@
     playChime(kind);
     setTimeout(remove, 7000);
   }
+  // Other script blocks (e.g. the install-flow IIFE further down) run in a
+  // separate closure and can't see this function directly — expose it on
+  // window so they can still trigger a pop-up card.
+  window.showNotification = showNotification;
 
   // Updates the red count badge on the admin "Orders" tab plus the summary
   // line inside that tab, based on orders that are neither delivered nor
@@ -3136,7 +3189,7 @@
         const itemCount = (o.items || []).length;
         showNotification(
           `🛎️ New order #${o.id}`,
-          `${o.customerName || 'A customer'} · ${fmtMoney(o.total || 0)} · ${itemCount} item${itemCount===1?'':'s'}`,
+          `${escapeHtml(o.customerName) || 'A customer'} · ${fmtMoney(o.total || 0)} · ${itemCount} item${itemCount===1?'':'s'}`,
           'new-order'
         );
       }
@@ -3157,7 +3210,7 @@
         if(isMine || isAdminView){
           showNotification(
             isMine ? `📦 Your order #${o.id} is ready!` : `📦 Order #${o.id} is ready`,
-            isMine ? `Come grab it whenever you're set — see you soon!` : `${o.customerName || 'A customer'}'s order is ready for pickup.`,
+            isMine ? `Come grab it whenever you're set — see you soon!` : `${escapeHtml(o.customerName) || 'A customer'}'s order is ready for pickup.`,
             'ready'
           );
         }
@@ -3168,7 +3221,7 @@
         if(isMine || isAdminView){
           showNotification(
             isMine ? `✅ Your order #${o.id} has been delivered!` : `📦 Order #${o.id} delivered`,
-            isMine ? `Thanks for shopping with ${bizName()} — enjoy!` : `${o.customerName || 'A customer'}'s order just went out.`,
+            isMine ? `Thanks for shopping with ${bizName()} — enjoy!` : `${escapeHtml(o.customerName) || 'A customer'}'s order just went out.`,
             'delivered'
           );
         }
@@ -3445,10 +3498,10 @@
     const summaryRows = [...orders].reverse().map(o=>({
       'Order #': o.id,
       'Date': fmtDateTime(o.timestamp),
-      'Customer Name': o.customerName,
-      'Phone': o.phone,
-      'Delivery Address': o.address,
-      'Notes': o.notes || '',
+      'Customer Name': csvSafe(o.customerName),
+      'Phone': csvSafe(o.phone),
+      'Delivery Address': csvSafe(o.address),
+      'Notes': csvSafe(o.notes || ''),
       'Item Count': o.items.length,
       'Total (XAF)': Math.round(o.total),
       'Status': statusLabelMap[o.status] || o.status,
@@ -3462,9 +3515,9 @@
         itemRows.push({
           'Order #': o.id,
           'Date': fmtDateTime(o.timestamp),
-          'Customer Name': o.customerName,
-          'Phone': o.phone,
-          'Delivery Address': o.address,
+          'Customer Name': csvSafe(o.customerName),
+          'Phone': csvSafe(o.phone),
+          'Delivery Address': csvSafe(o.address),
           'Item': i.name,
           'Quantity': formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel),
           'Unit Price (XAF)': Math.round(i.pricePerKg),
@@ -4202,7 +4255,7 @@
             <h3>${p.name}</h3>
             <div class="ticket-cut">${p.cut} &middot; ${qtyText}</div>
             <div class="ticket-price">${fmtMoney(p.pricePerKg)} <span>/ ${unitNounOf(p)}</span></div>
-            ${p.notes ? `<div class="ticket-note">${p.notes}</div>` : ''}
+            ${p.notes ? `<div class="ticket-note">${escapeHtml(p.notes)}</div>` : ''}
           </div>
           <div class="qty-row">
             <div class="qty-stepper" style="${s==='sold' ? 'opacity:0.5; pointer-events:none;' : ''}">
@@ -5430,9 +5483,9 @@
     replaceLayer('admin', hideAdminDom);
   });
 
-  document.getElementById('adminLoginBtn').addEventListener('click', ()=>{
+  document.getElementById('adminLoginBtn').addEventListener('click', async ()=>{
     const val = document.getElementById('adminPass').value;
-    if(val === adminPasscode){
+    if(await checkPasscode(val)){
       document.getElementById('adminGate').style.display = 'none';
       document.getElementById('adminDashboard').style.display = 'block';
       document.getElementById('adminError').textContent = '';
@@ -6601,14 +6654,14 @@
     toast('Contact information updated.');
   });
 
-  document.getElementById('savePasscodeBtn').addEventListener('click', ()=>{
+  document.getElementById('savePasscodeBtn').addEventListener('click', async ()=>{
     const cur = document.getElementById('cCurrentPass').value;
     const next = document.getElementById('cNewPass').value;
     const confirmVal = document.getElementById('cConfirmPass').value;
     const msg = document.getElementById('passcodeMsg');
     msg.style.color = 'var(--rust)';
 
-    if(cur !== adminPasscode){
+    if(!(await checkPasscode(cur))){
       msg.textContent = 'Current passcode is incorrect.';
       return;
     }
@@ -6796,7 +6849,7 @@
             ${pendingVerification ? `<span class="status-pill" style="background:rgba(204,106,0,0.15); color:var(--yolk-deep);">Pending Verification</span>` : ''}
           </span>
         </div>
-        <div style="font-size:13.5px; font-weight:600;">${o.customerName} &middot; ${o.phone}</div>
+        <div style="font-size:13.5px; font-weight:600;">${escapeHtml(o.customerName)} &middot; ${escapeHtml(o.phone)}</div>
         <div class="order-items">${o.items.map(i=>`${i.name} (${formatQty(i.qtyKg, i.unitType||'weight', i.unitLabel)})`).join(', ')}</div>
         <div class="mono" style="font-weight:700;">${fmtMoney(o.total)}</div>
         ${o.transactionId ? `<div style="font-size:12px; color:rgba(33,26,20,0.6); margin-top:4px;">Txn ID: <span class="mono">${o.transactionId}</span></div>` : ''}
@@ -6966,9 +7019,23 @@
       connectivityBannerTimer = setTimeout(()=> el.classList.remove('show'), 4000);
     }
   }
-  window.addEventListener('offline', ()=> showConnectivityBanner('offline'));
+  window.addEventListener('offline', ()=>{
+    // Without resetting this, the app just sits there believing it's still
+    // connected (nothing else tells it otherwise), so the banner never
+    // reappears and, worse, a later 'online' event won't bother retrying
+    // the connection because cloudConnected still (wrongly) reads true.
+    cloudConnected = false;
+    setCloudStatus('error', 'device offline');
+  });
   window.addEventListener('online', ()=>{
-    showConnectivityBanner('online');
+    // Deliberately NOT calling showConnectivityBanner('online') here.
+    // navigator.onLine / the browser's 'online' event only reflect that the
+    // network adapter has a link (Wi-Fi/cellular radio connected) — not that
+    // there's real internet access (captive portals, a router still coming
+    // back up, etc. all report "online" while actually unreachable). Retry
+    // the real connection instead; setCloudStatus('on') above already shows
+    // this same banner, but only once Firestore genuinely confirms data is
+    // flowing, which is a trustworthy signal.
     if(CLOUD_ENABLED && !cloudConnected) connectCloud();
   });
 
@@ -6990,7 +7057,7 @@
   const cloudPillEl = document.getElementById('cloudStatusPill');
   if(cloudPillEl) cloudPillEl.addEventListener('click', ()=> connectCloud());
   connectCloud();
-  if(!navigator.onLine) showConnectivityBanner('offline');
+  if(!navigator.onLine){ cloudConnected = false; setCloudStatus('error', 'device offline'); }
 })();
 </script>
 <script>
@@ -7040,7 +7107,26 @@
       iosBanner?.classList.add('show');
       return;
     }
-    toast('To install, use "Add to Home Screen" or "Install app" from your browser menu.');
+    // No install prompt available yet (common on desktop Chrome/Edge before
+    // the browser's own engagement/eligibility checks have passed, or if an
+    // install was dismissed earlier — and always the case when testing a
+    // locally-opened file rather than the live HTTPS site, since installability
+    // requires a real secure origin). A 2-second toast is too easy to miss
+    // here, so use the same pop-up card style as branding announcements —
+    // it stays up for 7 seconds and has to be dismissed by hand.
+    if(isMobileDevice()){
+      window.showNotification(
+        "Can't install automatically yet",
+        'Open your browser\'s ⋮ menu (top right) and choose "Add to Home screen" or "Install app". If you don\'t see that option, try reloading the page first.',
+        'branding'
+      );
+    } else {
+      window.showNotification(
+        "Can't install automatically yet",
+        'Look for an install icon (⊕ or a small monitor) at the right edge of your address bar and click it — or open your browser\'s ⋮ menu and choose "Install SOHLAM…" / "Install app". If neither shows up, try reloading the page first.',
+        'branding'
+      );
+    }
   }
 
   const INSTALLED_KEY = 'sohlam_pwa_installed_confirmed';
@@ -7114,6 +7200,10 @@
   function isSafari(){
     const ua = navigator.userAgent;
     return /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(ua);
+  }
+
+  function isMobileDevice(){
+    return isIOS() || /android|mobile/i.test(navigator.userAgent);
   }
 
   updateDownloadBar();
