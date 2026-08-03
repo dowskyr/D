@@ -2707,7 +2707,11 @@
           // inventory list in sync the same way the storefront already is.
           renderAdminProducts();
         }
-      }, err=>{ console.error('Orders sync error:', err); setCloudStatus('error'); });
+      }, err=>{
+        console.error('Orders sync error:', err);
+        cloudConnected = false;
+        setCloudStatus('error', (err && err.message) ? err.message : 'sync error');
+      });
 
       db.collection('catalog').doc('products').onSnapshot(doc=>{
         if(doc.exists){
