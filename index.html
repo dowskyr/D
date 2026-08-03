@@ -7922,6 +7922,16 @@ if ('serviceWorker' in navigator) {
         // Also check for a waiting/updated worker on every load so updates
         // are picked up promptly, even on devices that rarely close the app.
         reg.update().catch(() => {});
+
+        // PWAs on mobile are often just resumed from the background rather
+        // than freshly loaded, so also re-check whenever the app regains
+        // focus/visibility — this is what makes it "follow" new deploys
+        // without the user needing to force-close and reopen the app.
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            reg.update().catch(() => {});
+          }
+        });
       })
       .catch(err => {
         // A 404 here almost always just means sw.js hasn't been deployed
