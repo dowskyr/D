@@ -3542,14 +3542,29 @@
       }
     }
 
+    // Business logo, top-left of the header — same admin-uploaded logo used
+    // for the site header/app icon (branding.logoUrl). Falls back to
+    // text-only if no logo has been set, so nothing shifts for shops that
+    // don't use one.
+    let headerTextX = marginX;
+    if(branding.logoUrl){
+      try{
+        const logoSize = 40;
+        doc.addImage(branding.logoUrl, imgFormatFromDataUrl(branding.logoUrl), marginX, y - 22, logoSize, logoSize);
+        headerTextX = marginX + logoSize + 12;
+      }catch(e){
+        console.error('Could not embed logo on receipt:', e);
+      }
+    }
+
     doc.setFont('helvetica','bold'); doc.setFontSize(18);
-    doc.text(bizName(), marginX, y);
+    doc.text(bizName(), headerTextX, y);
     doc.setFont('helvetica','normal'); doc.setFontSize(10);
     y += 16;
-    doc.text('Sow Little, Harvest More · ' + (content.contactAddress || 'Batoke-Limbe'), marginX, y);
+    doc.text('Sow Little, Harvest More · ' + (content.contactAddress || 'Batoke-Limbe'), headerTextX, y);
     y += 14;
     const contactBits = [(content.contactPhones||[]).map(p=>p.number).filter(Boolean).join(', '), content.contactEmail].filter(Boolean).join('   ·   ');
-    if(contactBits){ doc.text(contactBits, marginX, y); y += 14; }
+    if(contactBits){ doc.text(contactBits, headerTextX, y); y += 14; }
 
     doc.setDrawColor(180); doc.line(marginX, y+4, 555, y+4);
     y += 26;
